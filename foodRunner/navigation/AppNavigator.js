@@ -2,7 +2,6 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 
-// 스크린들 import
 import IngredientScreen from '../screens/IngredientScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
@@ -20,14 +19,14 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }}/>
-        {/* <Stack.Screen name="SignUp" component={SignUpScreen} /> */}
-        {/* <Stack.Screen name="Ingrdient" component={IngrdientScreen} /> */}
-        {/* <Stack.Screen name="NutritionCalendar" component={NutritionCalendarScreen} /> */}
-        {/* <Stack.Screen name="NutritionMain" component={NutritionMainScreen} /> */}
-        {/* <Stack.Screen name="DietRegistration" component={DietRegistrationScreen} /> */}
-        {/* <Stack.Screen name="VitaminRegistion" component={VitaminRegistionScreen} /> */}
-        {/* <Stack.Screen name="DietRecommendation" component={DietRecommendationScreen} /> */}
-        {/* <Stack.Screen name="DietRecipe" component={DietRecipeScreen} /> */}
+        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }}/> 
+        <Stack.Screen name="Ingredient" component={IngredientScreen} options={{ headerShown: false }}/> 
+        <Stack.Screen name="NutritionCalendar" component={NutritionCalendarScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="NutritionMain" component={NutritionMainScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="DietRegistration" component={DietRegistrationScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="VitaminRegistion" component={VitaminRegistrationScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="DietRecommendation" component={DietRecommendationScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="DietRecipe" component={DietRecipeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

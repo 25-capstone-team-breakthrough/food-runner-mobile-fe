@@ -1,19 +1,94 @@
-import React from 'react';
-import { View, Text, Button , SafeAreaView, StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import { View, Text, TextInput, ScrollView, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import FoodItem from "../components/FoodItem";
+import BottomNavigation from "../components/BottomNavigation";
 
-export default function DietRecommendationScreen({ navigation }) {
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text>DietRecommendation Screen</Text>
-      <Button title="Go to Home" onPress={() => navigation.navigate('Home')} />
-    </SafeAreaView>
-  );
-}
+const DietRecommendationScreen = () => {
+    const navigation = useNavigation();
+
+    // 하드코딩된 추천 식단 데이터 (백엔드 없이 UI 테스트 가능)
+    const recommendedMeals = {
+        Breakfast: [
+            { id: "1", name: "바나나 한 조각", calories: "31kcal 당 100g", image: require("../assets/logo.png") },
+            { id: "2", name: "프로틴 쉐이크", calories: "102kcal 당 100ml", image: require("../assets/logo.png") },
+        ],
+        Lunch: [
+            { id: "3", name: "닭 가슴살", calories: "239kcal 당 100g", image: require("../assets/logo.png") },
+            { id: "4", name: "삶은 계란", calories: "155kcal 당 100ml", image: require("../assets/logo.png") },
+        ],
+        Dinner: [
+            { id: "5", name: "고구마", calories: "86kcal 당 100g", image: require("../assets/logo.png") },
+            { id: "6", name: "연어 스테이크", calories: "208kcal 당 100g", image: require("../assets/logo.png") },
+        ],
+    };
+
+    return (
+        <View style={styles.container}>
+            {/* 검색 바 */}
+            <View style={styles.searchBar}>
+                <Ionicons name="search" size={20} color="gray" />
+                <TextInput style={styles.input} placeholder="식재료를 추가해주세요" />
+            </View>
+
+            {/* 스크롤 가능하게 수정 */}
+            <ScrollView>
+                {Object.entries(recommendedMeals).map(([mealType, foods]) => (
+                    <View key={mealType}>
+                        <View style={styles.mealHeader}>
+                            <Text style={styles.mealTitle}>{mealType}</Text>
+                            <TouchableOpacity>
+                                <Ionicons name="refresh" size={24} color="black" />
+                            </TouchableOpacity>
+                        </View>
+                        {foods.map((food) => (
+                            <TouchableOpacity
+                                key={food.id}
+                                onPress={() => navigation.navigate("DietRecipe", { recipe: food })}
+                            >
+                                <FoodItem food={food} />
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                ))}
+            </ScrollView>
+
+            <BottomNavigation />
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
-      flex: 1,  // 화면 전체를 차지하도록 설정
-      justifyContent: 'center',  // 내용 중앙 정렬
-      alignItems: 'center',  // 내용 중앙 정렬
+        flex: 1,
+        padding: 20,
+        backgroundColor: "#F8F8F8",
     },
-  });
+    searchBar: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#EEE",
+        paddingHorizontal: 15,
+        borderRadius: 10,
+        height: 40,
+        marginBottom: 15,
+    },
+    input: {
+        flex: 1,
+        marginLeft: 10,
+    },
+    mealHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: 20,
+        marginBottom: 10,
+    },
+    mealTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+    },
+});
+
+export default DietRecommendationScreen;

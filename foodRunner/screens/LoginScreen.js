@@ -1,19 +1,120 @@
-import React from 'react';
-import { View, Text, Button , SafeAreaView, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Image } from "react-native";
 
 export default function LoginScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
-      <Text>Login Screen</Text>
-      <Button title="Go to Home" onPress={() => navigation.navigate('Home')} />
+      {/* 로고 */}
+      <Image source={require("../assets/logo.png")} style={styles.logo} />
+
+      {/* 로그인 타이틀 */}
+      <Text style={styles.title}>LOG IN</Text>
+
+      {/* 이메일/전화번호 입력 */}
+      <View style={styles.inputContainer}>
+        <TextInput style={styles.input} placeholder="이메일 또는 전화번호" placeholderTextColor="#ccc" />
+        <TouchableOpacity style={styles.verifyButton}>
+          <Text style={styles.verifyText}>인증</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 비밀번호 입력 */}
+      <TextInput style={styles.input} placeholder="비밀번호 또는 인증번호" placeholderTextColor="#ccc" secureTextEntry />
+
+      {/* 로그인 버튼 */}
+      <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("Ingredient")}>
+        <Text style={styles.loginText}>로그인</Text>
+      </TouchableOpacity>
+
+      {/* 회원가입 텍스트 */}
+      <Text style={styles.registerText}>
+        아직 회원이 아니신가요?{" "}
+        <Text style={styles.registerLink} onPress={() => navigation.navigate("SignUp")}>
+          회원가입하기
+        </Text>
+      </Text>
+
+      {/* 앱 이름 */}
+      <Text style={styles.footerText}>Food Runner</Text>
+      <Text style={styles.madeBy}>made by 체력돌파</Text>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,  // 화면 전체를 차지하도록 설정
-      justifyContent: 'center',  // 내용 중앙 정렬
-      alignItems: 'center',  // 내용 중앙 정렬
-    },
-  });
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+  },
+  title: {
+    color: "#C8FF00",
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#222",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginBottom: 15,
+  },
+  input: {
+    flex: 1,
+    height: 45,
+    color: "#fff",
+    fontSize: 16,
+    paddingHorizontal: 10,
+  },
+  verifyButton: {
+    backgroundColor: "#C8FF00",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+  },
+  verifyText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  loginButton: {
+    backgroundColor: "#C8FF00",
+    width: "80%",
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 10,
+    marginTop: 15,
+  },
+  loginText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  registerText: {
+    color: "#fff",
+    marginTop: 20,
+    fontSize: 14,
+  },
+  registerLink: {
+    color: "#C8FF00",
+    fontWeight: "bold",
+  },
+  footerText: {
+    color: "#C8FF00",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 40,
+  },
+  madeBy: {
+    color: "#888",
+    fontSize: 12,
+  },
+});
