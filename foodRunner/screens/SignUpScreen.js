@@ -48,8 +48,8 @@ export default function SignUpScreen({ navigation }) {
       />
 
       {/* 회원가입 버튼 */}
-      <TouchableOpacity style={styles.signupButton}>
-        <Text style={styles.signupText} onPress={() => navigation.navigate("Login")}>  {/* 회원가입이 완료되었습니다 알림 추가 */}
+      <TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.signupText} >  {/* 회원가입이 완료되었습니다 알림 추가 */}
             회원가입
         </Text>
       </TouchableOpacity>
