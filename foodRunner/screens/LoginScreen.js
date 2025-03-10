@@ -19,7 +19,9 @@ export default function LoginScreen({ navigation }) {
       </View>
 
       {/* 비밀번호 입력 */}
-      <TextInput style={styles.input} placeholder="비밀번호 또는 인증번호" placeholderTextColor="#ccc" secureTextEntry />
+      <View style={styles.inputContainer}>
+        <TextInput style={styles.input} placeholder="비밀번호 또는 인증번호" placeholderTextColor="#ccc"secureTextEntry/>
+      </View>
 
       {/* 로그인 버튼 */}
       <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("Ingredient")}>
@@ -28,7 +30,7 @@ export default function LoginScreen({ navigation }) {
 
       {/* 회원가입 텍스트 */}
       <Text style={styles.registerText}>
-        아직 회원이 아니신가요?{" "}
+        아직 회원이 아니신가요? {" "}
         <Text style={styles.registerLink} onPress={() => navigation.navigate("SignUp")}>
           회원가입하기
         </Text>
@@ -49,23 +51,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 20,
+    width: 120,
+    height: 120,
+    marginTop: -80,
+    marginBottom: 30,
   },
   title: {
     color: "#C8FF00",
-    fontSize: 28,
+    fontSize: 48,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 50,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#222",
-    borderRadius: 10,
+    borderRadius: 30,
     paddingHorizontal: 10,
-    marginBottom: 15,
+    marginBottom: 20,
+    width: "90%",
   },
   input: {
     flex: 1,
@@ -78,7 +82,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#C8FF00",
     paddingVertical: 10,
     paddingHorizontal: 15,
-    borderRadius: 10,
+    borderRadius: 30,
   },
   verifyText: {
     fontSize: 16,
@@ -90,8 +94,8 @@ const styles = StyleSheet.create({
     width: "80%",
     paddingVertical: 12,
     alignItems: "center",
-    borderRadius: 10,
-    marginTop: 15,
+    borderRadius: 30,
+    marginTop: 50,
   },
   loginText: {
     fontSize: 18,
@@ -100,7 +104,7 @@ const styles = StyleSheet.create({
   },
   registerText: {
     color: "#fff",
-    marginTop: 20,
+    marginTop: 30,
     fontSize: 14,
   },
   registerLink: {
@@ -108,12 +112,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   footerText: {
+    position: "absolute",
+    bottom: 60,
     color: "#C8FF00",
     fontSize: 18,
     fontWeight: "bold",
     marginTop: 40,
   },
   madeBy: {
+    position: "absolute",
+    bottom: 45,
     color: "#888",
     fontSize: 12,
   },
