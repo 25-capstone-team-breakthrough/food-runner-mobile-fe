@@ -1,20 +1,52 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Alert, Image } from "react-native";
 
 export default function SignUpScreen({ navigation }) {
   const [name, setName] = useState("");
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
+  const [isIdChecked, setIsIdChecked] = useState(false); // 아이디 중복 확인 여부
+
+  // 아이디 중복 확인 (예제)
+  const checkDuplicateId = () => {
+    if (id.trim().length < 4) {
+      Alert.alert("아이디 오류", "아이디는 최소 4자 이상 입력해야 합니다.");
+      return;
+    }
+    // 실제 API 요청이 필요하지만, 여기서는 예제
+    setIsIdChecked(true);
+    Alert.alert("확인 완료", "아이디를 사용할 수 있습니다.");
+  };
+
+  // 유효성 검사 및 회원가입 처리
+  const handleSignUp = () => {
+    if (name.trim() === "") {
+      Alert.alert("입력 오류", "이름을 입력해주세요.");
+      return;
+    }
+    if (id.trim().length < 4) {
+      Alert.alert("입력 오류", "아이디는 최소 4자 이상 입력해야 합니다.");
+      return;
+    }
+    if (!isIdChecked) {
+      Alert.alert("확인 필요", "아이디 중복 확인을 해주세요.");
+      return;
+    }
+    if (password.length < 6 || !/\W/.test(password)) {
+      Alert.alert("비밀번호 오류", "비밀번호는 최소 6자 이상이며 특수문자를 포함해야 합니다.");
+      return;
+    }
+
+    Alert.alert("회원가입 완료", "회원가입이 완료되었습니다.");
+    navigation.navigate("Login");
+  };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* 로고 */}
-      <Text style={styles.logo}>🍏🏋️</Text>
-
-      {/* 제목 */}
+      <Image source={require("../assets/logo.png")} style={styles.logo} />
       <Text style={styles.title}>SIGN UP</Text>
 
-      {/* 이름 입력 */}
       <TextInput
         style={styles.input}
         placeholder="이름"
@@ -23,21 +55,22 @@ export default function SignUpScreen({ navigation }) {
         onChangeText={setName}
       />
 
-      {/* 아이디 입력 */}
       <View style={styles.idContainer}>
         <TextInput
           style={styles.idInput}
           placeholder="아이디"
           placeholderTextColor="#ccc"
           value={id}
-          onChangeText={setId}
+          onChangeText={(text) => {
+            setId(text);
+            setIsIdChecked(false); // 아이디 변경 시 중복 확인 필요
+          }}
         />
-        <TouchableOpacity style={styles.checkButton}>
+        <TouchableOpacity style={styles.checkButton} onPress={checkDuplicateId}>
           <Text style={styles.checkText}>중복</Text>
         </TouchableOpacity>
       </View>
 
-      {/* 비밀번호 입력 */}
       <TextInput
         style={styles.input}
         placeholder="비밀번호"
@@ -47,24 +80,20 @@ export default function SignUpScreen({ navigation }) {
         onChangeText={setPassword}
       />
 
-      {/* 회원가입 버튼 */}
-      <TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.signupText} >  {/* 회원가입이 완료되었습니다 알림 추가 */}
-            회원가입
-        </Text>
+      <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
+        <Text style={styles.signupText}>회원가입</Text>
       </TouchableOpacity>
 
-      {/* 로그인 링크 */}
       <Text style={styles.loginText}>
         회원이신가요?{" "}
         <Text style={styles.loginLink} onPress={() => navigation.navigate("Login")}>
           로그인하기
         </Text>
       </Text>
-
-      {/* 푸터 */}
-      <Text style={styles.footer}>Food Runner{"\n"}made by 체력돌파</Text>
-    </View>
+      
+      <Text style={styles.footerText}>Food Runner</Text>
+      <Text style={styles.footer}>made by 체력돌파</Text>
+    </SafeAreaView>
   );
 }
 
@@ -76,43 +105,45 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    fontSize: 50,
-    marginBottom: 10,
-    color: "#C8FF00",
+    width: 120,
+    height: 120,
+    marginTop: -80,
+    marginBottom: 30,
   },
   title: {
     color: "#C8FF00",
-    fontSize: 28,
+    fontSize: 48,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 50,
   },
   input: {
-    width: "80%",
+    width: "90%",
     height: 45,
     backgroundColor: "#222",
-    borderRadius: 10,
+    borderRadius: 30,
     paddingHorizontal: 15,
     marginBottom: 10,
     color: "#fff",
   },
   idContainer: {
     flexDirection: "row",
-    width: "80%",
+    width: "90%",
     alignItems: "center",
   },
   idInput: {
     flex: 1,
     height: 45,
     backgroundColor: "#222",
-    borderRadius: 10,
+    borderRadius: 30,
     paddingHorizontal: 15,
+    marginBottom: 10,
     color: "#fff",
   },
   checkButton: {
     backgroundColor: "#C8FF00",
     paddingVertical: 10,
     paddingHorizontal: 15,
-    borderRadius: 10,
+    borderRadius: 30,
     marginLeft: 10,
   },
   checkText: {
@@ -124,8 +155,9 @@ const styles = StyleSheet.create({
     width: "80%",
     paddingVertical: 12,
     alignItems: "center",
-    borderRadius: 10,
-    marginTop: 15,
+    borderRadius: 30,
+    marginTop: 40,
+    marginBottom: 10,
   },
   signupText: {
     fontSize: 18,
@@ -141,11 +173,18 @@ const styles = StyleSheet.create({
     color: "#C8FF00",
     fontWeight: "bold",
   },
-  footer: {
-    color: "#666",
-    fontSize: 12,
-    textAlign: "center",
+  footerText: {
     position: "absolute",
-    bottom: 20,
+    bottom: 60,
+    color: "#C8FF00",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 40,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 45,
+    color: "#888",
+    fontSize: 12,
   },
 });
