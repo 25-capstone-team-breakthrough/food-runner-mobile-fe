@@ -27,7 +27,7 @@ export default function IngredientScreen({ navigation }) {
     <View style={styles.container}>
       {/* 검색창 */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+        <Ionicons name="search" size={20} color="#4E4D4D" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="선호 식재료를 추가해주세요"
@@ -35,12 +35,12 @@ export default function IngredientScreen({ navigation }) {
           value={search}
           onChangeText={setSearch}
         />
-        <TouchableOpacity>
-          <Ionicons name="refresh" size={22} color="#000" />
-        </TouchableOpacity>
       </View>
 
       {/* 추천 식재료 타이틀 */}
+      <TouchableOpacity>
+          <Ionicons name="refresh" size={22} color="#000" />
+      </TouchableOpacity>
       <Text style={styles.subTitle}>추천재료</Text>
 
       {/* 추천 식재료 리스트 */}
@@ -77,14 +77,17 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#eee",
+    backgroundColor: "#F3F3F3",
     width: "90%",
-    padding: 10,
-    borderRadius: 10,
+    paddingVertical: 15,  // 기존보다 padding 증가
+    paddingHorizontal: 10,
+    borderRadius: 50,
     marginBottom: 10,
+    height: 50,  // 기존보다 높이 증가 (예: 50 → 55)
   },
   searchIcon: {
-    marginRight: 5,
+    marginLeft: 10,
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
