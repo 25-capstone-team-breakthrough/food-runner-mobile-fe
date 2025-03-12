@@ -11,6 +11,8 @@ import DietRegistrationScreen from '../screens/DietRegistrationScreen';
 import VitaminRegistrationScreen from '../screens/VitaminRegistrationScreen';
 import DietRecommendationScreen from '../screens/DietRecommendationScreen';
 import DietRecipeScreen from '../screens/DietRecipeScreen';
+import exercise_recommendvideo from '../screens/exercise_recommendvideo';
+import exercise_home from '../screens/exercise_home';
 
 const Stack = createStackNavigator();
 
@@ -27,6 +29,7 @@ const AppNavigator = () => {
         <Stack.Screen name="VitaminRegistion" component={VitaminRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="DietRecommendation" component={DietRecommendationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="DietRecipe" component={DietRecipeScreen} />
+        <Stack.Screen name="ExerciseHome" component={exercise_home} />
       </Stack.Navigator>
     </NavigationContainer>
   );

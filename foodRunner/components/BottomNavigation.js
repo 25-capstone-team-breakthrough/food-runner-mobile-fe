@@ -12,24 +12,35 @@ const BottomNavigation = () => {
     { name: "NutritionMain", icon: "add-circle-outline" },
     { name: "DietRecommendation", icon: "restaurant" },
     { name: "Home", icon: "home-outline" },
-    { name: "Workout", icon: "barbell-outline" },
+    { name: "ExerciseHome", icon: "barbell-outline" },
   ];
 
+  const isExerciseHome = route.name === "ExerciseHome"; // ExerciseHome 화면인지 확인
+
   return (
-    <View style={styles.bottomNav}>
+    <View style={[styles.bottomNav, isExerciseHome && styles.activeNav]}>
       {screens.map((screen, index) => (
         <TouchableOpacity
           key={index}
           onPress={() => navigation.navigate(screen.name)}
+          style={styles.navButton}
         >
-          <Ionicons
-            name={screen.icon}
-            size={28}
+          <View
             style={[
-              styles.icon,
-              route.name === screen.name ? styles.activeIcon : null, // 현재 화면이면 색상 변경
+              styles.iconContainer,
+              route.name === screen.name && styles.activeIconContainer,
+              isExerciseHome && route.name === screen.name && styles.exerciseHomeIconContainer, // ExerciseHome일 때만 테두리 검정
             ]}
-          />
+          >
+            <Ionicons
+              name={screen.icon}
+              size={28}
+              style={[
+                styles.icon,
+                route.name === screen.name ? styles.activeIcon : null, // 현재 화면이면 색상 변경
+              ]}
+            />
+          </View>
         </TouchableOpacity>
       ))}
     </View>
@@ -43,17 +54,39 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", // 기본 배경색은 흰색
     paddingVertical: 10,
     borderTopWidth: 1,
     borderColor: "#ddd",
+    borderRadius: 15,
+  },
+  activeNav: {
+    backgroundColor: "#000", // ExerciseHome 화면에서는 배경을 검정색으로 변경
+    borderColor: "#000"
+  },
+  navButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    backgroundColor: "#fff",
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff", // 기본 테두리는 흰색
+  },
+  activeIconContainer: {
+    backgroundColor: "#C8FF00", // 선택된 화면은 배경 색상 강조
+  },
+  exerciseHomeIconContainer: {
+    borderColor: "#000", // ExerciseHome 화면에서는 테두리를 검정으로 변경
   },
   icon: {
-    color: "#000",
-    padding: 8,
-  },
-  activeIcon: {
-    color: "#C8FF00", // 현재 화면인 경우 아이콘 색상 변경
+    color: "#000", // 기본 아이콘 색상은 검정
   },
 });
 
