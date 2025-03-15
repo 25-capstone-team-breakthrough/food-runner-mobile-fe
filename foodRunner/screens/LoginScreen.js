@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Image } from "react-native";
+import AuthFooter from "../components/AuthFooter";
 
 export default function LoginScreen({ navigation }) {
 
@@ -101,8 +102,7 @@ export default function LoginScreen({ navigation }) {
       </Text>
 
       {/* 앱 이름 */}
-      <Text style={styles.footerText}>Food Runner</Text>
-      <Text style={styles.madeBy}>made by 체력돌파</Text>
+      <AuthFooter />
     </SafeAreaView>
   );
 }
@@ -180,19 +180,5 @@ const styles = StyleSheet.create({
   registerLink: {
     color: "#C8FF00",
     fontWeight: "bold",
-  },
-  footerText: {
-    position: "absolute",
-    bottom: 60,
-    color: "#C8FF00",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 40,
-  },
-  madeBy: {
-    position: "absolute",
-    bottom: 45,
-    color: "#888",
-    fontSize: 12,
   },
 });

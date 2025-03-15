@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, ScrollView, Keyboard,TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import NextButton from '../components/NextButton';
+import BackButton from '../components/BackButton';
 
 const InputGenderAgeScreen = ({ navigation }) => {
   const [gender, setGender] = useState(null);
@@ -24,9 +26,7 @@ const InputGenderAgeScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       {/* 뒤로가기 버튼 */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backArrow}>←</Text>
-      </TouchableOpacity>
+      <BackButton onPress={() => navigation.goBack()} />
 
       {/* 제목 */}
       <Text style={styles.title}>성별과 나이를{'\n'}알려주세요</Text>
@@ -76,9 +76,10 @@ const InputGenderAgeScreen = ({ navigation }) => {
     </TouchableWithoutFeedback>
 
       {/* 다음 버튼 (유효성 검사 포함) */}
-      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+      <NextButton onPress={handleNext} />
+      {/* <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
         <Text style={styles.nextButtonText}>다 음  &gt;</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </SafeAreaView>
   );
 };
@@ -88,13 +89,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     padding: 20,
-  },
-  backButton: {
-    marginBottom: 20,
-  },
-  backArrow: {
-    fontSize: 24,
-    color: '#000',
   },
   title: {
     fontSize: 40,
@@ -149,32 +143,9 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 30,
-    // borderBottomWidth: 1,
-    // borderBottomColor: '#ccc',
-    // paddingVertical: 0,
     paddingLeft: 20,
     marginTop: 15,
     marginBottom: 10,
-  },
-  nextButton: {
-    backgroundColor: '#E1FF01',
-    width: 100,
-    height: 50,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 30,
-    position: 'absolute',
-    bottom: 30,
-    right: 30,  
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  nextButtonText: {
-    fontSize: 18,
-    paddingTop: 3,
-    paddingLeft: 5,
   },
 });
 

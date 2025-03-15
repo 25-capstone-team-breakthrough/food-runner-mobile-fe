@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Alert, Image } from "react-native";
+import AuthFooter from "../components/AuthFooter";
 
 export default function SignUpScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -91,8 +92,7 @@ export default function SignUpScreen({ navigation }) {
         </Text>
       </Text>
       
-      <Text style={styles.footerText}>Food Runner</Text>
-      <Text style={styles.footer}>made by 체력돌파</Text>
+      <AuthFooter />
     </SafeAreaView>
   );
 }
@@ -172,19 +172,5 @@ const styles = StyleSheet.create({
   loginLink: {
     color: "#C8FF00",
     fontWeight: "bold",
-  },
-  footerText: {
-    position: "absolute",
-    bottom: 60,
-    color: "#C8FF00",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 40,
-  },
-  footer: {
-    position: "absolute",
-    bottom: 45,
-    color: "#888",
-    fontSize: 12,
   },
 });
