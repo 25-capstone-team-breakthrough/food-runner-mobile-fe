@@ -45,7 +45,7 @@ export default function LoginScreen({ navigation }) {
     //   setErrorMessage("네트워크 오류가 발생했습니다.");
     // }
     console.log("로그인 요청:", emailOrPhone, password);
-    navigation.navigate("Ingredient"); // 로그인 성공 시 이동
+    navigation.navigate("InputGenderAge"); // 로그인 성공 시 이동
 
   };
 
