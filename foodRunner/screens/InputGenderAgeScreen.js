@@ -98,12 +98,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 40,
+    fontWeight: 600,
     marginTop: 20,
     marginLeft: 5,
     marginBottom: 10,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#666',
     marginBottom: 20,
     marginLeft: 5,
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   radioText: {
-    fontSize: 35,
+    fontSize: 33,
     marginLeft: 15,
   },
   inputWrapper: {
