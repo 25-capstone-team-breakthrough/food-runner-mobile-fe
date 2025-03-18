@@ -22,7 +22,13 @@
       }
     },
     "web": {
-      "favicon": "./assets/logo.png"
-    }
+      "favicon": "./assets/logo.png",
+      "build": {
+        "babel": {
+          "include": ["screens"] 
+        }
+      }
+    },
+    "entryPoint": "./screens"
   }
 }

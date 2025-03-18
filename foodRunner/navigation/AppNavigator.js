@@ -11,8 +11,10 @@ import DietRegistrationScreen from '../screens/DietRegistrationScreen';
 import VitaminRegistrationScreen from '../screens/VitaminRegistrationScreen';
 import DietRecommendationScreen from '../screens/DietRecommendationScreen';
 import DietRecipeScreen from '../screens/DietRecipeScreen';
-import exercise_recommendvideo from '../screens/exercise_recommendvideo';
-import exercise_home from '../screens/exercise_home';
+import ExerciseRecommendVideo from '../screens/exercise_recommendvideo';
+import ExerciseHome  from '../screens/exercise_home';
+import ExerciseRegister from '../screens/exercise_register';
+import ExerciseHistory from '../screens/exercise_history';
 
 const Stack = createStackNavigator();
 
@@ -29,7 +31,10 @@ const AppNavigator = () => {
         <Stack.Screen name="VitaminRegistion" component={VitaminRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="DietRecommendation" component={DietRecommendationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="DietRecipe" component={DietRecipeScreen} />
-        <Stack.Screen name="ExerciseHome" component={exercise_home} />
+        <Stack.Screen name="ExerciseHome" component={ExerciseHome} options={{ headerShown: false }}/>
+        <Stack.Screen name="ExerciseRecommendVideo" component={ExerciseRecommendVideo} options={{ headerShown: false }}/>
+        <Stack.Screen name="ExerciseRegister" component={ExerciseRegister} options={{ headerShown: false }}/>
+        <Stack.Screen name="ExerciseHistory" component={ExerciseHistory} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

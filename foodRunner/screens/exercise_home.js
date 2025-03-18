@@ -1,29 +1,20 @@
-import { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { SafeAreaView, Text, Image, TouchableOpacity, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useNavigation } from "@react-navigation/native"; // useNavigation 훅을 사용
 import BottomNavigation from "../components/BottomNavigation";
 
 export default function ExerciseHome() {
-  const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  const navigation = useNavigation(); // useNavigation 훅을 사용하여 네비게이션 객체를 가져옵니다.
   const [isFrontView, setIsFrontView] = useState(true); // 앞/뒤 이미지 상태
 
-  // 날짜 선택 핸들러
-  const handleConfirm = (date) => {
-    setSelectedDate(date);
-    setDatePickerVisible(false);
-  };
-
-  // ✅ 특정 부위를 클릭하면 exercise_recommendvideo.js로 이동
+  // 운동 영상 페이지로 이동 (카테고리 전달)
   const navigateToExerciseVideo = (bodyPart) => {
-    router.push(`/exercise_recommendvideo?category=${bodyPart}`); // URL 쿼리로 이동
+    navigation.navigate("ExerciseRecommendVideo", { category: bodyPart }); // ExerciseRecommendVideo 화면으로 이동, category 파라미터 전달
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "black", alignItems: "center" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "black", alignItems: "center" }}>
       {/* 상단 셔플 버튼 (앞/뒤 변경) */}
       <TouchableOpacity
         style={{ position: "absolute", top: 40, right: 20, zIndex: 10 }}
@@ -35,11 +26,7 @@ export default function ExerciseHome() {
       {/* 인체 모델 이미지 */}
       <View style={{ position: "relative", alignItems: "center", marginTop: 60 }}>
         <Image
-          source={
-            isFrontView
-              ? require("../assets/body_front.png")
-              : require("../assets/body_back.png")
-          }
+          source={isFrontView ? require("../assets/body_front.png") : require("../assets/body_back.png")}
           style={{ width: 320, height: 520 }}
           resizeMode="contain"
         />
@@ -73,25 +60,7 @@ export default function ExerciseHome() {
           borderRadius: 15,
         }}
       >
-        {/* 날짜 선택 */}
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-          <TouchableOpacity onPress={() => setDatePickerVisible(true)} style={{ padding: 5 }}>
-            <Ionicons name="calendar" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={{ color: "white", fontSize: 16, marginLeft: 10 }}>
-            {selectedDate.toISOString().split("T")[0]}
-          </Text>
-        </View>
-
-        {/* 칼로리 정보 (한 줄 정렬) */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 10,
-          }}
-        >
           <Text style={{ color: "white", fontSize: 16 }}>소모한 칼로리</Text>
           <Text style={{ color: "white", fontSize: 28, fontWeight: "bold" }}>
             500 <Text style={{ fontSize: 16 }}>kcal</Text>
@@ -109,7 +78,7 @@ export default function ExerciseHome() {
               alignItems: "center",
               marginRight: 5,
             }}
-            onPress={() => router.push("/exercise_register")}
+            onPress={() => navigation.navigate("ExerciseRegister")} // ExerciseRegister 화면으로 이동
           >
             <Text style={{ fontSize: 18, fontWeight: "bold" }}>운동 등록하기</Text>
           </TouchableOpacity>
@@ -128,28 +97,20 @@ export default function ExerciseHome() {
               shadowOpacity: 0.3,
               shadowRadius: 3,
             }}
-            onPress={() => router.push("/exercise_history")}
+            onPress={() => navigation.navigate("ExerciseHistory")} // ExerciseHistory 화면으로 이동
           >
             <Ionicons name="menu" size={28} color="black" />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* 날짜 선택 모달 */}
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleConfirm}
-        onCancel={() => setDatePickerVisible(false)}
-      />
-
       {/* 하단 네비게이션 추가 */}
-      <BottomNavigation /> {/* 이 부분을 추가하여 하단 네비게이션이 표시되도록 함 */}
-    </View>
+      <BottomNavigation />
+    </SafeAreaView>
   );
 }
 
-/* 🔥 버튼 스타일 함수 (위치 자동 설정) */
+// 🔥 버튼 스타일 함수 (위치 자동 설정)
 const buttonStyle = (top, left) => ({
   position: "absolute",
   top,

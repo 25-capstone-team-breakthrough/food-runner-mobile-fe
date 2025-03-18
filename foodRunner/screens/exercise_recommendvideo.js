@@ -1,70 +1,123 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router"; // ✅ 수정됨!
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native"; // useNavigation과 useRoute 사용
 
 export default function ExerciseRecommendVideo() {
-  const router = useRouter();
-  const params = useLocalSearchParams(); // ✅ 수정됨!
+  const navigation = useNavigation(); // useNavigation 훅을 사용하여 네비게이션 객체를 가져옵니다.
+  const route = useRoute(); // useRoute 훅을 사용하여 라우트 파라미터를 가져옵니다.
   const [selectedCategory, setSelectedCategory] = useState("어깨");
 
-  // 🚀 URL에서 받은 category 값이 있으면 초기 선택 값으로 설정
+  // 쿼리 파라미터 사용
   useEffect(() => {
-    if (params.category) {
-      setSelectedCategory(params.category);
+    if (route.params?.category) { // route의 파라미터가 있다면
+      setSelectedCategory(route.params.category); // 파라미터로 받아온 category 값으로 상태 설정
     }
-  }, [params.category]);
+  }, [route.params]);
 
-  // 운동 카테고리 목록
   const categories = ["어깨", "가슴", "팔", "하체", "복근", "등", "둔근", "종아리"];
 
-  return (
-    <View style={{ flex: 1, backgroundColor: "black", paddingTop: 40 }}>
-      {/* 상단 헤더 */}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20 }}>
-        <View style={{ flex: 1, alignItems: "center" }}>
-          <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>운동 영상</Text>
-        </View>
-        <TouchableOpacity onPress={() => router.back()} style={{ position: "absolute", right: 20 }}>
-          <Ionicons name="close" size={28} color="yellow" />
-        </TouchableOpacity>
-      </View>
+  // 운동 목록 예시
+  const exerciseList = {
+    어깨: ["운동1", "운동2", "운동3"],
+    가슴: ["운동4", "운동5", "운동6"],
+    팔: ["운동7", "운동8", "운동9"],
+    하체: ["운동10", "운동11", "운동12"],
+    복근: ["운동13", "운동14", "운동15"],
+    등: ["운동16", "운동17", "운동18"],
+    둔근: ["운동19", "운동20", "운동21"],
+    종아리: ["운동22", "운동23", "운동24"],
+  };
 
-      {/* ✅ 카테고리 탭 (가로 스크롤) */}
-      <View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10, marginBottom: 5, paddingLeft: 20 }}>
-          {categories.map((category, index) => (
+  const navigateToExerciseDetail = (exerciseName) => {
+    navigation.navigate('ExerciseDetail', { exercise: exerciseName });  // ExerciseDetail 화면으로 이동
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* 카테고리 탭 */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            style={[styles.categoryButton, selectedCategory === category ? styles.activeCategory : null]}
+            onPress={() => setSelectedCategory(category)}
+          >
+            <Text style={[styles.categoryText, selectedCategory === category ? styles.activeCategoryText : null]}>
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* 추천 운동 목록 */}
+      <ScrollView style={styles.exerciseList}>
+        <Text style={styles.exerciseListTitle}>추천 운동</Text>
+        <View style={styles.exerciseContainer}>
+          {exerciseList[selectedCategory]?.map((exercise, index) => (
             <TouchableOpacity
               key={index}
-              style={{
-                backgroundColor: selectedCategory === category ? "#E1FF01" : "#444",
-                paddingVertical: 5,
-                paddingHorizontal: 40,
-                borderRadius: 12,
-                marginRight: 8,
-                height: 35,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-              onPress={() => setSelectedCategory(category)}
+              style={styles.exerciseItem}
+              onPress={() => navigateToExerciseDetail(exercise)} // 운동 클릭 시 상세 페이지로 이동
             >
-              <Text style={{ color: selectedCategory === category ? "black" : "white", fontSize: 14 }}>
-                {category}
-              </Text>
+              <Text style={styles.exerciseText}>{exercise}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
-      </View>
-
-      {/* ✅ 추천 운동 (세로 스크롤) */}
-      <ScrollView style={{ flex: 1, paddingHorizontal: 20, marginTop: 10 }}>
-        <Text style={{ color: "#E1FF01", fontSize: 16, fontWeight: "bold" }}>추천 운동</Text>
-        
-        {/* 💡 여기에 운동 영상 리스트 추가 가능 */}
-        <View style={{ marginTop: 10 }}>
-          <Text style={{ color: "white", fontSize: 14 }}>추천 운동이 여기에 표시됩니다.</Text>
         </View>
       </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "black",
+    paddingTop: 40,
+  },
+  categoryScroll: {
+    marginTop: 10,
+    marginBottom: 5,
+    paddingLeft: 20,
+  },
+  categoryButton: {
+    backgroundColor: "#444",
+    paddingVertical: 5,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+    marginRight: 8,
+    height: 35,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activeCategory: {
+    backgroundColor: "#E1FF01",
+  },
+  categoryText: {
+    color: "white",
+    fontSize: 14,
+  },
+  activeCategoryText: {
+    color: "black",
+  },
+  exerciseList: {
+    flex: 1,
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  exerciseListTitle: {
+    color: "#E1FF01",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  exerciseContainer: {
+    marginTop: 10,
+  },
+  exerciseItem: {
+    marginBottom: 10,
+  },
+  exerciseText: {
+    color: "white",
+    fontSize: 14,
+  },
+});
