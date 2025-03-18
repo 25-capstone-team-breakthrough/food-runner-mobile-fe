@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BottomNavigation from "../components/BottomNavigation";
+import RefreshButton from "../components/RefreshButton";
+import RegisterButton from "../components/RegisterButton";
 
 export default function IngredientScreen({ navigation }) {
   const [search, setSearch] = useState("");
@@ -21,7 +23,25 @@ export default function IngredientScreen({ navigation }) {
     "시금치",
     "사과",
     "두부",
+    "삶은 달걀",
+    "고등어",
+    "양배추",
+    "시금치",
+    "사과",
+    "두부",
   ]);
+
+  // ✅ 개별 버튼의 상태를 저장하는 배열
+  const [pressedStates, setPressedStates] = useState(
+    new Array(ingredients.length).fill(false) // 모든 버튼의 초기값 false
+  );
+
+  // ✅ 특정 버튼을 클릭하면 상태를 토글 (true ↔ false)
+  const handlePress = (index) => {
+    const newStates = [...pressedStates]; // 기존 배열 복사
+    newStates[index] = !newStates[index]; // 현재 버튼의 상태 변경
+    setPressedStates(newStates); // 상태 업데이트
+  };
 
   return (
     <View style={styles.container}>
@@ -37,10 +57,8 @@ export default function IngredientScreen({ navigation }) {
         />
       </View>
 
-      {/* 추천 식재료 타이틀 */}
-      <TouchableOpacity>
-          <Ionicons name="refresh" size={22} color="#000" />
-      </TouchableOpacity>
+      <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
+
       <Text style={styles.subTitle}>추천재료</Text>
 
       {/* 추천 식재료 리스트 */}
@@ -49,17 +67,21 @@ export default function IngredientScreen({ navigation }) {
         keyExtractor={(item, index) => index.toString()}
         numColumns={2} // 2열 배치
         columnWrapperStyle={styles.row}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.ingredientButton}>
+        scrollEnabled={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.listContainer}
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            style={[styles.ingredientButton, pressedStates[index] && styles.pressedEffect]} // ✅ 상태에 따라 스타일 변경
+            onPress={() => handlePress(index)}
+          >
             <Text style={styles.ingredientText}>{item}</Text>
           </TouchableOpacity>
         )}
       />
 
       {/* 등록하기 버튼 */}
-      <TouchableOpacity style={styles.registerButton}>
-        <Text style={styles.registerText}>등록하기</Text>
-      </TouchableOpacity>
+      <RegisterButton onPress={() => navigation.navigate("DietRecommendation")} />
 
       {/* 하단 네비게이션 바 */}
       <BottomNavigation />
@@ -79,11 +101,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F3F3F3",
     width: "90%",
-    paddingVertical: 15,  // 기존보다 padding 증가
+    paddingVertical: 15,
     paddingHorizontal: 10,
     borderRadius: 50,
+    marginTop: 5,
     marginBottom: 10,
-    height: 50,  // 기존보다 높이 증가 (예: 50 → 55)
+    height: 50,
   },
   searchIcon: {
     marginLeft: 10,
@@ -95,53 +118,63 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   subTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 15,
     alignSelf: "flex-start",
-    marginLeft: "5%",
-    marginBottom: 10,
+    marginLeft: "13%",
+    marginTop: -10,
   },
   row: {
     justifyContent: "space-between",
     width: "90%",
   },
+  listContainer: {
+    marginTop: 10,
+  },
   ingredientButton: {
     backgroundColor: "#fff",
+    width: 165,
+    height: 60,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 10,
+    borderRadius: 30, 
+    marginBottom: 15,
     alignItems: "center",
-    flex: 1,
-    marginHorizontal: 5,
+    justifyContent: "center",
+    marginHorizontal: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
+  pressedEffect: {
+    backgroundColor: "#EEEDED",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 1,
   },
   ingredientText: {
-    fontSize: 16,
+    fontSize: 20,
     color: "#000",
   },
   registerButton: {
-    backgroundColor: "#C8FF00",
+    backgroundColor: "#E1FF01",
+    width: 330,
+    height: 60,
     paddingVertical: 12,
     paddingHorizontal: 30,
-    borderRadius: 10,
-    marginTop: 20,
+    borderRadius: 30,
+    position: "absolute",
+    bottom: 80,
+    alignSelf: "center",
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 3,
   },
   registerText: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 25,
     color: "#000",
-  },
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    backgroundColor: "#fff",
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderColor: "#ddd",
+    alignSelf: "center",
+    paddingTop: 5,
   },
 });
