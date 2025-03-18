@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import BottomNavigation from "../components/BottomNavigation";
 import RefreshButton from "../components/RefreshButton";
 import RegisterButton from "../components/RegisterButton";
+import SearchBar from "../components/SearchBar";
 
 export default function IngredientScreen({ navigation }) {
   const [search, setSearch] = useState("");
@@ -31,7 +32,7 @@ export default function IngredientScreen({ navigation }) {
     "두부",
   ]);
 
-  // ✅ 개별 버튼의 상태를 저장하는 배열
+  // 개별 버튼의 상태를 저장하는 배열
   const [pressedStates, setPressedStates] = useState(
     new Array(ingredients.length).fill(false) // 모든 버튼의 초기값 false
   );
@@ -46,16 +47,9 @@ export default function IngredientScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* 검색창 */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#4E4D4D" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="선호 식재료를 추가해주세요"
-          placeholderTextColor="#aaa"
-          value={search}
-          onChangeText={setSearch}
-        />
-      </View>
+      <SearchBar value={search} onChangeText={setSearch} 
+        placeholder="선호 식재료를 추가해주세요" 
+      />
 
       <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
 
