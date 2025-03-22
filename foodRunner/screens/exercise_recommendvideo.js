@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native"; // useNavigation과 useRoute 사용
 
@@ -34,7 +34,15 @@ export default function ExerciseRecommendVideo() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {/* 상단에 운동 영상 텍스트와 닫기 버튼 추가 */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>운동 영상</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
+          <Ionicons name="close" size={30} color="#DDFB21" />
+        </TouchableOpacity>
+      </View>
+
       {/* 카테고리 탭 */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
         {categories.map((category) => (
@@ -65,7 +73,7 @@ export default function ExerciseRecommendVideo() {
           ))}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -74,6 +82,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "black",
     paddingTop: 40,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  headerText: {
+    color: "#E1FF01",
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    flex: 1,
+  },
+  closeButton: {
+    backgroundColor: "#444",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "black",
+    position: 'absolute',
+    right: 20,
   },
   categoryScroll: {
     marginTop: 10,
@@ -121,3 +156,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
+
