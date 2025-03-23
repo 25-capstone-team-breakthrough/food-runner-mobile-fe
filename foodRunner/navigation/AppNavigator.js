@@ -1,7 +1,9 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
-
+import { TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import IngredientScreen from '../screens/IngredientScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
@@ -29,7 +31,18 @@ const AppNavigator = () => {
         <Stack.Screen name="DietRegistration" component={DietRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="VitaminRegistion" component={VitaminRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="DietRecommendation" component={DietRecommendationScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="DietRecipe" component={DietRecipeScreen} />
+        <Stack.Screen name="DietRecipe" component={DietRecipeScreen} 
+                      options={{
+                        headerTransparent: true,
+                        headerTitle: '',
+                        headerLeft: () => (
+                          <TouchableOpacity onPress={() => navigation.goBack()}>
+                            <Ionicons name="arrow-back" size={30} color="white" />
+                          </TouchableOpacity>
+                        ),
+                        headerTintColor: 'white',
+                      }} 
+        />
         <Stack.Screen name="InputGenderAge" component={InputGenderAgeScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="InputHeightWeight" component={InputHeightWeightScreen} options={{ headerShown: false }}/>
       </Stack.Navigator>
