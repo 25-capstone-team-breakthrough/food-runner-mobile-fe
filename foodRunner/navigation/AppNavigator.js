@@ -31,17 +31,19 @@ const AppNavigator = () => {
         <Stack.Screen name="DietRegistration" component={DietRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="VitaminRegistion" component={VitaminRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="DietRecommendation" component={DietRecommendationScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="DietRecipe" component={DietRecipeScreen} 
-                      options={{
-                        headerTransparent: true,
-                        headerTitle: '',
-                        headerLeft: () => (
-                          <TouchableOpacity onPress={() => navigation.goBack()}>
-                            <Ionicons name="arrow-back" size={30} color="white" />
-                          </TouchableOpacity>
-                        ),
-                        headerTintColor: 'white',
-                      }} 
+        <Stack.Screen
+          name="DietRecipe"
+          component={DietRecipeScreen}
+          options={{
+            headerTransparent: true, // 상단 바 투명 설정
+            headerTitle: '', // 제목 없애기
+            // headerLeft: () => (
+            //   <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 10 }}>
+            //     <Ionicons name="arrow-back" size={30} color="white" />
+            //   </TouchableOpacity>
+            // ),
+            headerTintColor: 'white', // 텍스트 색상 흰색으로 설정
+          }}
         />
         <Stack.Screen name="InputGenderAge" component={InputGenderAgeScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="InputHeightWeight" component={InputHeightWeightScreen} options={{ headerShown: false }}/>

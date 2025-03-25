@@ -3,6 +3,7 @@ import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity } from "rea
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import BottomNavigation from "../components/BottomNavigation";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const DietRecipeScreen = () => {
     const navigation = useNavigation();
@@ -12,7 +13,7 @@ const DietRecipeScreen = () => {
     const recipe = route.params?.recipe || {
         name: "아보카도 닭가슴살 샐러드",
         description: "단백질 듬뿍! 건강한 지방까지 챙긴 다이어트 샐러드!",
-        image: require("../assets/logo.png"),
+        image: require("../assets/salad.png"),
         ingredients: [
             "닭가슴살 100g",
             "고구마 1개",
@@ -28,11 +29,20 @@ const DietRecipeScreen = () => {
             "양상추를 씻어 적당히 찢고 그릇에 담는다.",
             "모든 재료를 넣고 올리브오일, 레몬즙, 소금, 후추로 간을 해서 섞어준다.",
         ],
+        tip: "드레싱은 올리브오일, 레몬즙, 발사믹 식초로 가볍게. 아몬드, 호두를 추가하여 더 고소하고 영양이 있게. 블랙페퍼, 파프리카 가루로 나트를 섞어주고 풍미있게.",
+        recommendedRecipes: [
+            { id: "1", name: "연어 샐러드", image: require("../assets/salmonSalad.png") },
+            { id: "2", name: "연어 아보카도 샐러드", image: require("../assets/salmonAvocado.png") },
+            { id: "3", name: "두부 스크램블", image: require("../assets/dobuScb.png") },
+        ],
     };
 
     return (
         <View style={styles.container}>
-            <ScrollView>
+            <ScrollView
+                contentContainerStyle={styles.scrollViewContent} 
+                showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}   
+            >
                 {/* 상단 이미지 */}
                 <Image source={recipe.image} style={styles.recipeImage} />
 
@@ -43,15 +53,38 @@ const DietRecipeScreen = () => {
 
                     {/* 재료 */}
                     <Text style={styles.sectionTitle}>재료</Text>
-                    {recipe.ingredients.map((ingredient, index) => (
-                        <Text key={index} style={styles.ingredientItem}>- {ingredient}</Text>
-                    ))}
+                    <Text style={styles.ingredientItem}>
+                        {recipe.ingredients.join(", ")}
+                    </Text>
+
+                    <View style={styles.separator}></View>
 
                     {/* 만드는 법 */}
                     <Text style={styles.sectionTitle}>만드는 법</Text>
                     {recipe.steps.map((step, index) => (
                         <Text key={index} style={styles.stepItem}>{index + 1}. {step}</Text>
                     ))}
+
+                    <View style={styles.separator}></View>
+
+                    {/* 건강하게 먹는 팁 */}
+                    <Text style={styles.sectionTitle}>더 건강하게 먹는 팁</Text>
+                    <Text style={styles.tipDescription}>{recipe.tip}</Text>
+
+                    <View style={styles.separator}></View>
+
+                    {/* 추천 레시피 */}
+                    <View style={styles.recipeSection}>
+                        <Text style={styles.sectionTitle}>유사한 추천 레시피</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recipeSlider}>
+                            {recipe.recommendedRecipes.map((rec) => (
+                                <View key={rec.id} style={styles.recipeCard}>
+                                    <Image source={rec.image} style={styles.recipeRecommendImage} />
+                                    <Text style={styles.recipeRecommendTitle}>{rec.name}</Text>
+                                </View>
+                            ))}
+                        </ScrollView>
+                    </View> 
                 </View>
             </ScrollView>
 
@@ -66,38 +99,91 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#FFF",
     },
+    scrollViewContent: {
+        flexGrow: 1,
+        alignItems: "center",
+        paddingHorizontal: 0,
+      },
     recipeImage: {
         width: "100%",
-        height: 250,
+        flex: 1,
         resizeMode: "cover",
     },
     recipeContent: {
-        padding: 20,
+        padding: 27,
     },
     recipeTitle: {
-        fontSize: 22,
-        fontWeight: "bold",
-        marginBottom: 5,
+        fontSize: 25,
+        fontWeight: "700",
+        marginBottom: 13,
     },
     recipeDescription: {
-        fontSize: 14,
+        fontSize: 13,
         color: "#555",
         marginBottom: 15,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: "bold",
+        fontSize: 20,
+        fontWeight: "700",
         marginTop: 15,
-        marginBottom: 5,
+        marginBottom: 15,
     },
     ingredientItem: {
         fontSize: 14,
         color: "#333",
+        marginBottom: 10,
+        lineHeight: 22,
+    },
+    separator: {
+        height: 1,
+        backgroundColor: "#ccc",
+        marginVertical: 15,
     },
     stepItem: {
         fontSize: 14,
         color: "#333",
-        marginBottom: 5,
+        marginBottom: 10,
+        lineHeight: 22,
+    },
+    tipSection: {
+        marginTop: 40,
+        marginBottom: 30,
+    },
+    tipDescription: {
+        fontSize: 14,
+        color: "#555",
+        marginTop: 10,
+        lineHeight: 22,
+        marginBottom: 10,
+    },
+    recipeSection: {
+        marginBottom: 40,
+    },
+    recipeSlider: {
+        marginTop: 10,
+    },
+    recipeCard: {
+        width: 100,
+        height: 120,
+        marginRight: 3,
+        borderRadius: 3,
+        overflow: "hidden",
+        backgroundColor: "rgba(242, 242, 242, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 30,
+    },
+    recipeRecommendImage: {
+        width: 100,
+        height: 100,
+        resizeMode: "cover",
+    },
+    recipeRecommendTitle: {
+        fontSize: 10,
+        fontWeight: "500",
+        marginTop: 10,
+        color: "#333",
+        // marginBottom: 30,
     },
 });
 
