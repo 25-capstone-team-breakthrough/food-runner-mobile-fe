@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import BottomNavigation from "../components/BottomNavigation";
-import { SafeAreaView } from "react-native-safe-area-context";
+import * as ImagePicker from 'expo-image-picker';
+import Palette from 'react-native-palette'; // 색상 추출 라이브러리
+import BackButton from '../components/BackButton';
 
 const DietRecipeScreen = () => {
     const navigation = useNavigation();
@@ -34,11 +36,24 @@ const DietRecipeScreen = () => {
             { id: "1", name: "연어 샐러드", image: require("../assets/salmonSalad.png") },
             { id: "2", name: "연어 아보카도 샐러드", image: require("../assets/salmonAvocado.png") },
             { id: "3", name: "두부 스크램블", image: require("../assets/dobuScb.png") },
+            { id: "4", name: "연어 샐러드", image: require("../assets/salmonSalad.png") },
+            { id: "5", name: "연어 아보카도 샐러드", image: require("../assets/salmonAvocado.png") },
+            { id: "6", name: "두부 스크램블", image: require("../assets/dobuScb.png") },
         ],
     };
 
+
     return (
         <View style={styles.container}>
+            <BackButton onPress={() => navigation.goBack()}
+                style={{
+                    position: "absolute",
+                    top: 40,
+                    left: 15,
+                    zIndex: 1,
+                }}
+            />
+           
             <ScrollView
                 contentContainerStyle={styles.scrollViewContent} 
                 showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}   
@@ -75,7 +90,11 @@ const DietRecipeScreen = () => {
 
                     {/* 추천 레시피 */}
                     <View style={styles.recipeSection}>
-                        <Text style={styles.sectionTitle}>유사한 추천 레시피</Text>
+                        <Text style={styles.sectionTitle}>
+                            {recipe.name}
+                            <Text style={styles.andText}>와</Text>
+                        </Text>
+                        <Text style={styles.recommendTitle}>유사한 추천 레시피</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recipeSlider}>
                             {recipe.recommendedRecipes.map((rec) => (
                                 <View key={rec.id} style={styles.recipeCard}>
@@ -99,11 +118,17 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#FFF",
     },
+    // backButton: {
+    //     position: "absolute",
+    //     top: 40,
+    //     left: 15,
+    //     zIndex: 1,
+    // },
     scrollViewContent: {
         flexGrow: 1,
         alignItems: "center",
         paddingHorizontal: 0,
-      },
+    },
     recipeImage: {
         width: "100%",
         flex: 1,
@@ -115,12 +140,13 @@ const styles = StyleSheet.create({
     recipeTitle: {
         fontSize: 25,
         fontWeight: "700",
+        marginTop: 5,
         marginBottom: 13,
     },
     recipeDescription: {
         fontSize: 13,
         color: "#555",
-        marginBottom: 15,
+        marginBottom: 20,
     },
     sectionTitle: {
         fontSize: 20,
@@ -159,6 +185,16 @@ const styles = StyleSheet.create({
     recipeSection: {
         marginBottom: 40,
     },
+    andText: {
+        fontSize: 18,
+        fontWeight: "400",
+    },
+    recommendTitle: {
+        fontSize: 18,
+        fontWeight: "400", 
+        marginTop: -13,
+        marginBottom: 20,
+    },
     recipeSlider: {
         marginTop: 10,
     },
@@ -168,7 +204,7 @@ const styles = StyleSheet.create({
         marginRight: 3,
         borderRadius: 3,
         overflow: "hidden",
-        backgroundColor: "rgba(242, 242, 242, 0.5)",
+        backgroundColor: "white",
         justifyContent: "center",
         alignItems: "center",
         marginBottom: 30,
@@ -180,10 +216,9 @@ const styles = StyleSheet.create({
     },
     recipeRecommendTitle: {
         fontSize: 10,
-        fontWeight: "500",
-        marginTop: 10,
-        color: "#333",
-        // marginBottom: 30,
+        fontWeight: "490",
+        marginTop: 8,
+        color: "#000000",
     },
 });
 
