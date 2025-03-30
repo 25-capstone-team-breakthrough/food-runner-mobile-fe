@@ -31,7 +31,7 @@ const AppNavigator = () => {
         <Stack.Screen name="DietRegistration" component={DietRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="VitaminRegistion" component={VitaminRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="DietRecommendation" component={DietRecommendationScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="DietRecipe" component={DietRecipeScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="DietRecipe" component={DietRecipeScreen}/>
         <Stack.Screen name="InputGenderAge" component={InputGenderAgeScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="InputHeightWeight" component={InputHeightWeightScreen} options={{ headerShown: false }}/>
       </Stack.Navigator>

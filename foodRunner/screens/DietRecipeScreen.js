@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import BottomNavigation from "../components/BottomNavigation";
-import * as ImagePicker from 'expo-image-picker';
-import Palette from 'react-native-palette'; // 색상 추출 라이브러리
-import BackButton from '../components/BackButton';
+
 
 const DietRecipeScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
 
-    // 기본적으로 route.params.recipe가 있어야 하지만, 없을 경우를 대비해 기본값 설정
     const recipe = route.params?.recipe || {
         name: "아보카도 닭가슴살 샐러드",
         description: "단백질 듬뿍! 건강한 지방까지 챙긴 다이어트 샐러드!",
@@ -42,18 +38,30 @@ const DietRecipeScreen = () => {
         ],
     };
 
+    useLayoutEffect(() => {
+        navigation.setOptions({
+          headerTransparent: true,
+          headerTitle: "",
+          headerBackTitleVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={{
+                position: "absolute",
+                left: 20,
+                top: 0,
+                zIndex: 10,
+              }}
+            >
+                <Text style={{fontSize: 24, color: "#fff"}}>←</Text>
+            </TouchableOpacity>
+          ),
+        });
+      }, [navigation]);
+
 
     return (
-        <View style={styles.container}>
-            <BackButton onPress={() => navigation.goBack()}
-                style={{
-                    position: "absolute",
-                    top: 40,
-                    left: 15,
-                    zIndex: 1,
-                }}
-            />
-           
+        <View style={styles.container}>           
             <ScrollView
                 contentContainerStyle={styles.scrollViewContent} 
                 showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}   
@@ -118,12 +126,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#FFF",
     },
-    // backButton: {
-    //     position: "absolute",
-    //     top: 40,
-    //     left: 15,
-    //     zIndex: 1,
-    // },
     scrollViewContent: {
         flexGrow: 1,
         alignItems: "center",
