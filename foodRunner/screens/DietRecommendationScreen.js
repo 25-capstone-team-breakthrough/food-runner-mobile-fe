@@ -12,12 +12,12 @@ const DietRecommendationScreen = () => {
     const [search, setSearch] = useState("");
 
     const [images, setImages] = useState([
-      { id: "1", src: require("../assets/banana.png") },
-      { id: "2", src: require("../assets/banana.png") },
-      { id: "3", src: require("../assets/banana.png") },
-      { id: "4", src: require("../assets/banana.png") },
-      { id: "5", src: require("../assets/banana.png") },
-      { id: "6", src: require("../assets/banana.png") },
+      { id: "1", name: "banana", src: require("../assets/banana.png") },
+      { id: "2", name: "banana", src: require("../assets/banana.png") },
+      { id: "3", name: "banana", src: require("../assets/banana.png") },
+      { id: "4", name: "banana", src: require("../assets/banana.png") },
+      { id: "5", name: "banana", src: require("../assets/banana.png") },
+      { id: "6", name: "banana", src: require("../assets/banana.png") },
     ]);
 
     const handleDelete = (id) => {
@@ -54,7 +54,7 @@ const DietRecommendationScreen = () => {
                   <Ionicons name="remove-circle" size={30} color="red" />
                 </TouchableOpacity>
                 <Image source={image.src} style={styles.image} />
-                <Text style={styles.imageText}>Image {image.id}</Text>
+                <Text style={styles.imageText}>{image.name}</Text>
               </View>
             ))}
           </ScrollView>
@@ -65,6 +65,7 @@ const DietRecommendationScreen = () => {
           <View style={styles.dietContainer}>
             {Object.entries(recommendedMeals).map(([mealType, foods]) => (
               <View key={mealType}>
+                <View style={styles.headerContents}>
                 <View style={styles.mealHeader}>
                   <Text style={styles.mealTitle}>{mealType}</Text>
                 </View>
@@ -76,6 +77,7 @@ const DietRecommendationScreen = () => {
                     <FoodItem food={food} />
                   </TouchableOpacity>
                 ))}
+                </View>
             </View>
           ))}
           </View>
@@ -108,40 +110,43 @@ const styles = StyleSheet.create({
   },
   imageSlider: {
     width: "90%",
-    marginTop: 5,
-    marginBottom: 15,
+    marginTop: 10,
+    marginBottom: 20,
   },
   imageContainer: {
     alignItems: "center",
-    marginHorizontal: 10,
+    marginHorizontal: 0,
     padding: 10,
-    position: "relative", // 상대 위치를 주어 마이너스 버튼을 오른쪽 상단에 배치
+    position: "relative",
   },
   image: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
+    width: 120,
+    height: 110,
+    borderRadius: 30,
   },
   imageText: {
     fontSize: 15,
     color: '#7E7B7B',
     marginTop: 5,
+    fontWeight: "300",
   },
   deleteButton: {
     position: "absolute",
     top: 0,
     right: 0,
-    // backgroundColor: "white",
     borderRadius: 25,
-    padding: 7,
+    padding: 13,
     zIndex: 1,
     transform: [{ scale: 0.6 }], 
   },
+  // headerContents: {
+  //   marginTop: -10,
+  // },
   mealTitle: {
     fontSize: 25,
     fontWeight: "500",
     marginTop: 40,
-    marginLeft: 15,
+    marginLeft: 20,
   },
   dietContainer: {
     marginTop: -80,
@@ -153,7 +158,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: 340,
     height: 75,
-    marginTop: 20,
+    marginTop: 10,
     marginBottom: 10,
   },
   mealContainer: {

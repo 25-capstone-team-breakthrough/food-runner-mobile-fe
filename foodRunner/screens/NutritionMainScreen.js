@@ -1,15 +1,6 @@
 import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  Dimensions,
-  Alert,
-  ScrollView,
-  SafeAreaView,
-} from "react-native";
+import { View, Text, Image, TouchableOpacity, FlatList, Dimensions,
+  Alert, ScrollView, SafeAreaView } from "react-native";
 import { ProgressChart } from "react-native-chart-kit";
 import { AntDesign } from "@expo/vector-icons";
 import BottomNavigation from "../components/BottomNavigation";
@@ -34,7 +25,7 @@ const NutritionMainScreen = () => {
 
   const meals = [{ id: 1, name: "스파게티", image: require("../assets/logo.png") }];
 
-  // 📌 권한 요청 useEffect
+  // 권한 요청 useEffect
   useEffect(() => {
     (async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -49,7 +40,7 @@ const NutritionMainScreen = () => {
     })();
   }, []);
 
-  // 📌 카메라 실행 함수
+  // 카메라 실행 함수
   const openCamera = async () => {
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
@@ -65,7 +56,7 @@ const NutritionMainScreen = () => {
     }
   };
 
-  // 📌 갤러리 실행 함수
+  // 갤러리 실행 함수
   const openGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
