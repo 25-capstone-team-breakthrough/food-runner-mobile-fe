@@ -97,7 +97,14 @@ const NutritionMainScreen = () => {
     { name: "지방", status: "부족", amount: "0g", color: "gray" },
   ];
 
-  const meals = [{ id: 1, name: "스파게티", image: require("../assets/logo.png") }];
+  const meals = [
+    { id: 1, name: "스파게티", image: require("../assets/dobuScb.png") },
+    { id: 2, name: "스파게티", image: require("../assets/salad.png") },
+    { id: 3, name: "스파게티", image: require("../assets/salmonAvocado.png") },
+    { id: 4, name: "스파게티", image: require("../assets/dobuScb.png") },
+    { id: 5, name: "스파게티", image: require("../assets/salad.png") },
+    { id: 6, name: "스파게티", image: require("../assets/salmonAvocado.png") },
+  ];
 
   useEffect(() => {
     (async () => {
@@ -215,20 +222,38 @@ const NutritionMainScreen = () => {
           </TouchableOpacity>
         </View>
 
+        <Text style={styles.photoText}>식사</Text>
 
         <FlatList
           data={meals}
+          style={styles.mealList}
           keyExtractor={(item) => item.id.toString()}
           horizontal
+          showsHorizontalScrollIndicator={false} 
           renderItem={({ item }) => (
-            <View style={{ alignItems: "center", margin: 10 }}>
-              <Image source={item.image} style={{ width: 80, height: 80, borderRadius: 10 }} />
-              <Text>{item.name}</Text>
+            <View style={styles.mealList}>
+              <Image source={item.image} style={styles.mealPhoto} />
+              {/* <Text>{item.name}</Text> */}
+            </View>
+          )}
+        />
+
+        <View style={styles.photoSeparator} />
+        <Text style={styles.photoText}>영양제</Text>
+        <FlatList
+          data={meals}
+          style={styles.mealList}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false} 
+          renderItem={({ item }) => (
+            <View style={styles.mealList}>
+              <Image source={item.image} style={styles.mealPhoto} />
+              {/* <Text>{item.name}</Text> */}
             </View>
           )}
         />
       </ScrollView>
-
       <BottomNavigation />
     </SafeAreaView>
   );
@@ -264,6 +289,7 @@ const styles = {
   processContainer: {
     alignSelf: "center",
     width: "85%",
+    height: 350,
     borderRadius: 20,
     marginTop: 5,
     backgroundColor: "transparent",
@@ -302,6 +328,7 @@ const styles = {
     justifyContent: "center",
     marginVertical: 20,
     gap: 30,
+    marginBottom: 28,
   },
   roundButton: {
     width: 55,
@@ -314,6 +341,32 @@ const styles = {
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
+  },
+  photoText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#363636",
+    marginTop: 5,
+    marginLeft: 40,
+    marginBottom: 5,
+  },
+  mealList: {
+    marginTop: 5,
+    marginLeft: 15,
+  },
+  mealPhoto: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  photoSeparator: {
+    height: 1,
+    width: "85%",
+    backgroundColor: "#DDDDDD",
+    marginVertical: 15,
+    marginTop: 3,
+    alignSelf: "center",
   },
 };
 
