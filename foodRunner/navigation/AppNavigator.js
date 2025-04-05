@@ -15,7 +15,6 @@ import ExerciseRecommendVideo from '../screens/exercise_recommendvideo';
 import ExerciseHome  from '../screens/exercise_home';
 import ExerciseRegister from '../screens/exercise_register';
 import ExerciseHistory from '../screens/exercise_history';
-
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
