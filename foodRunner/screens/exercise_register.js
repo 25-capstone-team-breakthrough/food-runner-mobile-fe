@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { useNavigation } from '@react-navigation/native';
+import { Entypo } from '@expo/vector-icons';
 
 export default function ExerciseRegister({ sheetRef, onClose }) {
   const [exerciseName, setExerciseName] = useState(""); // 운동 이름
@@ -14,15 +15,6 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
     { name: "고블릿 스쿼트", target: "대퇴사두, 대퇴이두" },
     { name: "불가리안 스쿼트", target: "대퇴사두, 대퇴이두" },
     { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },  // 새로운 운동 추가
   ]); // 운동 목록
 
   const [setData, setSetData] = useState([]); // 운동 세트 데이터를 저장하는 상태
@@ -33,29 +25,27 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
 
   const handleSearchChange = (text) => setExerciseName(text);
 
-  // 즐겨찾기 토글 함수
   const toggleFavorite = (exerciseName) => {
     setFavorites((prev) => {
       const newFavorites = { ...prev };
       if (newFavorites[exerciseName]) {
-        delete newFavorites[exerciseName]; // 즐겨찾기 상태를 취소
+        delete newFavorites[exerciseName]; 
       } else {
-        newFavorites[exerciseName] = true; // 즐겨찾기 추가
+        newFavorites[exerciseName] = true;
       }
       return newFavorites;
     });
   };
 
-  // 즐겨찾기 운동 목록과 일반 운동 목록 구분
   const favoriteExercises = exerciseList.filter(exercise => favorites[exercise.name]);
   const regularExercises = exerciseList.filter(exercise => !favorites[exercise.name]);
 
-  const snapPoints = useMemo(() => ["50%", "80%", "90%"], []); // 여러 값으로 설정
+  const snapPoints = useMemo(() => ["50%", "80%", "90%"], []); 
 
   const handleExerciseClick = (exercise) => {
-    setCurrentExercise(exercise); // 운동 이름 클릭 시 현재 운동 상태 업데이트
-    setSetData([{ set: 1, weight: '', reps: '' }]); // 첫 세트 초기화
-    setCurrentPage("exerciseRecord"); // 페이지 상태를 운동 기록 페이지로 변경
+    setCurrentExercise(exercise); 
+    setSetData([{ set: 1, weight: '', reps: '' }]);
+    setCurrentPage("exerciseRecord"); 
   };
 
   const handleAddSet = () => {
@@ -68,24 +58,29 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
     setSetData(updatedSets);
   };
 
+  const handleDeleteSet = (index) => {
+    const updatedSets = setData.filter((set, setIndex) => setIndex !== index); 
+    setSetData(updatedSets);
+  };
+
   const handleSave = () => {
-    console.log('운동 기록 저장:', currentExercise.name, setData); // 운동 기록 저장
-    setSetData([]); // 세트 데이터 초기화
-    setCurrentExercise(null); // 선택된 운동 초기화
-    setCurrentPage("exerciseList"); // 페이지 상태를 운동 목록 페이지로 변경
+    console.log('운동 기록 저장:', currentExercise.name, setData);
+    setSetData([]); 
+    setCurrentExercise(null); 
+    setCurrentPage("exerciseList"); 
   };
 
   const handleBackToList = () => {
-    setCurrentPage("exerciseList"); // 운동 목록 페이지로 돌아가기
+    setCurrentPage("exerciseList"); 
   };
 
   const handleSheetClose = () => {
-    setCurrentPage("exerciseList"); // 바텀시트 닫을 때 페이지를 운동 목록으로 초기화
+    setCurrentPage("exerciseList");
     onClose();
   };
 
   const handleSheetOpen = () => {
-    setCurrentPage("exerciseList"); // 바텀시트 열 때 운동 목록 페이지로 설정
+    setCurrentPage("exerciseList");
   };
 
   return (
@@ -100,7 +95,6 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          {/* 운동 선택 화면에서는 뒤로 가기 버튼을 표시하지 않음 */}
           {currentPage === "exerciseRecord" && (
             <TouchableOpacity onPress={handleBackToList} style={styles.backButton}>
               <Ionicons name="arrow-back" size={24} color="white" />
@@ -125,14 +119,13 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
             </View>
 
             <ScrollView style={styles.scrollView}>
-              {/* 즐겨찾기 운동 목록 */}
               {favoriteExercises.length > 0 && (
                 <View>
-                  <Text style={styles.favoriteTitle}>즐겨찾기 운동</Text>
+                  <Text style={styles.favoriteTitle}>즐겨찾기</Text>
                   {favoriteExercises.map((exercise, index) => (
                     <View key={index} style={styles.exerciseItem}>
                       <TouchableOpacity onPress={() => toggleFavorite(exercise.name)} style={styles.favoriteButton}>
-                        <Ionicons name="star" size={24} color="yellow" />
+                        <Ionicons name="star" size={24} color="#E1FF01" />
                       </TouchableOpacity>
                       <View style={styles.exerciseTextContainer}>
                         <TouchableOpacity onPress={() => handleExerciseClick(exercise)}>
@@ -144,11 +137,7 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
                   ))}
                 </View>
               )}
-
-              {/* 구분선 */}
               {favoriteExercises.length > 0 && <View style={styles.separator} />}
-
-              {/* 일반 운동 목록 */}
               {regularExercises.length > 0 && (
                 <View>
                   {regularExercises.map((exercise, index) => (
@@ -172,17 +161,19 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
 
         {currentPage === "exerciseRecord" && (
           <View style={styles.setContainer}>
-            <Text style={styles.setTitle}>{currentExercise.name} 기록</Text>
+            <Text style={styles.setTitle}>{currentExercise.name}</Text>
+            <Text style={styles.recordText}>기록</Text>
             <ScrollView style={styles.table}>
               <View style={styles.tableHeader}>
                 <Text style={styles.tableHeaderText}>세트</Text>
                 <Text style={styles.tableHeaderText}>무게 (kg)</Text>
                 <Text style={styles.tableHeaderText}>횟수</Text>
+                <Text style={styles.tableHeaderText}>삭제</Text>
               </View>
-
+              <View style={styles.separator} />
               {setData.map((set, index) => (
                 <View key={index} style={styles.tableRow}>
-                  <Text style={styles.tableCell}>세트 {set.set}</Text>
+                  <Text style={styles.tableCell}>{set.set}</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="무게"
@@ -197,14 +188,17 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
                     value={set.reps}
                     onChangeText={(text) => handleSetChange(index, "reps", text)}
                   />
+                  <TouchableOpacity onPress={() => handleDeleteSet(index)} style={styles.deleteButton}>
+                    <Ionicons name="trash" size={24} color="red" />
+                  </TouchableOpacity>
                 </View>
               ))}
             </ScrollView>
 
             <TouchableOpacity onPress={handleAddSet} style={styles.addButton}>
-              <Ionicons name="add" size={24} color="white" />
-              <Text style={styles.addText}>세트 추가</Text>
+              <Entypo name="plus" size={40} color="black" />
             </TouchableOpacity>
+
             <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
               <Text style={styles.saveText}>등록</Text>
             </TouchableOpacity>
@@ -223,24 +217,65 @@ const styles = StyleSheet.create({
   backText: { color: "white", fontSize: 16, marginLeft: 5 },
   searchContainer: { flexDirection: "row", alignItems: "center", backgroundColor: "#f0f0f0", borderRadius: 25, paddingHorizontal: 10, marginBottom: 10 },
   searchInput: { flex: 1, paddingLeft: 10, height: 40, fontSize: 16 },
-  scrollView: { maxHeight: 500 },  // ScrollView 영역 크기를 확대하여 더 많은 항목을 표시
+  scrollView: { maxHeight: 600 },
   exerciseItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10 },
   favoriteButton: { marginRight: 10 },
   exerciseTextContainer: { flexDirection: "column", alignItems: "flex-start" },
   exerciseText: { fontSize: 16, color: "white" },
   targetText: { fontSize: 14, color: "#929090", marginTop: 5 },
   setContainer: { marginTop: 20 },
-  setTitle: { fontSize: 20, color: "#E1FF01", fontWeight: "bold", marginBottom: 15 },
+  setTitle: { fontSize: 25, color: "white", fontWeight: "bold", marginBottom: 20, textAlign: "left" },
+  recordText: {
+    fontSize: 18,
+    color: "white",  
+    fontWeight: "bold",
+    textAlign: "left",
+    marginBottom: 30,
+  },
   table: { marginBottom: 20 },
-  tableHeader: { flexDirection: "row", justifyContent: "space-between", backgroundColor: "#444", padding: 10 },
-  tableHeaderText: { color: "white", fontWeight: "bold", fontSize: 16, flex: 1, textAlign: "center" },
-  tableRow: { flexDirection: "row", justifyContent: "space-between", padding: 10, borderBottomWidth: 1, borderBottomColor: "#ddd" },
-  tableCell: { color: "white", fontSize: 16, flex: 1, textAlign: "center" },
-  input: { backgroundColor: "#444", color: "white", height: 40, borderRadius: 5, marginRight: 10, flex: 1, paddingLeft: 10 },
-  addButton: { flexDirection: "row", alignItems: "center", backgroundColor: "#E1FF01", paddingVertical: 10, borderRadius: 20, justifyContent: "center", marginTop: 20 },
-  addText: { color: "black", fontSize: 16, marginLeft: 5 },
+  tableHeader: { flexDirection: "row", justifyContent: "space-between", backgroundColor: "#2D2D35", padding: 0 },
+  tableHeaderText: { color: "white", fontWeight: "", fontSize: 16, textAlign: "center", flex: 1 },
+  tableRow: { 
+    flexDirection: "row", 
+    justifyContent: "center", 
+    alignItems: "center", 
+    padding: 10, 
+    borderBottomWidth: 1, 
+    borderBottomColor: "#2D2D35" 
+  },
+  tableCell: { 
+    color: "white", 
+    fontSize: 16, 
+    textAlign: "center", 
+    flex: 1 
+  },
+  input: { 
+    backgroundColor: "#444", 
+    color: "white", 
+    height: 40, 
+    borderRadius: 5, 
+    marginRight: 10, 
+    flex: 1, 
+    paddingLeft: 10, 
+    textAlign: "center" 
+  },
+  addButton: { 
+    width: 40,   
+    height: 40,  
+    borderRadius: 20, 
+    backgroundColor: "white", 
+    justifyContent: "center", 
+    alignItems: "center", 
+    marginTop: 20,
+    alignSelf: "center", 
+  },
   saveButton: { backgroundColor: "#E1FF01", paddingVertical: 15, borderRadius: 20, marginTop: 30, alignItems: "center" },
   saveText: { color: "black", fontSize: 18, fontWeight: "bold" },
-  separator: { height: 1, backgroundColor: "#ddd", marginVertical: 10 },
+  separator: { height: 1, backgroundColor: "#2D2D35", marginVertical: 10 }, 
   favoriteTitle: { fontSize: 18, fontWeight: "bold", color: "#E1FF01", marginVertical: 10 },
+  deleteButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 10
+  }
 });
