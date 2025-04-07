@@ -15,6 +15,18 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
     { name: "고블릿 스쿼트", target: "대퇴사두, 대퇴이두" },
     { name: "불가리안 스쿼트", target: "대퇴사두, 대퇴이두" },
     { name: "체스트 프레스", target: "대흉근, 삼두" },
+    { name: "바벨 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "덤벨 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "스미스 머신 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "고블릿 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "불가리안 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "체스트 프레스", target: "대흉근, 삼두" },
+    { name: "바벨 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "덤벨 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "스미스 머신 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "고블릿 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "불가리안 스쿼트", target: "대퇴사두, 대퇴이두" },
+    { name: "체스트 프레스", target: "대흉근, 삼두" },
   ]); // 운동 목록
 
   const [setData, setSetData] = useState([]); // 운동 세트 데이터를 저장하는 상태
@@ -165,10 +177,10 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
             <Text style={styles.recordText}>기록</Text>
             <ScrollView style={styles.table}>
               <View style={styles.tableHeader}>
-                <Text style={styles.tableHeaderText}>세트</Text>
-                <Text style={styles.tableHeaderText}>무게 (kg)</Text>
-                <Text style={styles.tableHeaderText}>횟수</Text>
-                <Text style={styles.tableHeaderText}>삭제</Text>
+                <Text style={styles.tableHeaderText}>     세트</Text>
+                <Text style={styles.tableHeaderText}>      무게 (kg)</Text>
+                <Text style={styles.tableHeaderText}>             횟수</Text>
+                <Text style={styles.tableHeaderText}>         삭제</Text>
               </View>
               <View style={styles.separator} />
               {setData.map((set, index) => (

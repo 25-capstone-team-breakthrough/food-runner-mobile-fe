@@ -13,6 +13,8 @@ import { useNavigation } from "@react-navigation/native";
 import BottomNavigation from "../components/BottomNavigation";
 import { Calendar } from "react-native-calendars";
 import ExerciseRegister from "../screens/exercise_register"; // 바텀시트 컴포넌트 import
+import BottomSheet from "@gorhom/bottom-sheet"; // 바텀시트 컴포넌트 import
+import ExerciseHistory from "../screens/exercise_history"; // ExerciseHistory 화면 임포트
 
 export default function ExerciseHome() {
   const navigation = useNavigation();
@@ -25,6 +27,7 @@ export default function ExerciseHome() {
   const [isImageBlurred, setIsImageBlurred] = useState(false); // 이미지 흐림 상태 관리
   const [isButtonBlurred, setIsButtonBlurred] = useState(false); // 버튼 흐림 상태 관리
   const sheetRef = useRef(null); // 바텀시트 참조
+  const historySheetRef = useRef(null); // ExerciseHistory 바텀시트 참조
 
   useEffect(() => {
     if (isBottomSheetVisible && sheetRef.current) {
@@ -40,21 +43,6 @@ export default function ExerciseHome() {
     }
   }, [isBottomSheetVisible]);
 
-  const navigateToExerciseDetail = (exerciseName) => {
-    console.log("Exercise Name: ", exerciseName);  // exerciseName이 잘 전달되는지 확인
-    if (exerciseName) {
-      navigation.navigate('ExerciseDetailPage', { exercise: exerciseName });
-    } else {
-      console.log("운동 이름이 없습니다.");
-    }
-  };
-  
-  
-
-  const navigateToExerciseVideo = (bodyPart) => {
-    navigation.navigate("ExerciseRecommendVideo", { category: bodyPart });
-  };
-
   const onDateSelect = (date) => {
     const formattedDate = date.dateString.split("-").join(".");
     const dayOfWeek = new Date(date.dateString).toLocaleString("ko-KR", {
@@ -66,11 +54,18 @@ export default function ExerciseHome() {
   };
 
   const handleExerciseClick = (exercise) => {
-    // 운동 이름 클릭 시 ExerciseDetailPage를 바텀시트로 열기
-    sheetRef.current?.expand();  // 바텀시트 열기
-    setExerciseDetails(exercise);  // 선택한 운동 정보 저장
+    // 운동 이름 클릭 시 ExerciseRecommendVideo로 이동
+    navigateToExerciseVideo(exercise);
   };
-  
+
+  const navigateToExerciseVideo = (exerciseName) => {
+    console.log("Exercise Name: ", exerciseName);  // exerciseName이 잘 전달되는지 확인
+    if (exerciseName) {
+      navigation.navigate('ExerciseRecommendVideo', { exercise: exerciseName }); // ExerciseRecommendVideo로 이동
+    } else {
+      console.log("운동 이름이 없습니다.");
+    }
+  };
 
   const handleOpenBottomSheet = () => {
     setIsBottomSheetVisible(true); // 바텀시트를 보이게 하기 위해 상태 업데이트
@@ -78,6 +73,14 @@ export default function ExerciseHome() {
 
   const handleCloseBottomSheet = () => {
     setIsBottomSheetVisible(false); // 바텀시트를 닫기 위해 상태 업데이트
+  };
+
+  const handleOpenHistorySheet = () => {
+    historySheetRef.current.expand(); // ExerciseHistory 바텀시트 열기
+  };
+
+  const handleCloseHistorySheet = () => {
+    historySheetRef.current.close(); // ExerciseHistory 바텀시트 닫기
   };
 
   return (
@@ -108,37 +111,37 @@ export default function ExerciseHome() {
           resizeMode="contain"
           blurRadius={isImageBlurred ? 5 : 0} // isImageBlurred 값에 따라 흐림 처리
         />
-        
+
         {/* 이미지 위 버튼 */}
         {isFrontView ? (
           <>
             <TouchableOpacity
               style={[buttonStyle("25%", "37%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => navigateToExerciseDetail("어깨")} // 운동 이름 클릭 시 상세 페이지로 이동
+              onPress={() => handleExerciseClick("어깨")}
             >
               <Text></Text> {/* 텍스트 오류 방지용 빈 텍스트 */}
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("29%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => navigateToExerciseDetail("가슴")}
+              onPress={() => handleExerciseClick("가슴")}
             >
               <Text></Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("38%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => navigateToExerciseDetail("복근")}
+              onPress={() => handleExerciseClick("복근")}
             >
               <Text></Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("36%", "68%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => navigateToExerciseDetail("팔")}
+              onPress={() => handleExerciseClick("팔")}
             >
               <Text></Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("58%", "59%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => navigateToExerciseDetail("하체")}
+              onPress={() => handleExerciseClick("하체")}
             >
               <Text></Text>
             </TouchableOpacity>
@@ -147,19 +150,19 @@ export default function ExerciseHome() {
           <>
             <TouchableOpacity
               style={[buttonStyle("30%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => navigateToExerciseDetail("등")}
+              onPress={() => handleExerciseClick("등")}
             >
               <Text></Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("51%", "58%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => navigateToExerciseDetail("둔근")}
+              onPress={() => handleExerciseClick("둔근")}
             >
               <Text></Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("75%", "43%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => navigateToExerciseDetail("종아리")}
+              onPress={() => handleExerciseClick("종아리")}
             >
               <Text></Text>
             </TouchableOpacity>
@@ -226,7 +229,7 @@ export default function ExerciseHome() {
               shadowOpacity: 0.3,
               shadowRadius: 3,
             }}
-            onPress={() => navigation.navigate("ExerciseHistory")}
+            onPress={handleOpenHistorySheet} // ExerciseHistory 바텀시트 열기
           >
             <Ionicons name="menu" size={28} color="black" />
           </TouchableOpacity>
@@ -265,9 +268,20 @@ export default function ExerciseHome() {
       <ExerciseRegister
         sheetRef={sheetRef}
         onClose={handleCloseBottomSheet} // 바텀시트 닫기 함수 전달
-        snapPoints={['0%', '80%']} // 바텀시트 80% 올라오도록 설정
+        snapPoints={['80%']} // 바텀시트 80% 올라오도록 설정
         index={-1} // 초기 상태에서 바텀시트 닫힘
       />
+
+      {/* ExerciseHistory 바텀시트 */}
+      <BottomSheet
+        ref={historySheetRef}
+        index={-1}
+        snapPoints={["80%"]}
+        onClose={handleCloseHistorySheet}
+        backgroundStyle={{ backgroundColor: "#2D2D35" }}
+      >
+        <ExerciseHistory onClose={handleCloseHistorySheet} />
+      </BottomSheet>
 
       {/* 하단 네비게이션 */}
       {isBottomNavVisible && <BottomNavigation />} {/* 하단 네비게이션 상태에 따라 렌더링 */}
