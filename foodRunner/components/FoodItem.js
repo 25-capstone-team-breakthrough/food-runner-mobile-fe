@@ -24,10 +24,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    width: 340,
+    width: 330,
     height: 75,
     padding: 15,
     borderRadius: 30,
+    marginLeft: 5,
     marginBottom: 15,
     shadowColor: "#000",
     shadowOffset: { width: 4, height: 4 },
@@ -36,9 +37,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   image: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+    width: 58,
+    height: 58,
+    borderRadius: 30,
     marginLeft: 20,
   },
   textContainer: {
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 20,
-    fontWeight: "500",
+    fontWeight: "450",
     marginBottom: 3,
   },
   calories: {

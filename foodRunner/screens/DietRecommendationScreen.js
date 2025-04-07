@@ -26,7 +26,7 @@ const DietRecommendationScreen = () => {
 
     const recommendedMeals = {
         Breakfast: [
-            { id: "1", name: "바나나 한 조각", calories: "31kcal 당 100g", image: require("../assets/logo.png") },
+            { id: "1", name: "바나나 한 조각", calories: "31kcal 당 100g", image: require("../assets/banana.png") },
             { id: "2", name: "프로틴 쉐이크", calories: "102kcal 당 100ml", image: require("../assets/logo.png") },
         ],
         Lunch: [
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   mealContainer: {
-    borderRadius: 30,
+    borderRadius: 60,
   },
 });
 

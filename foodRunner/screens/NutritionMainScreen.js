@@ -291,7 +291,7 @@ const styles = {
     width: "85%",
     height: 350,
     borderRadius: 20,
-    marginTop: 5,
+    marginTop: 10,
     backgroundColor: "transparent",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -352,7 +352,8 @@ const styles = {
   },
   mealList: {
     marginTop: 5,
-    marginLeft: 15,
+    marginLeft: 8,
+    marginRight: 8,
   },
   mealPhoto: {
     width: 60,
