@@ -17,13 +17,19 @@ import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
 import { Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import { useRoute } from "@react-navigation/native";
 // import { Home, User, Settings } from "lucide-react";
 
 
 const screenWidth = Dimensions.get("window").width;
 
+
 // 반달형 그래프용 함수
 const describeArc = (x, y, radius, startAngle, endAngle) => {
+
+  const route = useRoute();
+  const selectedItemFromRoute = route.params?.selectedItem;
+
   const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
     const angleInRadians = (angleInDegrees * Math.PI) / 180.0;
     return {
@@ -86,6 +92,10 @@ const HalfCircleChart = ({ progress = 0.9, size = 180, strokeWidth = 20 }) => {
 
 const NutritionMainScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const selectedItemFromRoute = route.params?.selectedItem;
+  const selectedSupplementFromRoute = route.params?.selectedsupplementItem;
+
   const [currentPage, setCurrentPage] = useState(0);
   const dailyCalories = 2000;
   const consumedCalories = 1800;
@@ -97,36 +107,48 @@ const NutritionMainScreen = () => {
     { name: "지방", status: "부족", amount: "0g", color: "gray" },
   ];
 
-  const meals = [
-    { id: 1, name: "스파게티", image: require("../assets/dobuScb.png") },
-    { id: 2, name: "스파게티", image: require("../assets/salad.png") },
-    { id: 3, name: "스파게티", image: require("../assets/salmonAvocado.png") },
-    { id: 4, name: "스파게티", image: require("../assets/dobuScb.png") },
-    { id: 5, name: "스파게티", image: require("../assets/salad.png") },
-    { id: 6, name: "스파게티", image: require("../assets/salmonAvocado.png") },
-  ];
+  const [dietImages, setDietImages] = useState([]);
+  const [supplementImages, setSupplementImages] = useState([]);
 
   useEffect(() => {
     (async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-      if (cameraStatus !== "granted" || status !== "granted") {
+      
+      const galleryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+  
+      if (
+        galleryPermission.status !== "granted" ||
+        cameraPermission.status !== "granted"
+      ) {
         Alert.alert("권한 필요", "카메라 및 갤러리 접근을 허용해주세요.");
+        return;
+      }
+
+      if (selectedItemFromRoute?.image) {
+        setDietImages((prev) => [...prev, selectedItemFromRoute.image]);
+      }
+
+      if (selectedSupplementFromRoute?.image) {
+        setSupplementImages((prev) => [...prev, selectedSupplementFromRoute.image]);
       }
     })();
-  }, []);
+  }, [selectedItemFromRoute, selectedSupplementFromRoute]);
+  
+  
 
   const openCamera = async () => {
     const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 1 });
     if (!result.canceled && result.assets?.length > 0) {
-      console.log("Captured Image:", result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setDietImages((prev) => [...prev, { uri }]);
     }
   };
 
   const openGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, quality: 1 });
     if (!result.canceled && result.assets?.length > 0) {
-      console.log("Selected Image:", result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setDietImages((prev) => [...prev, { uri }]);
     }
   };
 
@@ -223,33 +245,34 @@ const NutritionMainScreen = () => {
         </View>
 
         <Text style={styles.photoText}>식사</Text>
-
+        {/* 나중에 식단사진 넣을때 id로 넣어야 됨.  */}
         <FlatList
-          data={meals}
+          data={dietImages}
           style={styles.mealList}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(_, index) => index.toString()}
           horizontal
           showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={{ justifyContent: 'center', alignItems: 'center' }}
           renderItem={({ item }) => (
             <View style={styles.mealList}>
-              <Image source={item.image} style={styles.mealPhoto} />
-              {/* <Text>{item.name}</Text> */}
+              <Image source={item} style={styles.mealPhoto}/>
             </View>
           )}
         />
 
+          
         <View style={styles.photoSeparator} />
         <Text style={styles.photoText}>영양제</Text>
         <FlatList
-          data={meals}
+          data={supplementImages}
           style={styles.mealList}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(_, index) => index.toString()}
           horizontal
           showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={{ justifyContent: 'center', alignItems: 'center' }}
           renderItem={({ item }) => (
             <View style={styles.mealList}>
-              <Image source={item.image} style={styles.mealPhoto} />
-              {/* <Text>{item.name}</Text> */}
+              <Image source={item} style={styles.mealPhoto} />
             </View>
           )}
         />
@@ -352,7 +375,7 @@ const styles = {
   },
   mealList: {
     marginTop: 5,
-    marginLeft: 8,
+    marginLeft: 18,
     marginRight: 8,
   },
   mealPhoto: {

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   FlatList,
   SafeAreaView,
@@ -76,6 +75,8 @@ const FoodSearchScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+
 
   // 🔹 검색어 변경 시 필터링
   const handleSearch = (text) => {
@@ -101,35 +102,58 @@ const FoodSearchScreen = () => {
         />
       </View>
 
-      <Text style={styles.searchMountText}>조회결과 124개</Text>
+        {filteredItems.length > 0 ? (
+        <>
+          <Text style={styles.searchMountText}>
+            검색결과 {filteredItems.length}개
+          </Text>
+          <FlatList
+            data={filteredItems}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  if (selectedItem?.id === item.id) {
+                    setSelectedItem(null);
+                  } else {
+                    setSelectedItem(item);
+                  }
+                }}
+                style={[
+                  styles.resultItem,
+                  selectedItem?.id === item.id && styles.selectedItem,
+                ]}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Image source={item.image} style={styles.itemImage} />
+                  <View style={styles.threeText}>
+                    <Text style={styles.itemName}>{item.name}</Text>
+                    <Text style={styles.itemBrand}>{item.brand}</Text>
+                    <Text style={styles.itemKcal}>{item.kcal} kcal</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={{ paddingHorizontal: 30 }}
+          />
+        </>
+      ) : (
+        searchText.length > 0 && (
+          <Text style={styles.searchMountText}>검색 결과가 없습니다</Text>
+        )
+      )}
 
-      {/* 🔹 검색 결과 리스트 */}
-      <FlatList
-        data={filteredItems}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.resultItem}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image
-                source={item.image}
-                style={styles.itemImage}
-              />
-              <View style={{ marginLeft: 15 }}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemBrand}>{item.brand}</Text>
-                <Text style={styles.itemKcal}>{item.kcal} kcal</Text>
-              </View>
-            </View>
-            <View style={styles.separator}></View>
-          </View>
-        )}
-        
-        contentContainerStyle={{ paddingHorizontal: 30 }}
-      />
 
       {/* 🔹 등록하기 버튼 */}
-      <RegisterButton onPress={() => navigation.goBack()} />
-
+      <RegisterButton
+        onPress={() => {
+          if (selectedItem) {
+            navigation.navigate("NutritionMain", { selectedItem });
+          } else {
+            alert("음식을 선택해주세요!");
+          }
+        }}
+      />
       <BottomNavigation />
     </SafeAreaView>
   );
@@ -155,14 +179,23 @@ const styles = {
   },
   resultItem: {
     backgroundColor: "white",
-    borderRadius: 10,
-    elevation: 3,
+    borderRadius: 3,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  selectedItem: {
+    backgroundColor: "rgba(217, 217, 217, 0.4)",
   },
   itemImage: {
     width: 100,
     height: 100,
     borderRadius: 5,
     marginLeft: 20,
+  },
+  threeText: {
+    marginLeft: 15,
+    gap: 5,
   },
   itemName: {
     fontSize: 20,
@@ -178,19 +211,6 @@ const styles = {
     fontSize: 14,
     color: "#898989",
     marginTop: 4,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "#ccc",
-    marginVertical: 20,
-    marginHorizontal: 10,
-  },
-  registerButton: {
-    marginTop: 20,
-    backgroundColor: "#3498db",
-    padding: 15,
-    alignItems: "center",
-    borderRadius: 10,
   },
 };
 
