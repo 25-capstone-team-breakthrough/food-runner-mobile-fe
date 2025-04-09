@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import React from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const FoodItem = ({ food }) => {
   const navigation = useNavigation();
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     width: 330,
     height: 75,
-    padding: 15,
+    //padding: 15,
     borderRadius: 30,
     marginLeft: 5,
     marginBottom: 15,

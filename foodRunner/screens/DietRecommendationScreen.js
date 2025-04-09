@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, ScrollView, StyleSheet, Image, TouchableOpacity, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import FoodItem from "../components/FoodItem";
+import React, { useState } from "react";
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import BottomNavigation from "../components/BottomNavigation";
-import SearchBar from "../components/SearchBar";
+import FoodItem from "../components/FoodItem";
 import RefreshButton from "../components/RefreshButton";
+import SearchBar from "../components/SearchBar";
 
 const DietRecommendationScreen = () => {
     const navigation = useNavigation();
@@ -139,9 +139,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
     transform: [{ scale: 0.6 }], 
   },
-  // headerContents: {
-  //   marginTop: -10,
-  // },
   mealTitle: {
     fontSize: 25,
     fontWeight: "500",
@@ -149,7 +146,7 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   dietContainer: {
-    marginTop: -80,
+    marginTop: -50,
   },
   mealHeader: {
     flexDirection: "row",
@@ -158,7 +155,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: 340,
     height: 75,
-    marginTop: 10,
+    marginTop: -20,
     marginBottom: 10,
   },
   mealContainer: {
