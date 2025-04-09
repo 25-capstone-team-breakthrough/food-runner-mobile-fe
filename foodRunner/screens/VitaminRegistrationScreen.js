@@ -1,16 +1,16 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
-  View,
+  FlatList,
+  Image,
+  SafeAreaView,
   Text,
   TouchableOpacity,
-  FlatList,
-  SafeAreaView,
-  Image,
+  View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import BottomNavigation from "../components/BottomNavigation";
 import RegisterButton from "../components/RegisterButton";
 import SearchBar from "../components/SearchBar";
-import BottomNavigation from "../components/BottomNavigation";
 
 const supplementItems = [
   {
@@ -26,7 +26,7 @@ const supplementItems = [
     brand: "종근당",
     nutrients: "비타민 C",
     image: require("../assets/vitamin.png"),
-  }
+  },
 ];
 
 const FoodSearchScreen = () => {
@@ -100,7 +100,10 @@ const FoodSearchScreen = () => {
                 </View>
               </TouchableOpacity>
             )}
-            contentContainerStyle={{ paddingHorizontal: 30 }}
+            contentContainerStyle={{ 
+              paddingHorizontal: 30,
+              paddingBottom: 105,
+             }}
           />
         </>
       ) : (

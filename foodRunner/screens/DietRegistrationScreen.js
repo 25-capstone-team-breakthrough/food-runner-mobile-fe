@@ -1,16 +1,16 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
-  View,
+  FlatList,
+  Image,
+  SafeAreaView,
   Text,
   TouchableOpacity,
-  FlatList,
-  SafeAreaView,
-  Image,
+  View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import BottomNavigation from "../components/BottomNavigation";
 import RegisterButton from "../components/RegisterButton";
 import SearchBar from "../components/SearchBar";
-import BottomNavigation from "../components/BottomNavigation";
 
 const foodItems = [
   {
@@ -134,7 +134,10 @@ const FoodSearchScreen = () => {
                 </View>
               </TouchableOpacity>
             )}
-            contentContainerStyle={{ paddingHorizontal: 30 }}
+            contentContainerStyle={{ 
+              paddingHorizontal: 30,
+              paddingBottom: 105,
+             }}
           />
         </>
       ) : (
@@ -158,8 +161,6 @@ const FoodSearchScreen = () => {
     </SafeAreaView>
   );
 };
-
-
 
 const styles = {
   container: {

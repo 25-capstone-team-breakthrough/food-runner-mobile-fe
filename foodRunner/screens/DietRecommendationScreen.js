@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     alignItems: "center",
-    paddingHorizontal: 0,
+    paddingBottom: 50,
   },
   searchBar: {
     flexDirection: "row",

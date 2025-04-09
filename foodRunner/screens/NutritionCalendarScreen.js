@@ -1,18 +1,19 @@
-import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  StyleSheet,
-  Animated,
-} from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { PanGestureHandler, State } from "react-native-gesture-handler";
+import React from "react";
+import {
+  Animated,
+  Dimensions,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Calendar } from "react-native-calendars";
 import { LineChart } from "react-native-chart-kit";
-import { Dimensions } from "react-native";
+import { PanGestureHandler, State } from "react-native-gesture-handler";
+import RegisterButton from "../components/RegisterButton";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -94,9 +95,13 @@ const NutritionCalendarScreen = ({ visible }) => {
           </View>
           
           {/* 선택하기 버튼 */}
-          <TouchableOpacity style={styles.selectButton} onPress={() => navigation.goBack()}>
+          <RegisterButton onPress={() => navigation.navigate("NutritionMain")} 
+            title="선택하기"
+          />
+
+          {/* <TouchableOpacity style={styles.selectButton} onPress={() => navigation.goBack()}>
             <Text style={styles.selectButtonText}>선택하기</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </Animated.View>
       </PanGestureHandler>
     </Modal>

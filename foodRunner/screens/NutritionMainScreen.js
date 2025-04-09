@@ -1,94 +1,26 @@
+import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  Dimensions,
   Alert,
-  ScrollView,
+  Dimensions,
+  FlatList,
+  Image,
   SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
 import BottomNavigation from "../components/BottomNavigation";
-import * as ImagePicker from "expo-image-picker";
-import { useNavigation } from "@react-navigation/native";
-import { LinearGradient } from "expo-linear-gradient";
-import Svg, { Path } from "react-native-svg";
-import { Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
-import { useRoute } from "@react-navigation/native";
+import HalfCircleSkiaChart from "../components/HalfCircleSkiaChart";
 // import { Home, User, Settings } from "lucide-react";
 
 
 const screenWidth = Dimensions.get("window").width;
 
-
-// 반달형 그래프용 함수
-const describeArc = (x, y, radius, startAngle, endAngle) => {
-
-  const route = useRoute();
-  const selectedItemFromRoute = route.params?.selectedItem;
-
-  const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
-    const angleInRadians = (angleInDegrees * Math.PI) / 180.0;
-    return {
-      x: centerX + radius * Math.cos(angleInRadians),
-      y: centerY + radius * Math.sin(angleInRadians),
-    };
-  };
-
-  const start = polarToCartesian(x, y, radius, endAngle);
-  const end = polarToCartesian(x, y, radius, startAngle);
-
-  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-
-  const d = [
-    "M",
-    start.x,
-    start.y,
-    "A",
-    radius,
-    radius,
-    0,
-    largeArcFlag,
-    0,
-    end.x,
-    end.y,
-  ].join(" ");
-
-  return d;
-};
-
-const HalfCircleChart = ({ progress = 0.9, size = 180, strokeWidth = 20 }) => {
-  const radius = (size - strokeWidth) / 2;
-  const center = size / 2;
-  const endAngle = 180 * progress;
-
-  return (
-    <View style={{ alignItems: "center", marginTop: 20 }}>
-      <Svg width={size} height={size / 2}>
-        <Path
-          d={describeArc(center, center, radius, 180, 0)}
-          stroke="#e0e0e0"
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        <Path
-          d={describeArc(center, center, radius, 180, 180 - endAngle)}
-          stroke="#CDFF00"
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeLinecap="round"
-        />
-      </Svg>
-      <View style={{ position: "absolute", top: size * 0.15, alignItems: "center" }}>
-        <Text style={{ fontSize: 28, fontWeight: "bold" }}>{Math.round(progress * 2000)}</Text>
-        <Text style={{ fontSize: 14, color: "#777" }}>권장 2,000kcal</Text>
-      </View>
-    </View>
-  );
-};
 
 const NutritionMainScreen = () => {
   const navigation = useNavigation();
@@ -162,12 +94,13 @@ const NutritionMainScreen = () => {
           <Text style={styles.dateText}>2025.01.21</Text>
         </View>
 
+        <View style={styles.processContainerShadow}>
         <LinearGradient
           colors={["#FFFFFF", "#E9E9E9"]}
           start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
           style={styles.processContainer}
         >
-          <HalfCircleChart progress={progress} />
+           <HalfCircleSkiaChart progress={progress} size={280} />
 
           <View style={styles.separator} />
 
@@ -225,6 +158,7 @@ const NutritionMainScreen = () => {
             ))}
           </View>
         </LinearGradient>
+        </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.roundButton} onPress={openCamera}>
@@ -315,12 +249,14 @@ const styles = {
     height: 350,
     borderRadius: 20,
     marginTop: 10,
-    backgroundColor: "transparent",
+    backgroundColor: "#fff",
+    paddingBottom: 20,
+  },
+  processContainerShadow: {
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    paddingBottom: 20,
   },
   consumedCaloriesText: {
     fontSize: 35,
@@ -336,7 +272,7 @@ const styles = {
     height: 1,
     width: "92%",
     backgroundColor: "#8A8A8A",
-    marginVertical: 15,
+    marginVertical: 5,
     alignSelf: "center",
   },
   threeMacroNutrientsText: {
@@ -344,6 +280,7 @@ const styles = {
     fontWeight: "500",
     color: "#363636",
     alignSelf: "center",
+    marginTop: 10,
     marginBottom: 15,
   },
   buttonContainer: {
