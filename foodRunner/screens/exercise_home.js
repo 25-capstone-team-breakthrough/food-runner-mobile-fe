@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   SafeAreaView,
   Text,
@@ -43,6 +43,16 @@ export default function ExerciseHome() {
     }
   }, [isBottomSheetVisible]);
 
+  useEffect(() => {
+    const today = new Date();
+    const formatted = today.toISOString().split("T")[0]; // yyyy-mm-dd
+    const pretty = formatted.split("-").join(".");       // yyyy.mm.dd
+    const dayName = today.toLocaleDateString("ko-KR", { weekday: "short" });
+  
+    setSelectedDate(pretty);
+    setSelectedDay(dayName);
+  }, []);
+  
   const onDateSelect = (date) => {
     const formattedDate = date.dateString.split("-").join(".");
     const dayOfWeek = new Date(date.dateString).toLocaleString("ko-KR", {
@@ -58,10 +68,12 @@ export default function ExerciseHome() {
     navigateToExerciseVideo(exercise);
   };
 
+  const historySnapPoints = useMemo(() => ["80%"], []);
+
   const navigateToExerciseVideo = (exerciseName) => {
     console.log("Exercise Name: ", exerciseName);  // exerciseName이 잘 전달되는지 확인
     if (exerciseName) {
-      navigation.navigate('ExerciseRecommendVideo', { exercise: exerciseName }); // ExerciseRecommendVideo로 이동
+      navigation.navigate('ExerciseRecommendVideo', { category: exerciseName }); // ExerciseRecommendVideo로 이동
     } else {
       console.log("운동 이름이 없습니다.");
     }
@@ -119,31 +131,31 @@ export default function ExerciseHome() {
               style={[buttonStyle("25%", "37%"), isButtonBlurred && { opacity: 0.5 }]}
               onPress={() => handleExerciseClick("어깨")}
             >
-              <Text></Text> {/* 텍스트 오류 방지용 빈 텍스트 */}
+              <Text style={{ opacity: 0 }}>어깨</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("29%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
               onPress={() => handleExerciseClick("가슴")}
             >
-              <Text></Text>
+              <Text style={{ opacity: 0 }}>가슴</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("38%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
               onPress={() => handleExerciseClick("복근")}
             >
-              <Text></Text>
+              <Text style={{ opacity: 0 }}>복근</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("36%", "68%"), isButtonBlurred && { opacity: 0.5 }]}
               onPress={() => handleExerciseClick("팔")}
             >
-              <Text></Text>
+              <Text style={{ opacity: 0 }}>팔</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("58%", "59%"), isButtonBlurred && { opacity: 0.5 }]}
               onPress={() => handleExerciseClick("하체")}
             >
-              <Text></Text>
+              <Text style={{ opacity: 0 }}>하체</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -152,19 +164,19 @@ export default function ExerciseHome() {
               style={[buttonStyle("30%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
               onPress={() => handleExerciseClick("등")}
             >
-              <Text></Text>
+              <Text style={{ opacity: 0 }}>등</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("51%", "58%"), isButtonBlurred && { opacity: 0.5 }]}
               onPress={() => handleExerciseClick("둔근")}
             >
-              <Text></Text>
+              <Text style={{ opacity: 0 }}>둔근</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[buttonStyle("75%", "43%"), isButtonBlurred && { opacity: 0.5 }]}
               onPress={() => handleExerciseClick("종아리")}
             >
-              <Text></Text>
+              <Text style={{ opacity: 0 }}>종아리</Text>
             </TouchableOpacity>
           </>
         )}
@@ -250,10 +262,14 @@ export default function ExerciseHome() {
           backgroundColor: "rgba(0, 0, 0, 0.5)"
         }}>
           <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10 }}>
-            <Calendar
-              markedDates={{ [selectedDate]: { selected: true, selectedColor: "#E1FF01" } }}
-              onDayPress={(day) => onDateSelect(day)}
-            />
+          <Calendar
+            locale={"ko"}
+            markedDates={{
+              [selectedDate.replace(/\./g, "-")]: { selected: true, selectedColor: "#E1FF01" }
+            }}
+            onDayPress={(day) => onDateSelect(day)}
+          />
+
             <TouchableOpacity
               style={{ marginTop: 20, backgroundColor: "#E1FF01", padding: 10, borderRadius: 5, alignItems: "center" }}
               onPress={() => setShowCalendar(false)}
@@ -276,11 +292,17 @@ export default function ExerciseHome() {
       <BottomSheet
         ref={historySheetRef}
         index={-1}
-        snapPoints={["80%"]}
+        snapPoints={historySnapPoints}
         onClose={handleCloseHistorySheet}
         backgroundStyle={{ backgroundColor: "#2D2D35" }}
+        enablePanDownToClose={true}
       >
-        <ExerciseHistory onClose={handleCloseHistorySheet} />
+        <ExerciseHistory 
+          onClose={handleCloseHistorySheet} 
+          selectedDate={`${selectedDate}.${selectedDay}`}
+          setIsImageBlurred={setIsImageBlurred}
+          setIsButtonBlurred={setIsButtonBlurred}
+        />
       </BottomSheet>
 
       {/* 하단 네비게이션 */}

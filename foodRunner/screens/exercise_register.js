@@ -1,99 +1,95 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
-import { useNavigation } from '@react-navigation/native';
-import { Entypo } from '@expo/vector-icons';
+import { Entypo } from "@expo/vector-icons";
 
 export default function ExerciseRegister({ sheetRef, onClose }) {
-  const [exerciseName, setExerciseName] = useState(""); // 운동 이름
-  const [favorites, setFavorites] = useState({}); // 각 운동에 대한 즐겨찾기 상태를 객체로 관리
-  const [exerciseList, setExerciseList] = useState([  // 운동 목록 상태
-    { name: "바벨 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "덤벨 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "스미스 머신 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "고블릿 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "불가리안 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "바벨 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "덤벨 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "스미스 머신 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "고블릿 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "불가리안 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-    { name: "바벨 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "덤벨 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "스미스 머신 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "고블릿 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "불가리안 스쿼트", target: "대퇴사두, 대퇴이두" },
-    { name: "체스트 프레스", target: "대흉근, 삼두" },
-  ]); // 운동 목록
+  const [exerciseName, setExerciseName] = useState("");
+  const [favorites, setFavorites] = useState({});
+  const [exerciseList, setExerciseList] = useState([
+    { name: "바벨 스쿼트", target: "대퇴사두, 대퇴이두", type: "근력" },
+    { name: "러닝머신", target: "심폐지구력", type: "유산소" },
+    { name: "바벨 스쿼트1", target: "대퇴사두, 대퇴이두", type: "근력" },
+    { name: "러닝머신1", target: "심폐지구력", type: "유산소" },
+    { name: "바벨 스쿼트2", target: "대퇴사두, 대퇴이두", type: "근력" },
+    { name: "러닝머신2", target: "심폐지구력", type: "유산소" },
+    { name: "바벨 스쿼트3", target: "대퇴사두, 대퇴이두", type: "근력" },
+    { name: "러닝머신3", target: "심폐지구력", type: "유산소" },
+    { name: "바벨 스쿼트4", target: "대퇴사두, 대퇴이두", type: "근력" },
+    { name: "러닝머신4", target: "심폐지구력", type: "유산소" },
+    { name: "바벨 스쿼트5", target: "대퇴사두, 대퇴이두", type: "근력" },
+    { name: "러닝머신5", target: "심폐지구력", type: "유산소" },
+  ]);
+  const [setData, setSetData] = useState([]);
+  const [cardioData, setCardioData] = useState({ distance: "", duration: "", pace: "" });
+  const [currentExercise, setCurrentExercise] = useState(null);
+  const [currentPage, setCurrentPage] = useState("exerciseList");
 
-  const [setData, setSetData] = useState([]); // 운동 세트 데이터를 저장하는 상태
-  const [currentExercise, setCurrentExercise] = useState(null); // 선택한 운동
-  const [currentPage, setCurrentPage] = useState("exerciseList"); // 현재 페이지 (운동 목록 또는 운동 기록)
-
-  const navigation = useNavigation(); // navigation 훅 사용
+  const snapPoints = useMemo(() => ["80%"], []);
 
   const handleSearchChange = (text) => setExerciseName(text);
 
   const toggleFavorite = (exerciseName) => {
     setFavorites((prev) => {
-      const newFavorites = { ...prev };
-      if (newFavorites[exerciseName]) {
-        delete newFavorites[exerciseName]; 
-      } else {
-        newFavorites[exerciseName] = true;
-      }
-      return newFavorites;
+      const updated = { ...prev };
+      if (updated[exerciseName]) delete updated[exerciseName];
+      else updated[exerciseName] = true;
+      return updated;
     });
   };
 
-  const favoriteExercises = exerciseList.filter(exercise => favorites[exercise.name]);
-  const regularExercises = exerciseList.filter(exercise => !favorites[exercise.name]);
-
-  const snapPoints = useMemo(() => ["50%", "80%", "90%"], []); 
-
   const handleExerciseClick = (exercise) => {
-    setCurrentExercise(exercise); 
-    setSetData([{ set: 1, weight: '', reps: '' }]);
-    setCurrentPage("exerciseRecord"); 
+    setCurrentExercise(exercise);
+    if (exercise.type === "근력") {
+      setSetData([{ set: 1, weight: "", reps: "" }]);
+    } else {
+      setCardioData({ distance: "", duration: "", pace: "" });
+    }
+    setCurrentPage("exerciseRecord");
   };
 
   const handleAddSet = () => {
-    setSetData(prevData => [...prevData, { set: prevData.length + 1, weight: '', reps: '' }]);
+    setSetData((prev) => [...prev, { set: prev.length + 1, weight: "", reps: "" }]);
   };
 
   const handleSetChange = (index, field, value) => {
-    const updatedSets = [...setData];
-    updatedSets[index][field] = value;
-    setSetData(updatedSets);
+    const updated = [...setData];
+    updated[index][field] = value;
+    setSetData(updated);
   };
 
   const handleDeleteSet = (index) => {
-    const updatedSets = setData.filter((set, setIndex) => setIndex !== index); 
-    setSetData(updatedSets);
+    setSetData((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSave = () => {
-    console.log('운동 기록 저장:', currentExercise.name, setData);
-    setSetData([]); 
-    setCurrentExercise(null); 
-    setCurrentPage("exerciseList"); 
-  };
-
-  const handleBackToList = () => {
-    setCurrentPage("exerciseList"); 
-  };
-
-  const handleSheetClose = () => {
+    if (currentExercise?.type === "근력") {
+      console.log("근력운동 기록:", currentExercise.name, setData);
+    } else {
+      console.log("유산소운동 기록:", currentExercise.name, cardioData);
+    }
     setCurrentPage("exerciseList");
-    onClose();
+    setCurrentExercise(null);
+    setSetData([]);
+    setCardioData({ distance: "", duration: "", pace: "" });
   };
 
-  const handleSheetOpen = () => {
-    setCurrentPage("exerciseList");
-  };
+  const favoriteExercises = exerciseList.filter((ex) => favorites[ex.name]);
+  const regularExercises = exerciseList.filter((ex) => !favorites[ex.name]);
+  const filteredFavorites = favoriteExercises.filter((ex) =>
+    ex.name.includes(exerciseName)
+  );
+  const filteredRegular = regularExercises.filter((ex) =>
+    ex.name.includes(exerciseName)
+  );
 
   return (
     <BottomSheet
@@ -101,193 +97,269 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
       index={-1}
       snapPoints={snapPoints}
       enablePanDownToClose
-      onClose={handleSheetClose}
-      onOpen={handleSheetOpen}
+      onClose={onClose}
       backgroundStyle={{ backgroundColor: "#2D2D35" }}
     >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          {currentPage === "exerciseRecord" && (
-            <TouchableOpacity onPress={handleBackToList} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="white" />
-              <Text style={styles.backText}>뒤로 가기</Text>
+      <View style={{ flex: 1 }}>
+        <View style={styles.container}>
+          {/* 상단 헤더 영역 */}
+          <View style={styles.header}>
+            {currentPage === "exerciseRecord" && (
+              <TouchableOpacity
+                onPress={() => setCurrentPage("exerciseList")}
+                style={styles.backButton}
+              >
+                <Ionicons name="arrow-back" size={24} color="#DDFB21" />
+                <Text style={styles.backText}>뒤로 가기</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={() => sheetRef.current?.close()}
+              style={styles.closeButton}
+            >
+              <Ionicons name="close" size={24} color="#DDFB21" />
             </TouchableOpacity>
-          )}
-          <TouchableOpacity onPress={() => sheetRef.current?.close()} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color="#DDFB21" />
-          </TouchableOpacity>
-        </View>
-
-        {currentPage === "exerciseList" && (
-          <View>
-            <View style={styles.searchContainer}>
-              <Ionicons name="search" size={20} color="black" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="운동 이름을 입력해주세요"
-                value={exerciseName}
-                onChangeText={handleSearchChange}
-              />
-            </View>
-
-            <ScrollView style={styles.scrollView}>
-              {favoriteExercises.length > 0 && (
-                <View>
-                  <Text style={styles.favoriteTitle}>즐겨찾기</Text>
-                  {favoriteExercises.map((exercise, index) => (
-                    <View key={index} style={styles.exerciseItem}>
-                      <TouchableOpacity onPress={() => toggleFavorite(exercise.name)} style={styles.favoriteButton}>
-                        <Ionicons name="star" size={24} color="#E1FF01" />
-                      </TouchableOpacity>
-                      <View style={styles.exerciseTextContainer}>
-                        <TouchableOpacity onPress={() => handleExerciseClick(exercise)}>
-                          <Text style={styles.exerciseText}>{exercise.name}</Text>
-                          <Text style={styles.targetText}>{exercise.target}</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-              {favoriteExercises.length > 0 && <View style={styles.separator} />}
-              {regularExercises.length > 0 && (
-                <View>
-                  {regularExercises.map((exercise, index) => (
-                    <View key={index} style={styles.exerciseItem}>
-                      <TouchableOpacity onPress={() => toggleFavorite(exercise.name)} style={styles.favoriteButton}>
-                        <Ionicons name="star-outline" size={24} color="gray" />
-                      </TouchableOpacity>
-                      <View style={styles.exerciseTextContainer}>
-                        <TouchableOpacity onPress={() => handleExerciseClick(exercise)}>
-                          <Text style={styles.exerciseText}>{exercise.name}</Text>
-                          <Text style={styles.targetText}>{exercise.target}</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </ScrollView>
           </View>
-        )}
 
-        {currentPage === "exerciseRecord" && (
-          <View style={styles.setContainer}>
-            <Text style={styles.setTitle}>{currentExercise.name}</Text>
-            <Text style={styles.recordText}>기록</Text>
-            <ScrollView style={styles.table}>
-              <View style={styles.tableHeader}>
-                <Text style={styles.tableHeaderText}>     세트</Text>
-                <Text style={styles.tableHeaderText}>      무게 (kg)</Text>
-                <Text style={styles.tableHeaderText}>             횟수</Text>
-                <Text style={styles.tableHeaderText}>         삭제</Text>
+          {currentPage === "exerciseList" ? (
+            // 운동 리스트 화면: 검색창은 상단에 고정
+            <View style={{ flex: 1 }}>
+              <View style={styles.searchContainer}>
+                <Ionicons name="search" size={20} color="black" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="운동 이름을 입력해주세요"
+                  value={exerciseName}
+                  onChangeText={handleSearchChange}
+                />
               </View>
-              <View style={styles.separator} />
-              {setData.map((set, index) => (
-                <View key={index} style={styles.tableRow}>
-                  <Text style={styles.tableCell}>{set.set}</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="무게"
-                    keyboardType="numeric"
-                    value={set.weight}
-                    onChangeText={(text) => handleSetChange(index, "weight", text)}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="횟수"
-                    keyboardType="numeric"
-                    value={set.reps}
-                    onChangeText={(text) => handleSetChange(index, "reps", text)}
-                  />
-                  <TouchableOpacity onPress={() => handleDeleteSet(index)} style={styles.deleteButton}>
-                    <Ionicons name="trash" size={24} color="red" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity onPress={handleAddSet} style={styles.addButton}>
-              <Entypo name="plus" size={40} color="black" />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-              <Text style={styles.saveText}>등록</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+                {filteredFavorites.length > 0 && (
+                  <View>
+                    <Text style={styles.favoriteTitle}>즐겨찾기</Text>
+                    {filteredFavorites.map((ex, idx) => (
+                      <View key={idx} style={styles.exerciseItem}>
+                        <TouchableOpacity
+                          onPress={() => toggleFavorite(ex.name)}
+                          style={styles.favoriteButton}
+                        >
+                          <Ionicons name="star" size={24} color="#E1FF01" />
+                        </TouchableOpacity>
+                        <View style={styles.exerciseTextContainer}>
+                          <TouchableOpacity onPress={() => handleExerciseClick(ex)}>
+                            <Text style={styles.exerciseText}>{ex.name}</Text>
+                            <Text style={styles.targetText}>{ex.target}</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                {filteredRegular.length > 0 && (
+                  <View>
+                    {filteredRegular.map((ex, idx) => (
+                      <View key={idx} style={styles.exerciseItem}>
+                        <TouchableOpacity
+                          onPress={() => toggleFavorite(ex.name)}
+                          style={styles.favoriteButton}
+                        >
+                          <Ionicons name="star-outline" size={24} color="gray" />
+                        </TouchableOpacity>
+                        <View style={styles.exerciseTextContainer}>
+                          <TouchableOpacity onPress={() => handleExerciseClick(ex)}>
+                            <Text style={styles.exerciseText}>{ex.name}</Text>
+                            <Text style={styles.targetText}>{ex.target}</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          ) : (
+            // 운동 기록 화면 (exerciseRecord)
+            <View style={{ flex: 1, position: "relative" }}>
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
+              >
+                {currentExercise?.type === "근력" ? (
+                  <>
+                    <Text style={styles.setTitle}>{currentExercise.name}</Text>
+                    <Text style={styles.recordText}>기록</Text>
+                    <View style={styles.tableHeader}>
+                      <Text style={styles.tableHeaderText}>세트</Text>
+                      <Text style={styles.tableHeaderText}>무게</Text>
+                      <Text style={styles.tableHeaderText}>횟수</Text>
+                      <Text style={styles.tableHeaderText}>삭제</Text>
+                    </View>
+                    {setData.map((set, i) => (
+                      <View key={i} style={styles.tableRow}>
+                        <Text style={styles.tableCell}>{set.set}</Text>
+                        <TextInput
+                          style={styles.input}
+                          keyboardType="numeric"
+                          value={set.weight}
+                          onChangeText={(t) => handleSetChange(i, "weight", t)}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          keyboardType="numeric"
+                          value={set.reps}
+                          onChangeText={(t) => handleSetChange(i, "reps", t)}
+                        />
+                        <TouchableOpacity onPress={() => handleDeleteSet(i)}>
+                          <Ionicons name="trash" size={24} color="red" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                    <TouchableOpacity onPress={handleAddSet} style={styles.addButton}>
+                      <Entypo name="plus" size={24} color="black" />
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  // 유산소 기록 입력
+                  <>
+                    <Text style={styles.setTitle}>{currentExercise.name}</Text>
+                    <Text style={styles.recordText}>기록</Text>
+                    <View style={styles.cardioRow}>
+                      <View style={styles.cardioInputGroup}>
+                        <Text style={styles.cardioLabel}>거리(Km)</Text>
+                        <TextInput
+                          style={styles.cardioInput}
+                          keyboardType="numeric"
+                          value={cardioData.distance}
+                          onChangeText={(t) =>
+                            setCardioData({ ...cardioData, distance: t })
+                          }
+                        />
+                      </View>
+                      <View style={styles.cardioInputGroup}>
+                        <Text style={styles.cardioLabel}>시간(m)</Text>
+                        <TextInput
+                          style={styles.cardioInput}
+                          keyboardType="numeric"
+                          value={cardioData.duration}
+                          onChangeText={(t) =>
+                            setCardioData({ ...cardioData, duration: t })
+                          }
+                        />
+                      </View>
+                      <View style={styles.cardioInputGroup}>
+                        <Text style={styles.cardioLabel}>평균 페이스</Text>
+                        <TextInput
+                          style={styles.cardioInput}
+                          keyboardType="default"
+                          value={cardioData.pace}
+                          onChangeText={(t) =>
+                            setCardioData({ ...cardioData, pace: t })
+                          }
+                        />
+                      </View>
+                    </View>
+                  </>
+                )}
+              </ScrollView>
+              {/* 등록 버튼 - 바텀시트 하단에 항상 고정 */}
+              <View style={styles.footerFixed}>
+                <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+                  <Text style={styles.saveText}>등록</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
       </View>
     </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 15, alignItems: "center" },
+  container: { flex: 1, padding: 20 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+    alignItems: "center",
+  },
   closeButton: { position: "absolute", top: -20, right: 10 },
-  backButton: { flexDirection: "row", alignItems: "center", marginRight: 10 },
+  backButton: { flexDirection: "row", alignItems: "center", top: -10 },
   backText: { color: "white", fontSize: 16, marginLeft: 5 },
-  searchContainer: { flexDirection: "row", alignItems: "center", backgroundColor: "#f0f0f0", borderRadius: 25, paddingHorizontal: 10, marginBottom: 10 },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 25,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
   searchInput: { flex: 1, paddingLeft: 10, height: 40, fontSize: 16 },
-  scrollView: { maxHeight: 600 },
+  favoriteTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#E1FF01",
+    marginVertical: 10,
+  },
   exerciseItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10 },
-  favoriteButton: { marginRight: 10 },
+  favoriteButton: { marginRight: 12 },
   exerciseTextContainer: { flexDirection: "column", alignItems: "flex-start" },
   exerciseText: { fontSize: 16, color: "white" },
   targetText: { fontSize: 14, color: "#929090", marginTop: 5 },
-  setContainer: { marginTop: 20 },
-  setTitle: { fontSize: 25, color: "white", fontWeight: "bold", marginBottom: 20, textAlign: "left" },
-  recordText: {
-    fontSize: 18,
-    color: "white",  
-    fontWeight: "bold",
-    textAlign: "left",
-    marginBottom: 30,
+  setTitle: { fontSize: 25, fontWeight: "bold", color: "white", marginBottom: 20 },
+  recordText: { fontSize: 18, color: "white", marginBottom: 30, fontWeight: "bold" },
+  tableHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
+  tableHeaderText: { color: "white", flex: 1, textAlign: "center", fontSize: 16 },
+  tableRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  tableCell: { color: "white", flex: 1, textAlign: "center" },
+  input: {
+    backgroundColor: "#444",
+    color: "white",
+    flex: 1,
+    height: 40,
+    marginHorizontal: 10,
+    borderRadius: 5,
+    textAlign: "center",
   },
-  table: { marginBottom: 20 },
-  tableHeader: { flexDirection: "row", justifyContent: "space-between", backgroundColor: "#2D2D35", padding: 0 },
-  tableHeaderText: { color: "white", fontWeight: "", fontSize: 16, textAlign: "center", flex: 1 },
-  tableRow: { 
-    flexDirection: "row", 
-    justifyContent: "center", 
-    alignItems: "center", 
-    padding: 10, 
-    borderBottomWidth: 1, 
-    borderBottomColor: "#2D2D35" 
-  },
-  tableCell: { 
-    color: "white", 
-    fontSize: 16, 
-    textAlign: "center", 
-    flex: 1 
-  },
-  input: { 
-    backgroundColor: "#444", 
-    color: "white", 
-    height: 40, 
-    borderRadius: 5, 
-    marginRight: 10, 
-    flex: 1, 
-    paddingLeft: 10, 
-    textAlign: "center" 
-  },
-  addButton: { 
-    width: 40,   
-    height: 40,  
-    borderRadius: 20, 
-    backgroundColor: "white", 
-    justifyContent: "center", 
-    alignItems: "center", 
-    marginTop: 20,
-    alignSelf: "center", 
-  },
-  saveButton: { backgroundColor: "#E1FF01", paddingVertical: 15, borderRadius: 20, marginTop: 30, alignItems: "center" },
-  saveText: { color: "black", fontSize: 18, fontWeight: "bold" },
-  separator: { height: 1, backgroundColor: "#2D2D35", marginVertical: 10 }, 
-  favoriteTitle: { fontSize: 18, fontWeight: "bold", color: "#E1FF01", marginVertical: 10 },
-  deleteButton: {
+  addButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
-    marginLeft: 10
-  }
+    marginTop: 20,
+    alignSelf: "center",
+  },
+  cardioRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  cardioInputGroup: { alignItems: "center" },
+  cardioLabel: { color: "white", fontSize: 14, marginBottom: 8 },
+  cardioInput: {
+    backgroundColor: "#444",
+    color: "white",
+    width: 80,
+    height: 40,
+    textAlign: "center",
+    borderRadius: 10,
+    fontSize: 16,
+  },
+  footerFixed: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#2D2D35",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+  },
+  saveButton: {
+    backgroundColor: "#E1FF01",
+    paddingVertical: 15,
+    alignItems: "center",
+    borderRadius: 20,
+  },
+  saveText: { color: "black", fontSize: 18, fontWeight: "bold" },
 });
