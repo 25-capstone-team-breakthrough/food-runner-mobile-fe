@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { LineChart } from "react-native-chart-kit";
+// import { LineChart } from "react-native-chart-kit";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
 import RegisterButton from "../components/RegisterButton";
 
@@ -31,16 +31,14 @@ const NutritionCalendarScreen = ({ visible }) => {
       const { translationY, velocityY } = event.nativeEvent;
   
       if (translationY > 50 || velocityY > 2) { 
-        // 🔹 애니메이션으로 서서히 아래로 이동 후 페이지 닫기
         Animated.timing(translateY, {
-          toValue: 800, // 화면 아래로 이동
-          duration: 300, // 0.3초 동안 이동
+          toValue: 800, 
+          duration: 300, 
           useNativeDriver: true,
         }).start(() => {
-          navigation.goBack(); // 애니메이션이 끝난 후 이동
+          navigation.goBack();
         });
       } else {
-        // 🔹 원래 위치로 복귀
         Animated.spring(translateY, {
           toValue: 0,
           useNativeDriver: true,

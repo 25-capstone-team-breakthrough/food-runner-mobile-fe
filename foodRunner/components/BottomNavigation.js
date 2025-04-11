@@ -1,7 +1,7 @@
-import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 const BottomNavigation = () => {
   const navigation = useNavigation();
@@ -12,7 +12,7 @@ const BottomNavigation = () => {
     { name: "NutritionMain", icon: "add-circle-outline" },
     { name: "DietRecommendation", icon: "restaurant" },
     { name: "Home", icon: "home-outline" },
-    { name: "Workout", icon: "barbell-outline" },
+    { name: "VoiceExerciseLogger", icon: "barbell-outline" },
   ];
 
   return (

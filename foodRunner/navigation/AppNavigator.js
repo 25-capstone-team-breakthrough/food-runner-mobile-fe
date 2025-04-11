@@ -1,20 +1,19 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { createStackNavigator } from '@react-navigation/stack';
+import React from 'react';
+import DietRecipeScreen from '../screens/DietRecipeScreen';
+import DietRecommendationScreen from '../screens/DietRecommendationScreen';
+import DietRegistrationScreen from '../screens/DietRegistrationScreen';
+import HomeScreen from '../screens/HomeScreen';
 import IngredientScreen from '../screens/IngredientScreen';
+import InputGenderAgeScreen from '../screens/InputGenderAgeScreen';
+import InputHeightWeightScreen from '../screens/InputHeightWeightScreen';
 import LoginScreen from '../screens/LoginScreen';
-import SignUpScreen from '../screens/SignUpScreen';
 import NutritionCalendarScreen from '../screens/NutritionCalendarScreen';
 import NutritionMainScreen from '../screens/NutritionMainScreen';
-import DietRegistrationScreen from '../screens/DietRegistrationScreen';
+import SignUpScreen from '../screens/SignUpScreen';
 import VitaminRegistrationScreen from '../screens/VitaminRegistrationScreen';
-import DietRecommendationScreen from '../screens/DietRecommendationScreen';
-import DietRecipeScreen from '../screens/DietRecipeScreen';
-import InputGenderAgeScreen from '../screens/InputGenderAgeScreen'
-import InputHeightWeightScreen from '../screens/InputHeightWeightScreen'
+import VoiceExerciseLoggerScreen from '../screens/VoiceExerciseLoggerScreen';
 
 
 const Stack = createStackNavigator();
@@ -34,6 +33,9 @@ const AppNavigator = () => {
         <Stack.Screen name="DietRecipe" component={DietRecipeScreen}/>
         <Stack.Screen name="InputGenderAge" component={InputGenderAgeScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="InputHeightWeight" component={InputHeightWeightScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="VoiceExerciseLogger" component={VoiceExerciseLoggerScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }}/>
+
       </Stack.Navigator>
     </NavigationContainer>
   );
