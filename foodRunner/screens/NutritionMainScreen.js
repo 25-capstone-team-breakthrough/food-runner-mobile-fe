@@ -16,10 +16,13 @@ import {
 } from "react-native";
 import BottomNavigation from "../components/BottomNavigation";
 import HalfCircleSkiaChart from "../components/HalfCircleSkiaChart";
+import NutrientRing from "../components/NutrientRing";
+
 // import { Home, User, Settings } from "lucide-react";
 
 
 const screenWidth = Dimensions.get("window").width;
+const viewWidth = screenWidth - 58;
 
 
 const NutritionMainScreen = () => {
@@ -34,9 +37,22 @@ const NutritionMainScreen = () => {
   const progress = consumedCalories / dailyCalories;
 
   const nutrients = [
-    { name: "탄수화물", status: "충분", amount: "100g", color: "green" },
-    { name: "단백질", status: "부족", amount: "10g", color: "red" },
-    { name: "지방", status: "부족", amount: "0g", color: "gray" },
+    { name: "탄수화물", status: "충분", amount: "100g", color: "#26C51E" },
+    { name: "단백질", status: "부족", amount: "10g", color: "#FF4646"  },
+    { name: "지방", status: "부족", amount: "0g", color: "#FF4646" },
+  ];
+  
+  const etcNutrients = [
+    { name: "당류", status: "충분", amount: "15g", color: "#26C51E" },
+    { name: "나트륨", status: "부족", amount: "800mg", color: "#FF4646" },
+    { name: "식이섬유", status: "충분", amount: "6g", color: "#26C51E" },
+    { name: "칼슘", status: "충분", amount: "200mg", color: "#26C51E" },
+  ];
+
+  const smallNutrients = [
+    { name: "포화지방", amount: "5g", status: "부족", color: "#FF4646" },
+    { name: "트랜스지방", amount: "0g", status: "부족", color: "#FF4646" },
+    { name: "콜레스테롤", amount: "80mg", status: "충분", color: "#26C51E" },
   ];
 
   const [dietImages, setDietImages] = useState([]);
@@ -112,40 +128,66 @@ const NutritionMainScreen = () => {
             }}
             scrollEventThrottle={16}
           >
-            <View style={{ width: screenWidth, alignItems: "center" }}>
+            <View style={{ width: viewWidth, alignItems: "center" }}>
               <Text style={styles.threeMacroNutrientsText}>3대 주요 영양소</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
-                {nutrients.map((item, index) => (
-                  <View key={index} style={{ alignItems: "center" }}>
-                    <Text style={{ color: item.color, fontWeight: "bold" }}>{item.status}</Text>
-                    <Text>{item.amount}</Text>
-                    <Text>{item.name}</Text>
-                  </View>
-                ))}
+                {nutrients.map((item, index) => {
+                  let percent = 0;
+                  if (item.status === "충분") percent = 80;
+                  if (item.status === "부족") percent = 20;
+                  return (
+                    <NutrientRing
+                      key={index}
+                      percent={percent}
+                      color={item.color}
+                      status={item.status}
+                      amount={item.amount}
+                      label={item.name}
+                    />
+                  );
+                })}
               </View>
             </View>
-
-            <View style={{ width: screenWidth, alignItems: "center" }}>
-              <Text style={styles.threeMacroNutrientsText}>기타 주요 영양소</Text>
-              <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
-                {[{ name: "당류", amount: "15g" }, { name: "나트륨", amount: "800mg" }, { name: "식이섬유", amount: "6g" }, { name: "칼슘", amount: "200mg" }].map((item, i) => (
-                  <View key={i} style={{ alignItems: "center" }}>
-                    <Text style={{ fontWeight: "bold", color: "#666" }}>{item.amount}</Text>
-                    <Text>{item.name}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <View style={{ width: screenWidth, alignItems: "center" }}>
+            
+            <View style={{ width: viewWidth, alignItems: "center" }}>
               <Text style={styles.threeMacroNutrientsText}>미량 영양소</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
-                {[{ name: "포화지방", amount: "5g" }, { name: "트랜스지방", amount: "0g" }, { name: "콜레스테롤", amount: "80mg" }].map((item, i) => (
-                  <View key={i} style={{ alignItems: "center" }}>
-                    <Text style={{ fontWeight: "bold", color: "#666" }}>{item.amount}</Text>
-                    <Text>{item.name}</Text>
-                  </View>
-                ))}
+              {etcNutrients.map((item, index) => {
+                  let percent = 0;
+                  if (item.status === "충분") percent = 80;
+                  if (item.status === "부족") percent = 20;
+                  return (
+                    <NutrientRing
+                      key={index}
+                      percent={percent}
+                      color={item.color}
+                      status={item.status}
+                      amount={item.amount}
+                      label={item.name}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={{ width: viewWidth, alignItems: "center" }}>
+              <Text style={styles.threeMacroNutrientsText}>미량 영양소</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
+              {smallNutrients.map((item, index) => {
+                  let percent = 0;
+                  if (item.status === "충분") percent = 80;
+                  if (item.status === "부족") percent = 20;
+                  return (
+                    <NutrientRing
+                      key={index}
+                      percent={percent}
+                      color={item.color}
+                      status={item.status}
+                      amount={item.amount}
+                      label={item.name}
+                    />
+                  );
+                })}
               </View>
             </View>
           </ScrollView>
