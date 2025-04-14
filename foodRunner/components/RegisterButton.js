@@ -1,9 +1,9 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
-const RegisterButton = ({ onPress, title = "등록하기" }) => {
+const RegisterButton = ({ onPress, title="등록하기", style }) => {
   return (
-    <TouchableOpacity style={styles.registerButton} onPress={onPress}>
+    <TouchableOpacity style={[styles.registerButton, style]} onPress={onPress}>
       <Text style={styles.registerText}>{title}</Text>
     </TouchableOpacity>
   );

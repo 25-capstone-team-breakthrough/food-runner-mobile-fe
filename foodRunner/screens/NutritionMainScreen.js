@@ -2,6 +2,7 @@ import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
+import moment from 'moment';
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -26,10 +27,14 @@ const viewWidth = screenWidth - 58;
 
 
 const NutritionMainScreen = () => {
-  const navigation = useNavigation();
+  
   const route = useRoute();
+  const navigation = useNavigation();
   const selectedItemFromRoute = route.params?.selectedItem;
   const selectedSupplementFromRoute = route.params?.selectedsupplementItem;
+  const selectedDate  = route.params?.selectedDate;
+
+  const dateToDisplay = selectedDate || moment().format("YYYY.MM.DD")
 
   const [currentPage, setCurrentPage] = useState(0);
   const dailyCalories = 2000;
@@ -107,7 +112,7 @@ const NutritionMainScreen = () => {
           <TouchableOpacity onPress={() => navigation.navigate("NutritionCalendar")}> 
             <AntDesign name="calendar" size={20} color="black" style={styles.calendarIcon} />
           </TouchableOpacity>
-          <Text style={styles.dateText}>2025.01.21</Text>
+          <Text style={styles.dateText}>{dateToDisplay}</Text>
         </View>
 
         <View style={styles.processContainerShadow}>

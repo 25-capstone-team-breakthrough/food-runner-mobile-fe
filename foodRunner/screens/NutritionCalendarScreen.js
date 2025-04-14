@@ -2,14 +2,13 @@ import { useNavigation } from "@react-navigation/native";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    StyleSheet,
+    View
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { LineChart } from "react-native-chart-kit";
+import RegisterButton from "../components/RegisterButton";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -58,8 +57,33 @@ const NutritionCalendarScreen = () => {
     });
 
     const handleSelect = () => {
-        navigation.navigate("PreviousScreen", { selectedDate });
+        navigation.navigate("NutritionMain", { selectedDate });
     };
+
+    const chartConfig = (highlightIndex) => ({
+        backgroundGradientFrom: "#fff",
+        backgroundGradientTo: "#fff",
+        decimalPlaces: 0,
+        color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+        labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+        propsForDots: {
+            r: "4",
+            strokeWidth: "1",
+            stroke: "#000",
+            fill: "#E1FF01",
+        },
+        propsForBackgroundLines: {
+            stroke: "#ddd",
+            strokeWidth: 1,
+        },
+        formatYLabel: (y) => {
+            const rounded = Math.round(Number(y));
+            if (rounded === 1000 || rounded === 2000 || rounded === 3000) {
+                return `${rounded}kcal`;
+            }
+            return "";
+        },
+    });
 
     return (
         <View style={styles.container}>
@@ -91,7 +115,7 @@ const NutritionCalendarScreen = () => {
                         {
                             data: calorieData,
                             color: () => "#000",
-                            strokeWidth: 2,
+                            strokeWidth: 1,
                         },
                     ],
                     yAxisSuffix: "",
@@ -110,36 +134,14 @@ const NutritionCalendarScreen = () => {
                 yAxisMax={3000}
             />
 
-            <TouchableOpacity
+            <RegisterButton 
+                onPress={handleSelect} 
+                title="선택하기"
                 style={styles.selectButton}
-                onPress={handleSelect}
-            >
-                <Text style={styles.selectText}>선택하기</Text>
-            </TouchableOpacity>
+            />
         </View>
     );
 };
-
-const chartConfig = (highlightIndex) => ({
-    backgroundGradientFrom: "#fff",
-    backgroundGradientTo: "#fff",
-    decimalPlaces: 0,
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    propsForDots: {
-        r: "6",
-        strokeWidth: "4",
-        stroke: "#ffff66",
-        fill: "#E1FF01",
-    },
-    propsForBackgroundLines: {
-        stroke: "#ddd",
-    },
-    formatYLabel: (y) => {
-        const rounded = Math.round(Number(y));
-        return [1000, 2000, 3000].includes(rounded) ? `${rounded}kcal` : "";
-    },
-});
 
 const styles = StyleSheet.create({
     container: {
@@ -151,12 +153,12 @@ const styles = StyleSheet.create({
     calendarWrapper: {
         backgroundColor: "#fff",
         borderRadius: 30,
-        padding: 20,
-        marginTop: 20,
+        padding: 10,
+        marginTop: 10,
         width: screenWidth - 40,
     },
     chart: {
-        marginVertical: 10,
+        marginVertical: 20,
         borderRadius: 16,
     },
     selectButton: {
@@ -165,17 +167,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 60,
         borderRadius: 30,
         marginTop: 10,
-        marginBottom: 40,
+        marginBottom: -30,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.3,
         shadowRadius: 5,
-        elevation: 5,
-    },
-    selectText: {
-        fontSize: 18,
-        color: "#000",
-        fontWeight: "bold",
     },
 });
 
