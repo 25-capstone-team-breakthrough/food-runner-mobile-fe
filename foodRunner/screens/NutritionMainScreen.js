@@ -191,13 +191,14 @@ const NutritionMainScreen = () => {
               </View>
             </View>
           </ScrollView>
-
-          <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 10 }}>
+          <View style={{ position: "relative"}}>
+          <View style={{ position: "absolute",bottom: -10, left:0, right:0, flexDirection: "row", justifyContent: "center"}}>
             {[0, 1, 2].map((i) => (
               <Text key={i} style={{ fontSize: 8, marginHorizontal: 5, color: currentPage === i ? "#333" : "#ccc" }}>
                 {currentPage === i ? "●" : "○"}
               </Text>
             ))}
+          </View>
           </View>
         </LinearGradient>
         </View>
@@ -323,7 +324,7 @@ const styles = {
     color: "#363636",
     alignSelf: "center",
     marginTop: 10,
-    marginBottom: 15,
+    marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: "row",
