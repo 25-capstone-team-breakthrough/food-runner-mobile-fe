@@ -5,7 +5,6 @@ import {
   Image,
   TouchableOpacity,
   View,
-  Modal,
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,18 +15,23 @@ import ExerciseRegister from "../screens/exercise_register";
 import BottomSheet from "@gorhom/bottom-sheet";
 import ExerciseHistory from "../screens/exercise_history";
 import { BlurView } from "expo-blur";
+import { LineChart } from "react-native-chart-kit"; // 그래프 라이브러리 임포트
 
 export default function ExerciseHome() {
   const navigation = useNavigation();
   const [isFrontView, setIsFrontView] = useState(true);
-  const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025.01.21");
   const [selectedDay, setSelectedDay] = useState("화");
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const [isHistorySheetVisible, setIsHistorySheetVisible] = useState(false);
   const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+  const [isCalendarSheetVisible, setIsCalendarSheetVisible] = useState(false);
   const sheetRef = useRef(null);
   const historySheetRef = useRef(null);
+  const calendarSheetRef = useRef(null);
+
+  const historySnapPoints = useMemo(() => ["80%"], []);
+  const calendarSnapPoints = useMemo(() => ["80%"], []);
 
   useEffect(() => {
     if (isBottomSheetVisible && sheetRef.current) {
@@ -55,7 +59,7 @@ export default function ExerciseHome() {
     });
     setSelectedDate(formattedDate);
     setSelectedDay(dayOfWeek);
-    setShowCalendar(false);
+    setIsCalendarSheetVisible(false);
   };
 
   const handleExerciseClick = (exercise) => {
@@ -63,8 +67,6 @@ export default function ExerciseHome() {
       navigation.navigate("ExerciseRecommendVideo", { category: exercise });
     }
   };
-
-  const historySnapPoints = useMemo(() => ["80%"], []);
 
   const handleOpenBottomSheet = () => {
     setIsBottomSheetVisible(true);
@@ -154,7 +156,10 @@ export default function ExerciseHome() {
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-          <TouchableOpacity onPress={() => setShowCalendar(true)}>
+          <TouchableOpacity onPress={() => {
+            setIsCalendarSheetVisible(true);
+            calendarSheetRef.current?.expand();
+          }}>
             <Ionicons name="calendar" size={30} color="white" />
           </TouchableOpacity>
           <Text style={{ color: "white", fontSize: 16, marginLeft: 10 }}>
@@ -205,41 +210,76 @@ export default function ExerciseHome() {
         </View>
       </View>
 
-      {/* 달력 모달 */}
-      <Modal
-        visible={showCalendar}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowCalendar(false)}
+      {/* 달력 바텀시트 */}
+      <BottomSheet
+        ref={calendarSheetRef}
+        index={-1}
+        snapPoints={calendarSnapPoints}
+        onClose={() => setIsCalendarSheetVisible(false)}
+        backgroundStyle={{ backgroundColor: "#2D2D35" }}
+        enablePanDownToClose={true}
       >
-        <View style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "rgba(0, 0, 0, 0.5)"
-        }}>
-          <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10 }}>
-            <Calendar
-              locale={"ko"}
-              markedDates={{
-                [selectedDate.replace(/\./g, "-")]: { selected: true, selectedColor: "#E1FF01" }
-              }}
-              onDayPress={(day) => onDateSelect(day)}
-            />
-            <TouchableOpacity
-              style={{ marginTop: 20, backgroundColor: "#E1FF01", padding: 10, borderRadius: 5, alignItems: "center" }}
-              onPress={() => setShowCalendar(false)}
-            >
-              <Text>닫기</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        <View style={{ padding: 20 }}>
+          <Calendar
+            locale="ko"
+            markedDates={{
+              [selectedDate.replace(/\./g, "-")]: {
+                selected: true,
+                selectedColor: "#E1FF01",
+              },
+            }}
+            style={{ backgroundColor: "#2D2D35" }}  // 바텀시트 색과 동일하게 설정
+            onDayPress={(day) => {
+              onDateSelect(day);
+              calendarSheetRef.current?.close();
+            }}
+          />
 
-      {/* ✅ 흐림 효과 조건 */}
-      {(isBottomSheetVisible || isHistorySheetVisible) && (
-        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
-      )}
+          {/* 그래프 예시 (react-native-chart-kit 사용) */}
+          <View style={{ marginTop: 30, alignItems: "center" }}>
+            <LineChart
+              data={{
+                labels: ["01.20", "01.21", "01.22", "01.23", "01.24", "01.25", "01.26"],
+                datasets: [
+                  {
+                    data: [2000, 1800, 2200, 2500, 2100, 2300, 2000],
+                  },
+                ],
+              }}
+              width={300} // 그래프의 너비
+              height={200} // 그래프의 높이
+              chartConfig={{
+                backgroundColor: "#333",
+                backgroundGradientFrom: "#333",
+                backgroundGradientTo: "#333",
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                propsForDots: {
+                  r: "6",
+                  strokeWidth: "2",
+                  stroke: "#E1FF01",
+                },
+              }}
+              bezier
+              style={{ marginVertical: 8, borderRadius: 16 }}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={{
+              marginTop: 20,
+              backgroundColor: "#E1FF01",
+              paddingVertical: 12,
+              borderRadius: 15,
+              alignItems: "center",
+            }}
+            onPress={() => calendarSheetRef.current?.close()}
+          >
+            <Text style={{ fontSize: 16, fontWeight: "bold" }}>선택하기</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheet>
 
       {/* 운동 등록 바텀시트 */}
       <ExerciseRegister
@@ -260,7 +300,7 @@ export default function ExerciseHome() {
       >
         <ExerciseHistory
           onClose={handleCloseHistorySheet}
-          selectedDate={`${selectedDate}.${selectedDay}`}
+          selectedDate={selectedDate}
         />
       </BottomSheet>
 
