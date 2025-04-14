@@ -1,19 +1,14 @@
 // ExerciseHistory.js
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function ExerciseHistory({ 
   onClose, 
-  selectedDate, 
-  setIsImageBlurred, 
-  setIsButtonBlurred 
+  selectedDate 
 }) {
-
   const [isDetailVisible, setIsDetailVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
-
-
 
   const handleExerciseClick = (exercise) => {
     setSelectedExercise(exercise);
@@ -24,8 +19,7 @@ export default function ExerciseHistory({
     setIsDetailVisible(false);
     setSelectedExercise(null);
   };
-  
- 
+
   const historyData = [
     {
       id: "1",
@@ -48,16 +42,15 @@ export default function ExerciseHistory({
       ]
     }
   ];
-  
+
   return (
-    
     <View style={{ flex: 1, backgroundColor: "#2D2D35", padding: 20 }}>
       {isDetailVisible && (
         <TouchableOpacity
           onPress={handleBack}
           style={{
             position: "absolute",
-            top: 18, // 필요 시 조절
+            top: 18,
             left: 10,
             zIndex: 99,
             flexDirection: "row",
@@ -91,29 +84,29 @@ export default function ExerciseHistory({
           <Ionicons name="close" size={24} color="#DDFB21" />
         </TouchableOpacity>
       </View>
+
       <View style={{ height: 1, backgroundColor: "#8A8A8A", marginBottom: 12 }} />
-  
+
       {isDetailVisible ? (
-        // ✅ 상세 화면 (운동 기록)
         <>
-          <Text style={{ fontSize: 25, color: "white", fontWeight: "bold", marginTop: 15, marginBottom: 20, zIndex: 10 }}>
+          <Text style={{ fontSize: 25, color: "white", fontWeight: "bold", marginTop: 15, marginBottom: 20 }}>
             {selectedExercise.name}
           </Text>
-  
-          <Text style={{ fontSize: 16, color: "white", fontWeight: "500", marginBottom: 25, marginleft: 20 }}>
+
+          <Text style={{ fontSize: 16, color: "white", fontWeight: "500", marginBottom: 25 }}>
             기록
           </Text>
-  
+
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, marginBottom: 16 }}>
             <Text style={{ color: "white", fontSize: 16 }}>세트</Text>
             <Text style={{ color: "white", fontSize: 16 }}>무게 (KG)</Text>
             <Text style={{ color: "white", fontSize: 16 }}>횟수</Text>
           </View>
-  
+
           <View style={{ height: 1, backgroundColor: "#8A8A8A", marginBottom: 10 }} />
-  
+
           <FlatList
-            data={selectedExercise.records} // ✅ 세트 데이터
+            data={selectedExercise.records}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
               <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 18, marginVertical: 10 }}>
@@ -125,7 +118,6 @@ export default function ExerciseHistory({
           />
         </>
       ) : (
-        // ✅ 리스트 화면
         <FlatList
           data={historyData}
           keyExtractor={(item) => item.id}
@@ -147,5 +139,4 @@ export default function ExerciseHistory({
       )}
     </View>
   );
-  
 }

@@ -6,15 +6,16 @@ import {
   TouchableOpacity,
   View,
   Modal,
-  StyleSheet
+  StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import BottomNavigation from "../components/BottomNavigation";
 import { Calendar } from "react-native-calendars";
-import ExerciseRegister from "../screens/exercise_register"; // 바텀시트 컴포넌트 import
-import BottomSheet from "@gorhom/bottom-sheet"; // 바텀시트 컴포넌트 import
-import ExerciseHistory from "../screens/exercise_history"; // ExerciseHistory 화면 임포트
+import ExerciseRegister from "../screens/exercise_register";
+import BottomSheet from "@gorhom/bottom-sheet";
+import ExerciseHistory from "../screens/exercise_history";
+import { BlurView } from "expo-blur";
 
 export default function ExerciseHome() {
   const navigation = useNavigation();
@@ -22,37 +23,31 @@ export default function ExerciseHome() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025.01.21");
   const [selectedDay, setSelectedDay] = useState("화");
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false); // 바텀시트 상태 관리
-  const [isBottomNavVisible, setIsBottomNavVisible] = useState(true); // 하단 네비게이션바 상태 관리
-  const [isImageBlurred, setIsImageBlurred] = useState(false); // 이미지 흐림 상태 관리
-  const [isButtonBlurred, setIsButtonBlurred] = useState(false); // 버튼 흐림 상태 관리
-  const sheetRef = useRef(null); // 바텀시트 참조
-  const historySheetRef = useRef(null); // ExerciseHistory 바텀시트 참조
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
+  const [isHistorySheetVisible, setIsHistorySheetVisible] = useState(false);
+  const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+  const sheetRef = useRef(null);
+  const historySheetRef = useRef(null);
 
   useEffect(() => {
     if (isBottomSheetVisible && sheetRef.current) {
-      sheetRef.current.expand(); // 상태가 true로 바뀌면 바텀시트 확장
-      setIsBottomNavVisible(false); // 바텀시트가 열리면 하단 네비게이션 숨기기
-      setIsImageBlurred(true); // 바텀시트가 열리면 이미지 흐림
-      setIsButtonBlurred(true); // 바텀시트가 열리면 버튼도 흐림
+      sheetRef.current.expand();
+      setIsBottomNavVisible(false);
     } else if (!isBottomSheetVisible && sheetRef.current) {
-      sheetRef.current.close(); // 상태가 false로 바뀌면 바텀시트 닫기
-      setIsBottomNavVisible(true); // 바텀시트가 닫히면 하단 네비게이션 보이기
-      setIsImageBlurred(false); // 바텀시트가 닫히면 이미지 흐림 해제
-      setIsButtonBlurred(false); // 바텀시트가 닫히면 버튼 흐림 해제
+      sheetRef.current.close();
+      setIsBottomNavVisible(true);
     }
   }, [isBottomSheetVisible]);
 
   useEffect(() => {
     const today = new Date();
-    const formatted = today.toISOString().split("T")[0]; // yyyy-mm-dd
-    const pretty = formatted.split("-").join(".");       // yyyy.mm.dd
+    const formatted = today.toISOString().split("T")[0];
+    const pretty = formatted.split("-").join(".");
     const dayName = today.toLocaleDateString("ko-KR", { weekday: "short" });
-  
     setSelectedDate(pretty);
     setSelectedDay(dayName);
   }, []);
-  
+
   const onDateSelect = (date) => {
     const formattedDate = date.dateString.split("-").join(".");
     const dayOfWeek = new Date(date.dateString).toLocaleString("ko-KR", {
@@ -64,54 +59,44 @@ export default function ExerciseHome() {
   };
 
   const handleExerciseClick = (exercise) => {
-    // 운동 이름 클릭 시 ExerciseRecommendVideo로 이동
-    navigateToExerciseVideo(exercise);
+    if (exercise) {
+      navigation.navigate("ExerciseRecommendVideo", { category: exercise });
+    }
   };
 
   const historySnapPoints = useMemo(() => ["80%"], []);
 
-  const navigateToExerciseVideo = (exerciseName) => {
-    console.log("Exercise Name: ", exerciseName);  // exerciseName이 잘 전달되는지 확인
-    if (exerciseName) {
-      navigation.navigate('ExerciseRecommendVideo', { category: exerciseName }); // ExerciseRecommendVideo로 이동
-    } else {
-      console.log("운동 이름이 없습니다.");
-    }
-  };
-
   const handleOpenBottomSheet = () => {
-    setIsBottomSheetVisible(true); // 바텀시트를 보이게 하기 위해 상태 업데이트
+    setIsBottomSheetVisible(true);
   };
 
   const handleCloseBottomSheet = () => {
-    setIsBottomSheetVisible(false); // 바텀시트를 닫기 위해 상태 업데이트
+    setIsBottomSheetVisible(false);
   };
 
   const handleOpenHistorySheet = () => {
-    historySheetRef.current.expand(); // ExerciseHistory 바텀시트 열기
+    setIsHistorySheetVisible(true);
+    historySheetRef.current.expand();
   };
 
   const handleCloseHistorySheet = () => {
-    historySheetRef.current.close(); // ExerciseHistory 바텀시트 닫기
+    setIsHistorySheetVisible(false);
+    historySheetRef.current.close();
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black", alignItems: "center" }}>
-      {/* 셔플 버튼: 바텀시트가 열리면 숨기기 */}
-      {!isBottomSheetVisible && (
+      {/* 셔플 버튼 */}
+      {!isBottomSheetVisible && !isHistorySheetVisible && (
         <TouchableOpacity
-          style={{
-            position: "absolute",
-            top: 70,
-            right: 20,
-          }}
+          style={{ position: "absolute", top: 70, right: 20 }}
           onPress={() => setIsFrontView(!isFrontView)}
         >
           <Ionicons name="shuffle" size={30} color="#E1FF01" />
         </TouchableOpacity>
       )}
 
-      {/* 신체 이미지 */}
+      {/* 신체 이미지 및 버튼 */}
       <View style={{ position: "absolute", bottom: 180, alignItems: "center" }}>
         <Image
           source={
@@ -121,61 +106,36 @@ export default function ExerciseHome() {
           }
           style={{ width: 360, height: 580 }}
           resizeMode="contain"
-          blurRadius={isImageBlurred ? 5 : 0} // isImageBlurred 값에 따라 흐림 처리
         />
 
-        {/* 이미지 위 버튼 */}
+        {/* 부위별 버튼 */}
         {isFrontView ? (
           <>
-            <TouchableOpacity
-              style={[buttonStyle("25%", "37%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => handleExerciseClick("어깨")}
-            >
+            <TouchableOpacity style={buttonStyle("25%", "37%")} onPress={() => handleExerciseClick("어깨")}>
               <Text style={{ opacity: 0 }}>어깨</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[buttonStyle("29%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => handleExerciseClick("가슴")}
-            >
+            <TouchableOpacity style={buttonStyle("29%", "51%")} onPress={() => handleExerciseClick("가슴")}>
               <Text style={{ opacity: 0 }}>가슴</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[buttonStyle("38%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => handleExerciseClick("복근")}
-            >
+            <TouchableOpacity style={buttonStyle("38%", "51%")} onPress={() => handleExerciseClick("복근")}>
               <Text style={{ opacity: 0 }}>복근</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[buttonStyle("36%", "68%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => handleExerciseClick("팔")}
-            >
+            <TouchableOpacity style={buttonStyle("36%", "68%")} onPress={() => handleExerciseClick("팔")}>
               <Text style={{ opacity: 0 }}>팔</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[buttonStyle("58%", "59%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => handleExerciseClick("하체")}
-            >
+            <TouchableOpacity style={buttonStyle("58%", "59%")} onPress={() => handleExerciseClick("하체")}>
               <Text style={{ opacity: 0 }}>하체</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
-            <TouchableOpacity
-              style={[buttonStyle("30%", "51%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => handleExerciseClick("등")}
-            >
+            <TouchableOpacity style={buttonStyle("30%", "51%")} onPress={() => handleExerciseClick("등")}>
               <Text style={{ opacity: 0 }}>등</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[buttonStyle("51%", "58%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => handleExerciseClick("둔근")}
-            >
+            <TouchableOpacity style={buttonStyle("51%", "58%")} onPress={() => handleExerciseClick("둔근")}>
               <Text style={{ opacity: 0 }}>둔근</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[buttonStyle("75%", "43%"), isButtonBlurred && { opacity: 0.5 }]}
-              onPress={() => handleExerciseClick("종아리")}
-            >
+            <TouchableOpacity style={buttonStyle("75%", "43%")} onPress={() => handleExerciseClick("종아리")}>
               <Text style={{ opacity: 0 }}>종아리</Text>
             </TouchableOpacity>
           </>
@@ -193,7 +153,6 @@ export default function ExerciseHome() {
           borderRadius: 15,
         }}
       >
-        {/* 날짜 표시 */}
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
           <TouchableOpacity onPress={() => setShowCalendar(true)}>
             <Ionicons name="calendar" size={30} color="white" />
@@ -203,7 +162,6 @@ export default function ExerciseHome() {
           </Text>
         </View>
 
-        {/* 칼로리 정보 */}
         <View style={{ alignItems: "center", marginBottom: 10 }}>
           <Text style={{ color: "white", fontSize: 16, marginBottom: 5 }}>소모한 칼로리</Text>
           <Text style={{ color: "white", fontSize: 38, fontWeight: "bold" }}>
@@ -211,7 +169,6 @@ export default function ExerciseHome() {
           </Text>
         </View>
 
-        {/* 버튼 영역 */}
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
           <TouchableOpacity
             style={{
@@ -222,7 +179,7 @@ export default function ExerciseHome() {
               alignItems: "center",
               marginRight: 5,
             }}
-            onPress={handleOpenBottomSheet} // 버튼을 눌렀을 때 바텀시트 열기
+            onPress={handleOpenBottomSheet}
           >
             <Text style={{ fontSize: 18, fontWeight: "bold" }}>운동 등록하기</Text>
           </TouchableOpacity>
@@ -241,7 +198,7 @@ export default function ExerciseHome() {
               shadowOpacity: 0.3,
               shadowRadius: 3,
             }}
-            onPress={handleOpenHistorySheet} // ExerciseHistory 바텀시트 열기
+            onPress={handleOpenHistorySheet}
           >
             <Ionicons name="menu" size={28} color="black" />
           </TouchableOpacity>
@@ -262,14 +219,13 @@ export default function ExerciseHome() {
           backgroundColor: "rgba(0, 0, 0, 0.5)"
         }}>
           <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10 }}>
-          <Calendar
-            locale={"ko"}
-            markedDates={{
-              [selectedDate.replace(/\./g, "-")]: { selected: true, selectedColor: "#E1FF01" }
-            }}
-            onDayPress={(day) => onDateSelect(day)}
-          />
-
+            <Calendar
+              locale={"ko"}
+              markedDates={{
+                [selectedDate.replace(/\./g, "-")]: { selected: true, selectedColor: "#E1FF01" }
+              }}
+              onDayPress={(day) => onDateSelect(day)}
+            />
             <TouchableOpacity
               style={{ marginTop: 20, backgroundColor: "#E1FF01", padding: 10, borderRadius: 5, alignItems: "center" }}
               onPress={() => setShowCalendar(false)}
@@ -280,15 +236,20 @@ export default function ExerciseHome() {
         </View>
       </Modal>
 
-      {/* 바텀시트 컴포넌트 */}
+      {/* ✅ 흐림 효과 조건 */}
+      {(isBottomSheetVisible || isHistorySheetVisible) && (
+        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+      )}
+
+      {/* 운동 등록 바텀시트 */}
       <ExerciseRegister
         sheetRef={sheetRef}
-        onClose={handleCloseBottomSheet} // 바텀시트 닫기 함수 전달
-        snapPoints={['80%']} // 바텀시트 80% 올라오도록 설정
-        index={-1} // 초기 상태에서 바텀시트 닫힘
+        onClose={handleCloseBottomSheet}
+        snapPoints={["80%"]}
+        index={-1}
       />
 
-      {/* ExerciseHistory 바텀시트 */}
+      {/* 운동 히스토리 바텀시트 */}
       <BottomSheet
         ref={historySheetRef}
         index={-1}
@@ -297,21 +258,18 @@ export default function ExerciseHome() {
         backgroundStyle={{ backgroundColor: "#2D2D35" }}
         enablePanDownToClose={true}
       >
-        <ExerciseHistory 
-          onClose={handleCloseHistorySheet} 
+        <ExerciseHistory
+          onClose={handleCloseHistorySheet}
           selectedDate={`${selectedDate}.${selectedDay}`}
-          setIsImageBlurred={setIsImageBlurred}
-          setIsButtonBlurred={setIsButtonBlurred}
         />
       </BottomSheet>
 
       {/* 하단 네비게이션 */}
-      {isBottomNavVisible && <BottomNavigation />} {/* 하단 네비게이션 상태에 따라 렌더링 */}
+      {isBottomNavVisible && <BottomNavigation />}
     </SafeAreaView>
   );
 }
 
-// 버튼 스타일 함수
 const buttonStyle = (top, left) => ({
   position: "absolute",
   top,
