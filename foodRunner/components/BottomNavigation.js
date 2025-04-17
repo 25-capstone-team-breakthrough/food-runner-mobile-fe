@@ -11,7 +11,7 @@ const BottomNavigation = () => {
   const screens = [
     { name: "NutritionMain", icon: "add-circle-outline" },
     { name: "DietRecommendation", icon: "restaurant" },
-    { name: "Home", icon: "home-outline" },
+    { name: "InBodyDetail", icon: "home-outline" },
     { name: "ExerciseHome", icon: "barbell-outline" },
   ];
 

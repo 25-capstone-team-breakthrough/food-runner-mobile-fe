@@ -136,7 +136,6 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
               <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
                 {filteredFavorites.length > 0 && (
                   <View>
-                    <Text style={styles.favoriteTitle}>즐겨찾기</Text>
                     {filteredFavorites.map((ex, idx) => (
                       <View key={idx} style={styles.exerciseItem}>
                         <TouchableOpacity

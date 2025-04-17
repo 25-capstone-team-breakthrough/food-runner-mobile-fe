@@ -15,6 +15,7 @@ import ExerciseRecommendVideo from '../screens/exercise_recommendvideo';
 import ExerciseHome  from '../screens/exercise_home';
 import ExerciseRegister from '../screens/exercise_register';
 import ExerciseHistory from '../screens/exercise_history';
+import InBodyDetail from '../screens/InbodyDetail';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -34,6 +35,7 @@ const AppNavigator = () => {
         <Stack.Screen name="ExerciseRecommendVideo" component={ExerciseRecommendVideo} options={{ headerShown: false }}/>
         <Stack.Screen name="ExerciseRegister" component={ExerciseRegister} options={{ headerShown: false }}/>
         <Stack.Screen name="ExerciseHistory" component={ExerciseHistory} options={{ headerShown: false }}/>
+        <Stack.Screen name="InBodyDetail" component={InBodyDetail} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
