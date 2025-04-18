@@ -1,16 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList
 } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context'; // ✅ 추가
 import BottomNavigation from "../components/BottomNavigation";
+import { Image } from 'react-native';
+
 
 const dateList = ['2025.02.08', '2025.01.08', '2024.12.28', '2024.10.14'];
+
+const PartAnalysisBox = ({ labels }) => (
+  <View style={styles.bodyBox}>
+    {/* 세로선 */}
+    <View style={styles.verticalLineOverlay} />
+    {/* 가로선 */}
+    <View style={styles.horizontalLineOverlay} />
+    <Image source={require('../assets/body_front.png')} style={styles.bodyImage} />
+    <Text style={[styles.bodyLabel, styles.topLeft]}>{labels.leftArm}</Text>
+    <Text style={[styles.bodyLabel, styles.topRight]}>{labels.rightArm}</Text>
+    <Text style={[styles.bodyLabel, styles.bottomLeft]}>{labels.leftLeg}</Text>
+    <Text style={[styles.bodyLabel, styles.bottomRight]}>{labels.rightLeg}</Text>
+    <Text style={[styles.bodyLabel, styles.center]}>
+      {(Array.isArray(labels.trunk) ? labels.trunk : [labels.trunk]).map((line, idx) => (
+        <Text key={idx}>{line}{'\n'}</Text>
+      ))}
+    </Text>
+
+  </View>
+);
 
 export default function InbodyDetail() {
   const [selectedDate, setSelectedDate] = useState('2025.02.08');
   const [modalVisible, setModalVisible] = useState(false);
+  const [inbodyPartData, setInbodyPartData] = useState(null);
 
   const inbodyData = {
     '2025.02.08': { 체수분: 26.5, 단백질: 26.5, 무기질: 26.5, 체중: 59.1, 골격근: 19.5, 체지방: 22.8, BMI: 24.0, 체지방률: 38.6 },
@@ -19,9 +42,33 @@ export default function InbodyDetail() {
     '2024.10.14': { 체수분: 24.3, 단백질: 24.2, 무기질: 24.1, 체중: 56.0, 골격근: 18.1, 체지방: 25.1, BMI: 24.6, 체지방률: 38.0 },
   };
 
+  useEffect(() => {
+    // TODO: 백엔드 API 연동으로 교체
+    const fakeAPIResponse = {
+      muscleParts: {
+        leftArm: ['표준'],
+        rightArm: ['표준'],
+        leftLeg: ['표준'],
+        rightLeg: ['표준'],
+        trunk: ['표준', '이하'], // ⬅️ 줄바꿈 대신 배열로
+      },
+      fatParts: {
+        leftArm: ['표준'],
+        rightArm: ['표준'],
+        leftLeg: ['표준'],
+        rightLeg: ['표준'],
+        trunk: ['표준'],
+      }
+    };
+    
+    setInbodyPartData(fakeAPIResponse);
+  }, [selectedDate]);
+
+
+
   const data = inbodyData[selectedDate];
 
-  const GraphBar = ({ label, value, min, midStart, midEnd, max }) => {
+  const GraphBar = ({ value, min, midStart, midEnd, max }) => {
     const totalRange = max - min;
     const percent = Math.min(Math.max((value - min) / totalRange, 0), 1);
   
@@ -179,6 +226,21 @@ export default function InbodyDetail() {
             </View>
           </View>
         </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>부위별 분석</Text>
+        </View>
+
+        {inbodyPartData && (
+            <View>
+              <Text style={styles.sectionTitle}>부위별 근육분석</Text>
+              <View style={styles.bodyRow}>
+                <PartAnalysisBox labels={inbodyPartData.muscleParts} />
+                <PartAnalysisBox labels={inbodyPartData.fatParts} />
+              </View>
+              
+            </View>
+          )}
     </ScrollView>
 
         
@@ -272,9 +334,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
   },
+  bodyRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    gap: 10 
+  },
   inbodyText: {
     color: '#C8FF00',
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: 'bold',
   },
   
@@ -301,8 +368,6 @@ const styles = StyleSheet.create({
   valueColumn: {
     flex: 3,
     justifyContent: 'space-between',
-    
-    
   },
   labelText1: {
     color: '#fff',
@@ -407,18 +472,107 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 7,      // ✅ 둥글게
     borderBottomRightRadius: 7,  
   },
-  barTextInside: {
-    color: '#000',
-    fontSize: 10,
-    fontWeight: 'bold',
+  bodyBox: { 
+    flex: 1, 
+    aspectRatio: 0.65, 
+    backgroundColor: '#222', 
+    borderRadius: 20, 
+    padding: 10, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    overflow: 'hidden' 
   },
   
-  standardLine: {
+  
+  bodyImage: {
+    width: '120%',
+    height: '120%',
+    resizeMode: 'contain',
+    opacity: 0.85,
+  },
+  
+  bodyLabel: {
+    position: 'absolute',
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  
+  topLeft: { 
+    top: 20, 
+    left: 30 
+  },
+  topRight: { 
+    top: 20, 
+    right: 30 
+  },
+  bottomLeft: { 
+    bottom: 30, 
+    left: 30 
+  },
+  bottomRight: { 
+    bottom: 30, 
+    right: 30 
+  },
+  center: {
+    top: '45%',
+    left: '61%',
+    transform: [{ translateX: -20 }],
+  },
+  rangeNumberRow: { 
+    position: 'relative', 
+    height: 16, 
+    marginBottom: 4 
+  },
+  rangeNumber: { 
+    color: '#fff', 
+    fontSize: 11 
+  },
+  barBackground: { 
+    backgroundColor: '#D9D9D9', 
+    height: 14, 
+    borderRadius: 7, 
+    overflow: 'hidden', 
+    position: 'relative' 
+  },
+  barFill: { 
+    backgroundColor: '#DDFB21', 
+    height: '70%', 
+    marginTop: '1%', 
+    justifyContent: 'center', 
+    alignItems: 'flex-end', 
+    paddingRight: 4, 
+    borderTopRightRadius: 7, 
+    borderBottomRightRadius: 7 
+  },
+  barTextInside: { 
+    color: '#000', 
+    fontSize: 10, 
+    fontWeight: 'bold' 
+  },
+  standardLine: { 
+    position: 'absolute', 
+    width: 1, 
+    height: '100%', 
+    backgroundColor: '#AAAAAA' 
+  }, 
+  verticalLineOverlay: {
     position: 'absolute',
     width: 1,
-    height: '100%',
-    backgroundColor: '#AAAAAA',
+    height: '110%',
+    backgroundColor: '#ccc',
+    left: '56%',
+    transform: [{ translateX: -0.5 }],
   },
   
+  horizontalLineOverlay: {
+    position: 'absolute',
+    height: 1,
+    width: '110%',
+    backgroundColor: '#ccc',
+    top: '50%',
+    transform: [{ translateY: -0.5 }],
+  },
   
 });
