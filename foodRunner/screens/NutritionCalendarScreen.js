@@ -19,7 +19,7 @@ const generateMonthlyData = () => {
     const daysInMonth = moment().daysInMonth();
     for (let i = 0; i < daysInMonth; i++) {
         const date = startOfMonth.clone().add(i, "days").format("YYYY-MM-DD");
-        data[date] = Math.floor(Math.random() * 1000) + 1500; // 1500~2500 사이 랜덤 칼로리
+        data[date] = Math.floor(Math.random() * 1000) + 1500;
     }
     return data;
 };
@@ -51,7 +51,7 @@ const NutritionCalendarScreen = () => {
     const labels = weekDates.map((d, i) => {
         if (i === highlightIndex) {
             const day = d.format("DD");
-            return `\u25CF${day}`; // ● + 일자
+            return `\u25CF${day}`;
         }
         return d.format("DD");
     });
