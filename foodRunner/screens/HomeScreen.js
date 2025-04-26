@@ -2,6 +2,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import moment from 'moment';
 import React from 'react';
 import { Dimensions, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BottomNavigation from "../components/BottomNavigation";
+import CalorieBar from '../components/CalorieBar';
+
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -12,26 +15,32 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+
       <View style={{
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        // marginBottom: -40,
       }}>
         <Text style={styles.headerText}>{name}님</Text>
-        <Image></Image>
+        <View style={styles.whiteBackground}>
+          <Image 
+            source={require('../assets/profile.png')} 
+            style={styles.profile}
+          />
+        </View>
       </View>
+
       <View style={styles.achievement}>
-        {/* <Image 
-          source={require('../assets/InbodyLogo.png')} 
-          style={styles.inbodylogo}
-        /> */}
-      <View style={styles.achievementContainer}> 
-        <Image></Image>
-        <Text style={styles.subHeaderText}>헬린이</Text>
-        {/* 바 그래프 */}
-      </View>
+        <View style={styles.whiteBackground2}>
+          <Image 
+            source={require('../assets/profile.png')} 
+            style={styles.profile2}
+          />
+        </View>
+          <Text style={styles.subHeaderText}>헬린이</Text>
+          <CalorieBar consumed={1800} goal={2000}
+            marginTop={0} marginRight={30} marginBottom={0} />
       </View>
       
       <View style={{
@@ -107,13 +116,36 @@ const HomeScreen = ({ navigation }) => {
 
       <View style={styles.calorieContainer}>
         <Text style={styles.dateText}>{dateToDisplay}</Text>
-        <Text style={styles.calorieTitleText}>섭취한 칼로리</Text>
-        {/* 바 그래프 */}
-        <Text style={styles.calorie}>1,800 / 2,000 kcal</Text>
-        <Text style={styles.calorieTitleText}>소모한 칼로리</Text>
-        {/* 바 그래프 */}
-        <Text style={styles.calorie}>1,000 / 2,000 kcal</Text>
+        <View style={{
+          width: '100%',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <Text style={styles.calorieTitleText}>섭취한 칼로리</Text>
+          <CalorieBar consumed={1800} goal={2000}
+          width={200} marginTop={20} marginRight={10} marginBottom={0} />
+        </View>
+        <Text style={styles.calorie}>
+          <Text style={styles.calorieMain}>1,800</Text>
+          <Text style={styles.calorieSub}> / 2,000 kcal</Text>
+        </Text>
+        <View style={{
+          width: '100%',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <Text style={styles.calorieTitleText}>소모한 칼로리</Text>
+          <CalorieBar consumed={1000} goal={2000}
+          width={200} marginTop={20} marginRight={10} marginBottom={0} />
+        </View>
+        <Text style={styles.calorie}>
+          <Text style={styles.calorieMain}>1,000</Text>
+          <Text style={styles.calorieSub}> / 2,000 kcal</Text>
+        </Text>
       </View>
+      <BottomNavigation />
     </SafeAreaView>
   );
 };
@@ -132,12 +164,52 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginLeft: 50,
   },
+  whiteBackground: {
+    width: 61,
+    height: 61,
+    backgroundColor: '#fff',
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    marginRight: 40,
+  },
+  profile: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
+    marginTop: 2,
+  },
+  whiteBackground2: {
+    width: 61,
+    height: 61,
+    backgroundColor: '#fff',
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 13,
+  },
+  profile2: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
+    marginTop: 2,
+  },
   achievement: {
-
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#292929',
+    width: 375,
+    height: 80,
+    borderRadius: 30,
+    marginTop: 50,
   },
   subHeaderText: {
     fontSize: 18,
     color: '#fff',
+    fontWeight: 600,
   },
   inbodylogo: {
     width: 220,
@@ -153,7 +225,6 @@ const styles = StyleSheet.create({
   },
   inBodyContainer: {
     flexDirection: 'row',
-    // marginTop: 5,
   },
   inBodyBox: {
     backgroundColor: 'transparent',
@@ -175,7 +246,6 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     fontSize: 36,
     color: '#000',
-    
   },
   inBodyStateContainer: {
     width: 100,
@@ -193,22 +263,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   calorieContainer: {
-    width: 765,
-    height:485,
-    color: "#fff",
-    marginTop: 20,
+    padding: 25,
+    width: 375,
+    height:215,
+    backgroundColor: "#292929",
+    marginTop: 40,
     borderRadius: 30,
   },
   dateText: {
     fontSize: 18,
+    fontWeight: '600',
     color: '#fff',
-    marginTop: 20,
   },
   calorieTitleText: {
     fontSize: 15,
     color: "#fff",
+    marginTop: 20,
   },
-  calorie: {},
+  calorie: {
+    color: '#fff',
+    fontSize: 25,
+    marginTop: 5,
+  },
+  calorieMain: {
+    fontSize: 25,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  calorieSub: {
+    fontSize: 15,
+    color: '#fff',
+  },
 });
 
 export default HomeScreen;

@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   FlatList,
   StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import BottomNavigation from "../components/BottomNavigation";
 import RefreshButton from "../components/RefreshButton";
 import RegisterButton from "../components/RegisterButton";
@@ -32,21 +30,19 @@ export default function IngredientScreen({ navigation }) {
     "두부",
   ]);
 
-  // 개별 버튼의 상태를 저장하는 배열
   const [pressedStates, setPressedStates] = useState(
-    new Array(ingredients.length).fill(false) // 모든 버튼의 초기값 false
+    new Array(ingredients.length).fill(false) 
   );
 
-  // ✅ 특정 버튼을 클릭하면 상태를 토글 (true ↔ false)
   const handlePress = (index) => {
-    const newStates = [...pressedStates]; // 기존 배열 복사
-    newStates[index] = !newStates[index]; // 현재 버튼의 상태 변경
-    setPressedStates(newStates); // 상태 업데이트
+    const newStates = [...pressedStates]; 
+    newStates[index] = !newStates[index]; 
+    setPressedStates(newStates); 
   };
 
   return (
     <View style={styles.container}>
-      {/* 검색창 */}
+      
       <SearchBar value={search} onChangeText={setSearch} 
         placeholder="선호 식재료를 추가해주세요" 
       />
@@ -55,7 +51,7 @@ export default function IngredientScreen({ navigation }) {
 
       <Text style={styles.subTitle}>추천재료</Text>
 
-      {/* 추천 식재료 리스트 */}
+      
       <FlatList
         data={ingredients}
         keyExtractor={(item, index) => index.toString()}
