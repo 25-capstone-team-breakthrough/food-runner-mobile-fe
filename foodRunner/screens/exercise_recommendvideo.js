@@ -1,41 +1,38 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
+import { View, Text, ScrollView, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native"; // useNavigation과 useRoute 사용
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 export default function ExerciseRecommendVideo() {
-  const navigation = useNavigation(); // useNavigation 훅을 사용하여 네비게이션 객체를 가져옵니다.
-  const route = useRoute(); // useRoute 훅을 사용하여 라우트 파라미터를 가져옵니다.
+  const navigation = useNavigation();
+  const route = useRoute();
   const [selectedCategory, setSelectedCategory] = useState("어깨");
 
-  // 쿼리 파라미터 사용
   useEffect(() => {
-    if (route.params?.category) { // route의 파라미터가 있다면
-      setSelectedCategory(route.params.category); // 파라미터로 받아온 category 값으로 상태 설정
+    if (route.params?.category) {
+      setSelectedCategory(route.params.category);
     }
   }, [route.params]);
 
   const categories = ["어깨", "가슴", "팔", "하체", "복근", "등", "둔근", "종아리"];
 
-  // 운동 목록 예시
   const exerciseList = {
-    어깨: ["운동1", "운동2", "운동3"],
-    가슴: ["운동4", "운동5", "운동6"],
-    팔: ["운동7", "운동8", "운동9"],
-    하체: ["운동10", "운동11", "운동12"],
-    복근: ["운동13", "운동14", "운동15"],
-    등: ["운동16", "운동17", "운동18"],
-    둔근: ["운동19", "운동20", "운동21"],
-    종아리: ["운동22", "운동23", "운동24"],
+    어깨: ["운동1", "운동2", "운동3", "운동4"],
+    가슴: ["운동5", "운동6", "운동7", "운동8"],
+    팔: ["운동9", "운동10", "운동11", "운동12"],
+    하체: ["운동13", "운동14", "운동15", "운동16"],
+    복근: ["운동17", "운동18", "운동19", "운동20"],
+    등: ["운동21", "운동22", "운동23", "운동24"],
+    둔근: ["운동25", "운동26", "운동27", "운동28"],
+    종아리: ["운동29", "운동30", "운동31", "운동32"],
   };
 
   const navigateToExerciseDetail = (exerciseName) => {
-    navigation.navigate('ExerciseDetail', { exercise: exerciseName });  // ExerciseDetail 화면으로 이동
+    navigation.navigate('ExerciseDetail', { exercise: exerciseName });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 상단에 운동 영상 텍스트와 닫기 버튼 추가 */}
       <View style={styles.header}>
         <Text style={styles.headerText}>운동 영상</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
@@ -44,35 +41,57 @@ export default function ExerciseRecommendVideo() {
       </View>
 
       {/* 카테고리 탭 */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={[styles.categoryButton, selectedCategory === category ? styles.activeCategory : null]}
-            onPress={() => setSelectedCategory(category)}
-          >
-            <Text style={[styles.categoryText, selectedCategory === category ? styles.activeCategoryText : null]}>
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* 추천 운동 목록 */}
-      <ScrollView style={styles.exerciseList}>
-        <Text style={styles.exerciseListTitle}>추천 운동</Text>
-        <View style={styles.exerciseContainer}>
-          {exerciseList[selectedCategory]?.map((exercise, index) => (
+      <View style={styles.categoryWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryScroll}
+        >
+          {categories.map((category) => (
             <TouchableOpacity
-              key={index}
-              style={styles.exerciseItem}
-              onPress={() => navigateToExerciseDetail(exercise)} // 운동 클릭 시 상세 페이지로 이동
+              key={category}
+              style={[
+                styles.categoryButton,
+                selectedCategory === category ? styles.activeCategory : null,
+              ]}
+              onPress={() => setSelectedCategory(category)}
             >
-              <Text style={styles.exerciseText}>{exercise}</Text>
+              <Text style={[
+                styles.categoryText,
+                selectedCategory === category ? styles.activeCategoryText : null,
+              ]}>
+                {category}
+              </Text>
             </TouchableOpacity>
           ))}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
+
+
+      <View style={styles.exerciseList}>
+      {/* 추천 운동 2개 */}
+      <Text style={styles.exerciseListTitle}>추천 운동</Text>
+      <FlatList
+        data={exerciseList[selectedCategory]} // 전체 다
+        keyExtractor={(item, index) => `${item}-${index}`}
+        numColumns={2}
+        renderItem={({ item, index }) => (
+          <TouchableOpacity style={styles.exerciseItem} onPress={() => navigateToExerciseDetail(item)}>
+            <View style={[
+              styles.exerciseBox,
+              index < 2 && styles.recommendedBox // 추천 2개는 노란 테두리
+            ]}>
+              <Text style={styles.exerciseText}>{item}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
+
+    </View>
+
     </SafeAreaView>
   );
 }
@@ -111,8 +130,8 @@ const styles = StyleSheet.create({
     right: 20,
   },
   categoryScroll: {
-    marginTop: 10,
-    marginBottom: 5,
+    marginTop: 4,
+    marginBottom: 4,
     paddingLeft: 20,
   },
   categoryButton: {
@@ -144,16 +163,43 @@ const styles = StyleSheet.create({
     color: "#E1FF01",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  exerciseContainer: {
-    marginTop: 10,
+    marginBottom: 10,
   },
   exerciseItem: {
+    flex: 1,
     marginBottom: 10,
+    marginHorizontal: 5,
   },
   exerciseText: {
     color: "white",
     fontSize: 14,
+    fontWeight: "bold",
   },
+  recommendedItem: {
+    flex: 1,
+    marginBottom: 10,
+    marginHorizontal: 5,
+  },
+  recommendedBox: {
+    backgroundColor: "#333",
+    height: 120,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2, // ⭐️ 테두리 추가
+    borderColor: "#DDFB21",
+  },
+  exerciseItem: {
+    flex: 1,
+    marginBottom: 10,
+    marginHorizontal: 5,
+  },
+  exerciseBox: {
+    backgroundColor: "#333",
+    height: 120,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  
 });
-

@@ -2,13 +2,114 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList
 } from 'react-native';
-import { ProgressBar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context'; // ✅ 추가
 import BottomNavigation from "../components/BottomNavigation";
 import { Image } from 'react-native';
+import { Dimensions } from 'react-native';
+import Svg, { Polyline, Circle, Text as SvgText } from 'react-native-svg';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 
-const dateList = ['2025.02.08', '2025.01.08', '2024.12.28', '2024.10.14'];
+
+
+const screenWidth = Dimensions.get('window').width;
+
+const dateList = [
+  '2024.04.19',
+  '2024.06.28',
+  '2024.08.12',
+  '2024.10.14',
+  '2024.12.28',
+  '2025.01.08',
+  '2025.02.08'
+];
+
+const CustomLineChart = ({ data, title = '', noBorder = false  }) => {
+  const graphWidth = screenWidth - 100;
+  const graphHeight = 200;
+  const paddingLeft = 15;   // 왼쪽 패딩
+  const paddingRight = 40;
+  const pointSpacing = (graphWidth - paddingLeft - paddingRight) / (data.length - 1);
+
+  const minY = Math.min(...data.map(d => d.y)) - 2;
+  const maxY = Math.max(...data.map(d => d.y)) + 2;
+  const yRange = maxY - minY;
+
+  const points = data.map((d, idx) => {
+    const x = paddingLeft + idx * pointSpacing;
+    const y = graphHeight - 20 - ((d.y - minY) / yRange) * (graphHeight - 40);
+    return { x, y, value: d.y };
+  });
+
+  const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+
+  return (
+    <View style={{
+      paddingVertical: 10,
+      marginBottom: -120
+    }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 0 }}>
+        <View style={{ width: 80, alignItems: 'flex-end', paddingRight: 10 }}>
+          {title ? (
+            <Text style={{ color: 'white', fontSize: 12, fontWeight: "bold"}}>{title}</Text>
+          ) : null}
+        </View>
+        {/* 가운데 세로 구분선 */}
+        <View style={{ width: 1, backgroundColor: '#aaa', height: graphHeight - 80, marginRight: 10 }} />
+
+        <Svg width={graphWidth} height={graphHeight + (title === "체지방량(kg)" ? 30 : 0)}>
+          {/* 기존 선 + 점 */}
+          <Polyline
+            points={polylinePoints}
+            fill="none"
+            stroke="#555555"
+            strokeWidth="4"
+          />
+          {points.map((p, idx) => (
+            <React.Fragment key={idx}>
+              <Circle cx={p.x} cy={p.y} r="3.5" fill="#DDFB21" />
+              <SvgText
+                x={p.x}
+                y={p.y - 10}
+                fontSize="12"
+                fill="white"
+                textAnchor="middle"
+
+              >
+                {p.value.toFixed(1)}
+              </SvgText>
+            </React.Fragment>
+          ))}
+          {title === "체지방량(kg)" && points.map((p, idx) => (
+            <React.Fragment key={`label-${idx}`}>
+              {/* 연도 (윗줄) */}
+              <SvgText
+                x={p.x}
+                y={graphHeight - 7}   // 그래프 밑에 약간 떨어지게
+                fontSize="10"
+                fill="white"
+                textAnchor="middle"
+              >
+                {data[idx]?.x.split('.')[0]}
+              </SvgText>
+
+              {/* 날짜 (아랫줄) */}
+              <SvgText
+                x={p.x}
+                y={graphHeight + 5}   // 연도 밑에 한 줄 더
+                fontSize="10"
+                fill="white"
+                textAnchor="middle"
+              >
+                {data[idx]?.x.split('.').slice(1).join('.')}
+              </SvgText>
+            </React.Fragment>
+            ))}
+        </Svg>
+      </View>
+    </View>
+  );
+};
 
 const PartAnalysisBox = ({ labels }) => (
   <View style={styles.bodyBox}>
@@ -36,11 +137,15 @@ export default function InbodyDetail() {
   const [inbodyPartData, setInbodyPartData] = useState(null);
 
   const inbodyData = {
-    '2025.02.08': { 체수분: 26.5, 단백질: 26.5, 무기질: 26.5, 체중: 59.1, 골격근: 19.5, 체지방: 22.8, BMI: 24.0, 체지방률: 38.6 },
-    '2025.01.08': { 체수분: 25.8, 단백질: 25.1, 무기질: 25.4, 체중: 57.3, 골격근: 18.8, 체지방: 23.1, BMI: 23.5, 체지방률: 36.4 },
-    '2024.12.28': { 체수분: 25.1, 단백질: 24.7, 무기질: 25.0, 체중: 56.9, 골격근: 18.5, 체지방: 24.0, BMI: 24.1, 체지방률: 37.2 },
-    '2024.10.14': { 체수분: 24.3, 단백질: 24.2, 무기질: 24.1, 체중: 56.0, 골격근: 18.1, 체지방: 25.1, BMI: 24.6, 체지방률: 38.0 },
+    '2024.04.19': { 체수분: 24.8, 단백질: 26.1, 무기질: 24.4, 체중: 59.5, 골격근: 19.4, 체지방: 22.1, BMI: 21.5, 체지방률: 28.9 },
+    '2024.06.28': { 체수분: 25.2, 단백질: 28.3, 무기질: 23.5, 체중: 59.2, 골격근: 20.5, 체지방: 22.1, BMI: 19.4, 체지방률: 28.4 },
+    '2024.08.12': { 체수분: 26.7, 단백질: 25.6, 무기질: 26.3, 체중: 58.6, 골격근: 20.1, 체지방: 22.1, BMI: 20.6, 체지방률: 28.3 },
+    '2024.10.14': { 체수분: 24.3, 단백질: 24.2, 무기질: 24.1, 체중: 58.0, 골격근: 20.1, 체지방: 22.1, BMI: 24.6, 체지방률: 28.0 },
+    '2024.12.28': { 체수분: 25.1, 단백질: 24.7, 무기질: 25.0, 체중: 57.9, 골격근: 20.5, 체지방: 22.0, BMI: 24.1, 체지방률: 27.2 },
+    '2025.01.08': { 체수분: 25.8, 단백질: 25.1, 무기질: 25.4, 체중: 57.3, 골격근: 20.8, 체지방: 22.1, BMI: 23.5, 체지방률: 27.4 },
+    '2025.02.08': { 체수분: 26.5, 단백질: 26.5, 무기질: 26.5, 체중: 57.1, 골격근: 21.5, 체지방: 22.8, BMI: 24.0, 체지방률: 27.6 },
   };
+
 
   useEffect(() => {
     // TODO: 백엔드 API 연동으로 교체
@@ -64,7 +169,14 @@ export default function InbodyDetail() {
     setInbodyPartData(fakeAPIResponse);
   }, [selectedDate]);
 
-
+  const generateGraphData = (field) => {
+    return dateList
+      .filter(date => inbodyData[date])
+      .map(date => ({
+        x: date,
+        y: inbodyData[date][field],
+      }));
+  };
 
   const data = inbodyData[selectedDate];
 
@@ -75,6 +187,7 @@ export default function InbodyDetail() {
     const barPercent = percent * 100;
     const midStartPercent = ((midStart - min) / totalRange) * 100;
     const midEndPercent = ((midEnd - min) / totalRange) * 100;
+
   
     return (
       <View style={{ marginBottom: 30 }}>
@@ -105,12 +218,19 @@ export default function InbodyDetail() {
     <SafeAreaView style={styles.safeArea}> {/* ✅ 상단만 감싸기 */}
       <View style={styles.page}>
         <ScrollView style={styles.container}>
-          <View style={styles.dateRow}>
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.dateButton}>
-              <Text style={styles.dateText}>{selectedDate}</Text>
-              <Text style={styles.arrow}>⌃</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.dateRow}>
+          <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.dateButton}>
+            <Text style={styles.dateText}>{selectedDate}</Text>
+              <View style={styles.iconWrapper}>
+                <MaterialIcons 
+                  name={modalVisible ? "keyboard-arrow-up" : "keyboard-arrow-down"} 
+                  size={28} 
+                  color="#DDFB21"  // 노란색
+                />
+              </View>
+          </TouchableOpacity>
+        </View>
+
 
           {/* 모달 날짜 리스트 */}
           <Modal transparent={true} visible={modalVisible} animationType="fade">
@@ -227,23 +347,34 @@ export default function InbodyDetail() {
           </View>
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>부위별 분석</Text>
-        </View>
-
         {inbodyPartData && (
-            <View>
-              <Text style={styles.sectionTitle}>부위별 근육분석</Text>
-              <View style={styles.bodyRow}>
+            <View style={styles.bodyRow}>
+            {/* 왼쪽 - 근육분석 */}
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Text style={styles.bodySectionTitle}>부위별 근육분석</Text>
+              <View style={{ width: '100%', aspectRatio: 0.65 }}>
                 <PartAnalysisBox labels={inbodyPartData.muscleParts} />
+              </View>
+            </View>
+          
+            {/* 오른쪽 - 체지방분석 */}
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Text style={styles.bodySectionTitle}>부위별 체지방분석</Text>
+              <View style={{ width: '100%', aspectRatio: 0.65 }}>
                 <PartAnalysisBox labels={inbodyPartData.fatParts} />
               </View>
-              
             </View>
+          </View>
           )}
+          <View style={{ backgroundColor: '#000', marginTop: 20 }}>
+            <Text style={styles.sectionTitle}>신체변화</Text>
+            <CustomLineChart title="체중(kg)" data={generateGraphData('체중')} />
+            <CustomLineChart title="골격근량(kg)" data={generateGraphData('골격근')} />
+            <CustomLineChart title="체지방량(kg)" data={generateGraphData('체지방')} noBorder /> 
+            {/* 마지막 차트만 noBorder=true 로 경계선 없앰 */}
+          </View>
+          <View style={{ height: 200 }} />
     </ScrollView>
-
-        
     </View>
     <BottomNavigation/>
     </SafeAreaView>
@@ -252,6 +383,15 @@ export default function InbodyDetail() {
 }
 
 const styles = StyleSheet.create({
+  bodySectionTitle: {
+    color: '#E1FF01', // 형광 노란색
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 50,
+    marginBottom: 8, // 텍스트랑 박스 간격
+    textAlign: 'center',
+  },
+  
   safeArea: {
     flex: 1,
     backgroundColor: '#000',
@@ -261,7 +401,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   container: {
-    padding: 20,
+    padding: 20
   },
   dateRow: {
     alignItems: 'center',
@@ -284,7 +424,6 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
@@ -293,7 +432,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
     borderColor: '#C8FF00',
-    width: 220,
+    width: 280,
+    marginTop: 130,
   },
   dateOption: {
     paddingVertical: 12,
@@ -301,13 +441,21 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: '#888',
-    fontSize: 18,
+    fontSize: 20,
   },
   sectionTitle: {
     color: '#E1FF01',
     fontSize: 18,
     marginTop: 10,
     fontWeight: 'bold',
+  },
+  iconWrapper: {
+    width: 30,
+    height: 30,
+    borderRadius: 18,
+    backgroundColor: '#333333',  // 어두운 회색 배경
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoBox: {
     backgroundColor: '#222',

@@ -1,12 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import {
-  SafeAreaView,
-  Text,
-  Image,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { SafeAreaView, Text, Image, TouchableOpacity, View, StyleSheet, Dimensions} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import BottomNavigation from "../components/BottomNavigation";
@@ -15,8 +8,8 @@ import ExerciseRegister from "../screens/exercise_register";
 import BottomSheet from "@gorhom/bottom-sheet";
 import ExerciseHistory from "../screens/exercise_history";
 import { BlurView } from "expo-blur";
-import { LineChart } from "react-native-chart-kit"; // 그래프 라이브러리 임포트
 import moment from "moment";
+import Svg, { Polyline, Circle, Text as SvgText, Line } from 'react-native-svg';
 
 export default function ExerciseHome() {
   const navigation = useNavigation();
@@ -34,7 +27,111 @@ export default function ExerciseHome() {
   const historySnapPoints = useMemo(() => ["80%"], []);
   const calendarSnapPoints = useMemo(() => ["80%"], []);
 
-  useEffect(() => {
+  const SimpleLineChart = ({ data, weekDates }) => {
+    const graphWidth = 330;
+    const graphHeight = 160;
+    const paddingLeft = 30;
+    const paddingRight = 10;
+    const paddingTop = 20;
+    const paddingBottom = 30;
+    const yMax = 1500;
+    const yStep = 500;
+  
+    const spacing = (graphWidth - paddingLeft - paddingRight) / (weekDates.length + 1);
+  
+    const pointCoordinates = data.map((value, index) => {
+      const x = paddingLeft + spacing * (index + 1);
+      const y = paddingTop + (1 - value / yMax) * (graphHeight - paddingTop - paddingBottom);
+      return { x, y };
+    });
+  
+    const polylinePoints = pointCoordinates.map(p => `${p.x},${p.y}`).join(' ');
+  
+    return (
+      <View style={{ alignItems: 'center' }}>
+        <Svg width={graphWidth} height={graphHeight}>
+          {/* Y축 */}
+          <Line x1={paddingLeft} y1={paddingTop} x2={paddingLeft} y2={graphHeight - paddingBottom} stroke="#888" strokeWidth="1" />
+  
+          {/* X축 */}
+          <Line x1={paddingLeft} y1={graphHeight - paddingBottom} x2={graphWidth - paddingRight} y2={graphHeight - paddingBottom} stroke="#888" strokeWidth="1" />
+  
+          {/* 🔥 가로선 (Grid Lines) */}
+          {[0, 500, 1000, 1500].map((yValue, idx) => {
+            const y = paddingTop + (1 - yValue / yMax) * (graphHeight - paddingTop - paddingBottom);
+            const isZeroLine = yValue === 0;
+            return (
+              <Line
+                key={`h-line-${idx}`}
+                x1={paddingLeft}
+                y1={y}
+                x2={graphWidth - paddingRight}
+                y2={y}
+                stroke="#555555"     // grid 선 색 (#333 추천, 너무 튀지 않게)
+                strokeDasharray={isZeroLine ? undefined : "4 2"} // ✅ 0이면 실선, 나머지는 점선
+                strokeWidth="0.7"
+              />
+            );
+          })}
+  
+          {/* Y축 레이블 */}
+          {[0, 500, 1000, 1500].map((yValue, idx) => {
+            const y = paddingTop + (1 - yValue / yMax) * (graphHeight - paddingTop - paddingBottom);
+            return (
+              <SvgText
+                key={`y-label-${idx}`}
+                x={paddingLeft - 8}
+                y={y + 4}
+                fontSize="10"
+                fill="white"
+                textAnchor="end"
+              >
+                {yValue}
+              </SvgText>
+            );
+          })}
+  
+          {/* X축 레이블 */}
+          {weekDates.map((label, idx) => {
+            const x = paddingLeft + spacing * (idx + 1);
+            return (
+              <SvgText
+                key={`x-label-${idx}`}
+                x={x}
+                y={graphHeight - 10}
+                fontSize="10"
+                fill="white"
+                textAnchor="middle"
+              >
+                {label}
+              </SvgText>
+            );
+          })}
+  
+          {/* 라인 */}
+          <Polyline
+            points={polylinePoints}
+            fill="none"
+            stroke="#555555"
+            strokeWidth="2"
+          />
+  
+          {/* 점 */}
+          {pointCoordinates.map((point, idx) => (
+            <Circle
+              key={`point-${idx}`}
+              cx={point.x}
+              cy={point.y}
+              r="3"
+              fill="#DDFB21"
+            />
+          ))}
+        </Svg>
+      </View>
+    );
+  };
+  
+    useEffect(() => {
     if (isBottomSheetVisible && sheetRef.current) {
       sheetRef.current.expand();
       setIsBottomNavVisible(false);
@@ -98,6 +195,13 @@ export default function ExerciseHome() {
     setIsHistorySheetVisible(false);
     historySheetRef.current.close(); // 히스토리 바텀시트를 닫습니다.
   };
+
+  const handleExerciseClick = (exercise) => {
+    if (exercise) {
+      navigation.navigate("ExerciseRecommendVideo", { category: exercise });
+    }
+  };
+  
   // 날짜 계산 (선택된 날짜의 주 월요일부터 일요일까지 계산)
   const getWeekDates = (date) => {
     const startOfWeek = moment(date).startOf("week"); // 주의 시작(월요일)
@@ -112,24 +216,29 @@ export default function ExerciseHome() {
 
   const weekDates = getWeekDates(selectedDate); // 선택된 날짜에 대한 주의 날짜들
 
-  // Y축 데이터 생성: 0 ~ 1000 사이의 랜덤 값
-  const generateRandomData = () => {
-    return weekDates.map(() => Math.floor(Math.random() * 1001)); // 0 ~ 1000 사이의 랜덤 값
-  };
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black", alignItems: "center" }}>
       {/* 바텀시트가 열릴 때만 블러뷰를 표시 */}
       {(isCalendarSheetVisible || isBottomSheetVisible || isHistorySheetVisible) && (
         <BlurView
           intensity={100} // 블러 강도 설정 (0에서 100까지)
+          tint="dark"
           style={StyleSheet.absoluteFillObject} // 화면 전체를 덮도록 설정
         />
     )}
       {/* 셔플 버튼 */}
       {!isBottomSheetVisible && !isHistorySheetVisible && (
         <TouchableOpacity
-          style={{ position: "absolute", top: 70, right: 20 }}
+          style={{ 
+            position: "absolute",
+            top: 80,
+            right: 30,
+            width: 40,
+            height: 40,
+            borderRadius: 25,
+            backgroundColor: "#292929", // ✅ 어두운 회색 배경 추가
+            justifyContent: "center",
+            alignItems: "center", }}
           onPress={() => setIsFrontView(!isFrontView)}
         >
           <Ionicons name="shuffle" size={30} color="#E1FF01" />
@@ -284,45 +393,14 @@ export default function ExerciseHome() {
             onDayPress={onDateSelect} // 날짜 선택 시 이동하지 않음
           />
 
-          {/* 그래프 예시 (react-native-chart-kit 사용) */}
-          <View style={{ marginTop: 10, alignItems: "center" }}>
-            <LineChart
-              data={{
-                labels: weekDates,
-                datasets: [
-                  {
-                    data: generateRandomData(), // 랜덤 Y축 데이터
-                    fill: false,  // 선 아래 채우기 없음
-                  },
-                ],
-              }}
-              width={370} // 그래프의 너비
-              height={100} // 그래프의 높이
-              chartConfig={{
-                backgroundGradientFrom: "#2D2D35",
-                backgroundGradientTo: "#2D2D35",
-                decimalPlaces: 0,
-                color: (opacity = 0) => `rgba(255, 255, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                propsForDots: {
-                  r: "4",
-                  strokeWidth: "1",
-                  stroke: "#000",
-                  fill: "#DDFB21",
-                },
-                yAxis: {
-                  min: 0, // 최소값 0
-                  max: 1000, // 최대값 1000
-                  // 사용자 정의 Y축 레이블 (0, 500, 1000으로 고정)
-                  yAxisInterval: 500, // 500 단위로 레이블을 표시
-                },
-              }}
-              // bezier
-              style={{ marginVertical: 8, borderRadius:  0}}
-            />
+          <View style={{ marginTop: 20 }}>
+          <SimpleLineChart
+            data={[300, 500, 800, 400, 1000, 1200, 700]} // 7개 데이터
+            weekDates={['04.29', '04.30', '05.01', '05.02', '05.03', '05.04', '05.05']} // 선택한 주간 날짜
+          />
+
           </View>
 
-          {/* 선택하기 버튼 */}
           <TouchableOpacity
             style={{
               marginTop: 20,
@@ -331,7 +409,7 @@ export default function ExerciseHome() {
               borderRadius: 15,
               alignItems: "center",
             }}
-            onPress={handleSelectDate} // 선택하기 버튼을 눌렀을 때 이동
+            onPress={handleSelectDate}
           >
             <Text style={{ fontSize: 16, fontWeight: "bold" }}>선택하기</Text>
           </TouchableOpacity>
