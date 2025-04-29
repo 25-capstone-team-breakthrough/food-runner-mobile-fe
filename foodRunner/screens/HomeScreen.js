@@ -55,7 +55,7 @@ const HomeScreen = ({ navigation }) => {
           style={styles.inbodylogo}
         />
         
-        <TouchableOpacity onPress={() => navigation.navigate('Detail')}>
+        <TouchableOpacity onPress={() => navigation.navigate('InBodyDetail')}>
           <Text style={styles.inBodyDetailText}>자세히보기 &gt;</Text>
         </TouchableOpacity>
       </View>
@@ -68,7 +68,7 @@ const HomeScreen = ({ navigation }) => {
       >
         <TouchableOpacity
           style={styles.inBodyBox}
-          onPress={() => navigation.navigate('Detail')}
+          onPress={() => navigation.navigate('InBodyDetail')}
         >
           <Text style={styles.inBodyText}>체중 (kg)</Text>
           <Text style={styles.inBodyValue}>76.1</Text>
@@ -86,7 +86,7 @@ const HomeScreen = ({ navigation }) => {
       >
         <TouchableOpacity
           style={styles.inBodyBox}
-          onPress={() => navigation.navigate('Detail')}
+          onPress={() => navigation.navigate('InBodyDetail')}
         >
           <Text style={styles.inBodyText}>골격근량 (kg)</Text>
           <Text style={styles.inBodyValue}>35.5</Text>
@@ -103,7 +103,7 @@ const HomeScreen = ({ navigation }) => {
       >
         <TouchableOpacity
           style={styles.inBodyBox}
-          onPress={() => navigation.navigate('Detail')}
+          onPress={() => navigation.navigate('InBodyDetail')}
         >
           <Text style={styles.inBodyText}>체지방률 (%)</Text>
           <Text style={styles.inBodyValue}>18.8</Text>
