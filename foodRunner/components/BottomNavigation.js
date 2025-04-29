@@ -1,7 +1,7 @@
-import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 const BottomNavigation = () => {
   const navigation = useNavigation();
@@ -11,8 +11,10 @@ const BottomNavigation = () => {
   const screens = [
     { name: "NutritionMain", icon: "add-circle-outline" },
     { name: "DietRecommendation", icon: "restaurant" },
-    { name: "InBodyDetail", icon: "home-outline" },
     { name: "ExerciseHome", icon: "barbell-outline" },
+    { name: "Home", icon: "home-outline" },
+
+
   ];
 
   const isExerciseHome = route.name === "ExerciseHome"; // ExerciseHome 화면인지 확인

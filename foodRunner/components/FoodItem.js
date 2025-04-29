@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import React from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const FoodItem = ({ food }) => {
   const navigation = useNavigation();
@@ -24,29 +24,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    padding: 15,
-    borderRadius: 15,
-    marginBottom: 10,
+    width: 330,
+    height: 75,
+    //padding: 15,
+    borderRadius: 30,
+    marginLeft: 5,
+    marginBottom: 15,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 7,
     elevation: 3,
   },
   image: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+    width: 58,
+    height: 58,
+    borderRadius: 30,
+    marginLeft: 20,
   },
   textContainer: {
-    marginLeft: 15,
+    marginLeft: 30,
   },
   name: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "450",
+    marginBottom: 3,
   },
   calories: {
     fontSize: 14,
-    color: "gray",
+    fontWeight: "300",
+    color: "#000",
   },
 });
 

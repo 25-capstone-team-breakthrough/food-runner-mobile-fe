@@ -1,192 +1,381 @@
-import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  Dimensions,
-  Alert,
-  ScrollView,
-  SafeAreaView,
-} from "react-native";
-import { ProgressChart } from "react-native-chart-kit";
-import { AntDesign } from "@expo/vector-icons";
-import BottomNavigation from "../components/BottomNavigation";
+import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import moment from 'moment';
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import BottomNavigation from "../components/BottomNavigation";
+import HalfCircleSkiaChart from "../components/HalfCircleSkiaChart";
+import NutrientRing from "../components/NutrientRing";
+
+// import { Home, User, Settings } from "lucide-react";
+
 
 const screenWidth = Dimensions.get("window").width;
+const viewWidth = screenWidth - 58;
+
 
 const NutritionMainScreen = () => {
+  
+  const route = useRoute();
   const navigation = useNavigation();
+  const selectedItemFromRoute = route.params?.selectedItem;
+  const selectedSupplementFromRoute = route.params?.selectedsupplementItem;
+  const selectedDate  = route.params?.selectedDate;
+
+  const dateToDisplay = selectedDate || moment().format("YYYY.MM.DD")
+
+  const [currentPage, setCurrentPage] = useState(0);
   const dailyCalories = 2000;
   const consumedCalories = 1800;
   const progress = consumedCalories / dailyCalories;
 
-  const chartData = { data: [progress] };
-
   const nutrients = [
-    { name: "탄수화물", status: "충분", amount: "100g", color: "green" },
-    { name: "단백질", status: "부족", amount: "10g", color: "red" },
-    { name: "지방", status: "부족", amount: "0g", color: "gray" },
+    { name: "탄수화물", status: "충분", amount: "100g", color: "#26C51E" },
+    { name: "단백질", status: "부족", amount: "10g", color: "#FF4646"  },
+    { name: "지방", status: "부족", amount: "0g", color: "#FF4646" },
+  ];
+  
+  const etcNutrients = [
+    { name: "당류", status: "충분", amount: "15g", color: "#26C51E" },
+    { name: "나트륨", status: "부족", amount: "800mg", color: "#FF4646" },
+    { name: "식이섬유", status: "충분", amount: "6g", color: "#26C51E" },
+    { name: "칼슘", status: "충분", amount: "200mg", color: "#26C51E" },
   ];
 
-  const meals = [{ id: 1, name: "스파게티", image: require("../assets/logo.png") }];
+  const smallNutrients = [
+    { name: "포화지방", amount: "5g", status: "부족", color: "#FF4646" },
+    { name: "트랜스지방", amount: "0g", status: "부족", color: "#FF4646" },
+    { name: "콜레스테롤", amount: "80mg", status: "충분", color: "#26C51E" },
+  ];
 
-  // 📌 권한 요청 useEffect
+  const [dietImages, setDietImages] = useState([]);
+  const [supplementImages, setSupplementImages] = useState([]);
+
   useEffect(() => {
     (async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-
-      console.log("📸 Camera Permission:", cameraStatus);
-      console.log("🖼️ Gallery Permission:", status);
-
-      if (cameraStatus !== "granted" || status !== "granted") {
+      
+      const galleryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+  
+      if (
+        galleryPermission.status !== "granted" ||
+        cameraPermission.status !== "granted"
+      ) {
         Alert.alert("권한 필요", "카메라 및 갤러리 접근을 허용해주세요.");
+        return;
+      }
+
+      if (selectedItemFromRoute?.image) {
+        setDietImages((prev) => [...prev, selectedItemFromRoute.image]);
+      }
+
+      if (selectedSupplementFromRoute?.image) {
+        setSupplementImages((prev) => [...prev, selectedSupplementFromRoute.image]);
       }
     })();
-  }, []);
+  }, [selectedItemFromRoute, selectedSupplementFromRoute]);
+  
+  
 
-  // 📌 카메라 실행 함수
   const openCamera = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    console.log("📸 Camera Result:", result);
-
+    const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 1 });
     if (!result.canceled && result.assets?.length > 0) {
-      console.log("Captured Image:", result.assets[0].uri);
-    } else {
-      console.log("카메라 취소됨");
+      const uri = result.assets[0].uri;
+      setDietImages((prev) => [...prev, { uri }]);
     }
   };
 
-  // 📌 갤러리 실행 함수
   const openGallery = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    console.log("🖼️ Gallery Result:", result);
-
+    const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, quality: 1 });
     if (!result.canceled && result.assets?.length > 0) {
-      console.log("Selected Image:", result.assets[0].uri);
-    } else {
-      console.log("갤러리 취소됨");
+      const uri = result.assets[0].uri;
+      setDietImages((prev) => [...prev, { uri }]);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        {/* 🔹 날짜 & 달력 아이콘 */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F3F3" }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.dateContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate("NutritionCalendar")}>
+          <TouchableOpacity onPress={() => navigation.navigate("NutritionCalendar")}> 
             <AntDesign name="calendar" size={20} color="black" style={styles.calendarIcon} />
           </TouchableOpacity>
-          <Text style={styles.dateText}>2025.01.21</Text>
+          <Text style={styles.dateText}>{dateToDisplay}</Text>
         </View>
 
-        {/* 🔹 칼로리 Progress Chart */}
-        <View style={{ alignItems: "center" }}>
-          <ProgressChart
-            data={chartData}
-            width={screenWidth * 0.6}
-            height={150}
-            strokeWidth={10}
-            radius={50}
-            chartConfig={{
-              backgroundGradientFrom: "#fff",
-              backgroundGradientTo: "#fff",
-              color: (opacity = 1) => `rgba(255, 215, 0, ${opacity})`,
+        <View style={styles.processContainerShadow}>
+        <LinearGradient
+          colors={["#FFFFFF", "#E9E9E9"]}
+          start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+          style={styles.processContainer}
+        >
+           <HalfCircleSkiaChart progress={progress} size={280} />
+
+          <View style={styles.separator} />
+
+          <ScrollView
+            horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+            onScroll={(e) => {
+              const page = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+              setCurrentPage(page);
             }}
-            hideLegend={true}
-          />
-          <Text style={{ fontSize: 24, fontWeight: "bold" }}>{consumedCalories}</Text>
-          <Text style={{ color: "gray" }}>권장 {dailyCalories}kcal</Text>
-        </View>
-
-        {/* 🔹 3대 주요 영양소 */}
-        <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 20 }}>
-          {nutrients.map((item, index) => (
-            <View key={index} style={{ alignItems: "center" }}>
-              <Text style={{ color: item.color, fontWeight: "bold" }}>{item.status}</Text>
-              <Text>{item.amount}</Text>
-              <Text>{item.name}</Text>
+            scrollEventThrottle={16}
+          >
+            <View style={{ width: viewWidth, alignItems: "center" }}>
+              <Text style={styles.threeMacroNutrientsText}>3대 주요 영양소</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
+                {nutrients.map((item, index) => {
+                  let percent = 0;
+                  if (item.status === "충분") percent = 80;
+                  if (item.status === "부족") percent = 20;
+                  return (
+                    <NutrientRing
+                      key={index}
+                      percent={percent}
+                      color={item.color}
+                      status={item.status}
+                      amount={item.amount}
+                      label={item.name}
+                    />
+                  );
+                })}
+              </View>
             </View>
-          ))}
+            
+            <View style={{ width: viewWidth, alignItems: "center" }}>
+              <Text style={styles.threeMacroNutrientsText}>미량 영양소</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
+              {etcNutrients.map((item, index) => {
+                  let percent = 0;
+                  if (item.status === "충분") percent = 80;
+                  if (item.status === "부족") percent = 20;
+                  return (
+                    <NutrientRing
+                      key={index}
+                      percent={percent}
+                      color={item.color}
+                      status={item.status}
+                      amount={item.amount}
+                      label={item.name}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={{ width: viewWidth, alignItems: "center" }}>
+              <Text style={styles.threeMacroNutrientsText}>미량 영양소</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
+              {smallNutrients.map((item, index) => {
+                  let percent = 0;
+                  if (item.status === "충분") percent = 80;
+                  if (item.status === "부족") percent = 20;
+                  return (
+                    <NutrientRing
+                      key={index}
+                      percent={percent}
+                      color={item.color}
+                      status={item.status}
+                      amount={item.amount}
+                      label={item.name}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+          </ScrollView>
+          <View style={{ position: "relative"}}>
+          <View style={{ position: "absolute",bottom: -10, left:0, right:0, flexDirection: "row", justifyContent: "center"}}>
+            {[0, 1, 2].map((i) => (
+              <Text key={i} style={{ fontSize: 8, marginHorizontal: 5, color: currentPage === i ? "#333" : "#ccc" }}>
+                {currentPage === i ? "●" : "○"}
+              </Text>
+            ))}
+          </View>
+          </View>
+        </LinearGradient>
         </View>
 
-        {/* 🔹 버튼 4개 */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.roundButton} onPress={openCamera}>
-            <Text>📷</Text>
+            <Ionicons name="camera-outline" size={30} color="#000" />
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.roundButton} onPress={openGallery}>
-            <Text>🖼️</Text>
+            <Ionicons name="image-outline" size={30} color="#000" />
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.roundButton} onPress={() => navigation.navigate("DietRegistration")}>
-            <Text>➡️1</Text>
+            <Ionicons name="fast-food-outline" size={30} color="#000" />
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.roundButton} onPress={() => navigation.navigate("VitaminRegistion")}>
-            <Text>➡️2</Text>
+            <MaterialCommunityIcons name="pill" size={30} color="#000" />
           </TouchableOpacity>
         </View>
 
-        {/* 🔹 식사 목록 */}
+        <Text style={styles.photoText}>식사</Text>
+        {/* 나중에 식단사진 넣을때 id로 넣어야 됨.  */}
         <FlatList
-          data={meals}
-          keyExtractor={(item) => item.id.toString()}
+          data={dietImages}
+          style={styles.mealList}
+          keyExtractor={(_, index) => index.toString()}
           horizontal
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={{ justifyContent: 'center', alignItems: 'center' }}
           renderItem={({ item }) => (
-            <View style={{ alignItems: "center", margin: 10 }}>
-              <Image source={item.image} style={{ width: 80, height: 80, borderRadius: 10 }} />
-              <Text>{item.name}</Text>
+            <View style={styles.mealList}>
+              <Image source={item} style={styles.mealPhoto}/>
+            </View>
+          )}
+        />
+
+          
+        <View style={styles.photoSeparator} />
+        <Text style={styles.photoText}>영양제</Text>
+        <FlatList
+          data={supplementImages}
+          style={styles.mealList}
+          keyExtractor={(_, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={{ justifyContent: 'center', alignItems: 'center' }}
+          renderItem={({ item }) => (
+            <View style={styles.mealList}>
+              <Image source={item} style={styles.mealPhoto} />
             </View>
           )}
         />
       </ScrollView>
-
       <BottomNavigation />
     </SafeAreaView>
   );
 };
 
 const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: "#F8F8F8",
-  },
   dateContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
+    backgroundColor: "#FFFFFF",
+    width: "85%",
+    height: 50,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 50,
+    marginTop: 5,
+    marginLeft: 30,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   calendarIcon: {
-    marginRight: 8, // 아이콘과 날짜 사이 간격
+    marginLeft: 13,
+    marginRight: 70,
   },
   dateText: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 20,
+    alignSelf: "center",
+    fontWeight: "500",
+  },
+  processContainer: {
+    alignSelf: "center",
+    width: "85%",
+    height: 350,
+    borderRadius: 20,
+    marginTop: 10,
+    backgroundColor: "#fff",
+    paddingBottom: 20,
+  },
+  processContainerShadow: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  consumedCaloriesText: {
+    fontSize: 35,
+    fontWeight: "500",
+    alignSelf: "center",
+  },
+  dailyCaloriesText: {
+    fontSize: 17,
+    fontWeight: "500",
+    alignSelf: "center",
+  },
+  separator: {
+    height: 1,
+    width: "92%",
+    backgroundColor: "#8A8A8A",
+    marginVertical: 5,
+    alignSelf: "center",
+  },
+  threeMacroNutrientsText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#363636",
+    alignSelf: "center",
+    marginTop: 10,
+    marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "center",
     marginVertical: 20,
+    gap: 30,
+    marginBottom: 28,
   },
   roundButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#3498db",
+    width: 55,
+    height: 55,
+    borderRadius: 50,
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
+  photoText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#363636",
+    marginTop: 5,
+    marginLeft: 40,
+    marginBottom: 5,
+  },
+  mealList: {
+    marginTop: 5,
+    marginLeft: 18,
+    marginRight: 8,
+  },
+  mealPhoto: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  photoSeparator: {
+    height: 1,
+    width: "85%",
+    backgroundColor: "#DDDDDD",
+    marginVertical: 15,
+    marginTop: 3,
+    alignSelf: "center",
   },
 };
 

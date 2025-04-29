@@ -1,26 +1,82 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   FlatList,
+  Image,
   SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import BottomNavigation from "../components/BottomNavigation";
+import RegisterButton from "../components/RegisterButton";
+import SearchBar from "../components/SearchBar";
 
 const foodItems = [
-  { id: 1, name: "사과" },
-  { id: 2, name: "바나나" },
-  { id: 3, name: "오렌지" },
-  { id: 4, name: "김치" },
-  { id: 5, name: "된장찌개" },
+  {
+    id: 1,
+    name: "빅맥버거",
+    brand: "맥도날드",
+    kcal: 889,
+    image: require("../assets/bigmac.png"),
+  },
+  {
+    id: 2,
+    name: "불고기버거",
+    brand: "롯데리아",
+    kcal: 489,
+    image: require("../assets/bulgogi.png"),
+  },
+  {
+    id: 3,
+    name: "쉑쉑버거",
+    brand: "쉑쉑",
+    kcal: 1089,
+    image: require("../assets/shakeshack.png"),
+  },
+  {
+    id: 4,
+    name: "빅맥버거",
+    brand: "맥도날드",
+    kcal: 889,
+    image: require("../assets/bigmac.png"),
+  },
+  {
+    id: 5,
+    name: "빅맥버거",
+    brand: "맥도날드",
+    kcal: 889,
+    image: require("../assets/bigmac.png"),
+  },
+  {
+    id: 6,
+    name: "빅맥버거",
+    brand: "맥도날드",
+    kcal: 889,
+    image: require("../assets/bigmac.png"),
+  },
+  {
+    id: 7,
+    name: "빅맥버거",
+    brand: "맥도날드",
+    kcal: 889,
+    image: require("../assets/bigmac.png"),
+  },
+  {
+    id: 8,
+    name: "빅맥버거",
+    brand: "맥도날드",
+    kcal: 889,
+    image: require("../assets/bigmac.png"),
+  },
 ];
 
 const FoodSearchScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+
 
   // 🔹 검색어 변경 시 필터링
   const handleSearch = (text) => {
@@ -36,30 +92,72 @@ const FoodSearchScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* 🔹 검색창 */}
-      <TextInput
-        style={styles.searchInput}
-        placeholder="음식을 검색하세요..."
-        value={searchText}
-        onChangeText={handleSearch}
-      />
+    <SafeAreaView style={styles.container}>           
 
-      {/* 🔹 검색 결과 리스트 */}
-      <FlatList
-        data={filteredItems}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.resultItem}>
-            <Text>{item.name}</Text>
-          </View>
-        )}
-      />
+      
+      {/* 🔹 검색창 */}
+      <View style={styles.searchBar}>
+        <SearchBar value={searchText} onChangeText={handleSearch} 
+          placeholder="제품명/브랜드명" 
+        />
+      </View>
+
+        {filteredItems.length > 0 ? (
+        <>
+          <Text style={styles.searchMountText}>
+            검색결과 {filteredItems.length}개
+          </Text>
+          <FlatList
+            data={filteredItems}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  if (selectedItem?.id === item.id) {
+                    setSelectedItem(null);
+                  } else {
+                    setSelectedItem(item);
+                  }
+                }}
+                style={[
+                  styles.resultItem,
+                  selectedItem?.id === item.id && styles.selectedItem,
+                ]}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Image source={item.image} style={styles.itemImage} />
+                  <View style={styles.threeText}>
+                    <Text style={styles.itemName}>{item.name}</Text>
+                    <Text style={styles.itemBrand}>{item.brand}</Text>
+                    <Text style={styles.itemKcal}>{item.kcal} kcal</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={{ 
+              paddingHorizontal: 30,
+              paddingBottom: 105,
+             }}
+          />
+        </>
+      ) : (
+        searchText.length > 0 && (
+          <Text style={styles.searchMountText}>검색 결과가 없습니다</Text>
+        )
+      )}
+
 
       {/* 🔹 등록하기 버튼 */}
-      <TouchableOpacity style={styles.registerButton} onPress={() => navigation.goBack()}>
-        <Text style={{ color: "white", fontWeight: "bold" }}>등록하기</Text>
-      </TouchableOpacity>
+      <RegisterButton
+        onPress={() => {
+          if (selectedItem) {
+            navigation.navigate("NutritionMain", { selectedItem });
+          } else {
+            alert("음식을 선택해주세요!");
+          }
+        }}
+      />
+      <BottomNavigation />
     </SafeAreaView>
   );
 };
@@ -67,33 +165,53 @@ const FoodSearchScreen = () => {
 const styles = {
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#F8F8F8",
+    backgroundColor: "#fff",
   },
-  searchInput: {
-    height: 50,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    backgroundColor: "white",
+  searchBar: {
+    alignItems: "center",
+  },
+  searchMountText: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: "#000000",
+    paddingTop: 30,
+    paddingBottom: 15,
+    paddingHorizontal: 40, 
   },
   resultItem: {
-    padding: 15,
     backgroundColor: "white",
-    borderRadius: 10,
-    marginTop: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    borderRadius: 3,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
   },
-  registerButton: {
-    marginTop: 20,
-    backgroundColor: "#3498db",
-    padding: 15,
-    alignItems: "center",
-    borderRadius: 10,
+  selectedItem: {
+    backgroundColor: "rgba(217, 217, 217, 0.4)",
+  },
+  itemImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 5,
+    marginLeft: 20,
+  },
+  threeText: {
+    marginLeft: 15,
+    gap: 5,
+  },
+  itemName: {
+    fontSize: 20,
+    fontWeight: "500",
+    color: "#000",
+  },
+  itemBrand: {
+    fontSize: 16,
+    color: "#898989",
+    marginTop: 4,
+  },
+  itemKcal: {
+    fontSize: 14,
+    color: "#898989",
+    marginTop: 4,
   },
 };
 
