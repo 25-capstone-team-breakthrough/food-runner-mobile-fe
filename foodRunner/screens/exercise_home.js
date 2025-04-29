@@ -8,7 +8,6 @@ import ExerciseRegister from "../screens/exercise_register";
 import BottomSheet from "@gorhom/bottom-sheet";
 import ExerciseHistory from "../screens/exercise_history";
 import { BlurView } from "expo-blur";
-import moment from "moment";
 import Svg, { Polyline, Circle, Text as SvgText, Line } from 'react-native-svg';
 
 export default function ExerciseHome() {
@@ -35,7 +34,6 @@ export default function ExerciseHome() {
     const paddingTop = 20;
     const paddingBottom = 30;
     const yMax = 1500;
-    const yStep = 500;
   
     const spacing = (graphWidth - paddingLeft - paddingRight) / (weekDates.length + 1);
   
@@ -201,20 +199,7 @@ export default function ExerciseHome() {
       navigation.navigate("ExerciseRecommendVideo", { category: exercise });
     }
   };
-  
-  // 날짜 계산 (선택된 날짜의 주 월요일부터 일요일까지 계산)
-  const getWeekDates = (date) => {
-    const startOfWeek = moment(date).startOf("week"); // 주의 시작(월요일)
-    const endOfWeek = moment(date).endOf("week"); // 주의 끝(일요일)
-    
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      weekDates.push(startOfWeek.add(i, 'days').format("MM.DD")); // 월요일부터 일요일까지 날짜 포맷
-    }
-    return weekDates;
-  };
 
-  const weekDates = getWeekDates(selectedDate); // 선택된 날짜에 대한 주의 날짜들
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black", alignItems: "center" }}>
@@ -398,7 +383,6 @@ export default function ExerciseHome() {
             data={[300, 500, 800, 400, 1000, 1200, 700]} // 7개 데이터
             weekDates={['04.29', '04.30', '05.01', '05.02', '05.03', '05.04', '05.05']} // 선택한 주간 날짜
           />
-
           </View>
 
           <TouchableOpacity
@@ -415,8 +399,6 @@ export default function ExerciseHome() {
           </TouchableOpacity>
         </View>
       </BottomSheet>
-
-      
 
       {/* 운동 등록 바텀시트 */}
       <ExerciseRegister
