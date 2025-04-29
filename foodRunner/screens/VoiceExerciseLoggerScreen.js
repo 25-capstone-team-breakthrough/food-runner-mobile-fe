@@ -10,8 +10,9 @@ import {
     View
 } from "react-native";
 import backgroundImage from '../assets/body.png';
+import BackButton from "../components/BackButton";
 
-const VoiceExerciseLoggerScreen = () => {
+const VoiceExerciseLoggerScreen = ({ navigation }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [recording, setRecording] = useState(null);
     const [recordedURI, setRecordedURI] = useState(null);
@@ -61,26 +62,51 @@ const VoiceExerciseLoggerScreen = () => {
     };
 
     // 녹음 중지
-    const stopRecording = async () => {
-        if (!recording) return;
+    // 녹음 중지
+const stopRecording = async () => {
+    if (!recording) return;
 
-        await recording.stopAndUnloadAsync();
-        const uri = recording.getURI();
-        setRecording(null);
-        setIsRecording(false);
-        setRecordedURI(uri);
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
+    setRecording(null);
+    setIsRecording(false);
+    setRecordedURI(uri);
 
-        // 텍스트 시뮬레이션
-        setTimeout(() => {
-            setRecognizedText("벤치프레스 3세트 체스트 프레스 머신 3세트 했어");
-            setShowConfirm(true);
-        }, 1000);
+    // 🎯 백엔드 전송, 
+    // { 백에서 이렇게 받아야 됨
+    //     "text": "벤치프레스 3세트 체스트 프레스 머신 3세트 했어"
+    // }
+    try {
+        const formData = new FormData();
+        formData.append("file", {
+            uri,
+            name: "recording.m4a",
+            type: "audio/m4a"
+        });
 
-        // 녹음 자동 재생
-        const { sound } = await Audio.Sound.createAsync({ uri });
-        soundRef.current = sound;
-        await sound.playAsync();
-    };
+        const response = await fetch("https://your-backend-api.com/upload", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+
+        const data = await response.json();
+        setRecognizedText(data.text); // 예: data.text = "벤치프레스 3세트 체스트 프레스 머신 3세트 했어"
+    } catch (error) {
+        console.error("음성 전송 실패:", error);
+        setRecognizedText("⚠️ 음성 인식 실패! 다시 시도해주세요.");
+    }
+
+    setShowConfirm(true);
+
+    // 자동 재생
+    const { sound } = await Audio.Sound.createAsync({ uri });
+    soundRef.current = sound;
+    await sound.playAsync();
+};
+
 
     const toggleRecording = async () => {
         if (isRecording) {
@@ -93,41 +119,68 @@ const VoiceExerciseLoggerScreen = () => {
     const handleConfirm = async () => {
         setIsCompleted(true);
         setShowConfirm(true);
-        setRecognizedText("운동추가 완료!");
+        setRecognizedText("백에서 받은 텍스트!");
     };
 
     return (
+        
         <View style={{ flex: 1, backgroundColor: "black", alignItems: 'center', justifyContent: 'center' }}>
+        <BackButton onPress={() => navigation.goBack()} color="white" /> 
         <View style={styles.imageWrapper}>
           <Image source={backgroundImage} style={styles.backgroundImage} />
           <BlurView intensity={15} tint="dark" style={styles.blurView} />
         </View>
         <View style={styles.container}>
             <View style={styles.card}>
-                <Text style={styles.question}>
-                    {showConfirm
-                        ? isCompleted
-                            ? "✅ 운동추가 완료!"
-                            : "운동을 추가하시겠습니까?"
-                        : (
-                            <>
-                                <Text>오늘은 무슨{"\n"}운동을 하셨나요?</Text>
-                            </>
+
+                {/* <View style={styles.questionBlock}> */}
+                    {showConfirm ? (
+                        isCompleted ? (
+                        <>
+                            <Text style={styles.question}>✅ 운동추가 완료!</Text>
+                            {recognizedText && (
+                            <View style={styles.resultContainer}>
+                                <Text style={styles.result}>
+                                    {recognizedText}
+                                </Text>
+                            </View>
+                            )}
+                        </>
+                        ) : (
+                        <>
+                            <Text style={styles.question}>운동을{"\n"}추가하시겠습니까?</Text>
+                        </>
                         )
-                    }
-                </Text>
-                <Text style={styles.example}>"런지 10회 5세트 했어"</Text>
-                <Text style={styles.example}>"러닝 30분 뛰었어"</Text>
+                    ) : (
+                        <>
+                        <Text style={styles.question}>오늘은 무슨{"\n"}운동을 하셨나요?</Text>
+                        </>
+                    )}
+                    {/* </View> */}
+
+
+                {!showConfirm && (
+                    <>
+                        <Text style={styles.example}>"런지 10회 5세트 했어"</Text>
+                        <Text style={styles.example}>"러닝 30분 뛰었어"</Text>
+                    </>
+                    )}
 
                 {isRecording && <Text style={styles.dots}>{dots}</Text>}
-                {!isRecording && recognizedText && (
-                    <Text style={styles.result}>{recognizedText}</Text>
-                )}
 
                 {!isRecording && showConfirm && !isCompleted && (
+                <>
+                    {recognizedText && (
+                    <View style={styles.resultContainer}>
+                        <Text style={styles.result}>
+                            {recognizedText}
+                        </Text>
+                    </View>
+                    )}
                     <TouchableOpacity style={styles.checkButton} onPress={handleConfirm}>
-                        <AntDesign name="checkcircle" size={32} color="black" />
+                        <AntDesign name="check" size={32} color="black" />
                     </TouchableOpacity>
+                </>
                 )}
             </View>
 
@@ -174,13 +227,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(45, 45, 53, 0.93)',
         borderRadius: 30,
         padding: 30,
-    },
+    },  
     question: {
         fontSize: 30,
         fontWeight: "700",
-        fontWeight: "bold",
         color: "white",
-        marginBottom: 20,
+        marginBottom: 10,
     },
     example: {
         fontSize: 16,
@@ -188,16 +240,24 @@ const styles = StyleSheet.create({
         marginVertical: 2,
     },
     dots: {
-        fontSize: 24,
-        marginTop: 30,
+        fontSize: 60,
+        textAlign: "center",
+        marginTop: 40,
         color: "#E1FF01",
         letterSpacing: 4,
     },
+    resultContainer: {
+        flex: 1,
+        justifyContent: 'center', 
+        alignItems: 'center',
+    },
     result: {
         color: "#fff",
-        marginTop: 30,
-        fontSize: 16,
+        justifyContent: "center",
+        fontSize: 25,
         textAlign: "center",
+        fontWeight: "600",
+        marginBottom: 60,
     },
     voiceButton: {
         position: "absolute",
@@ -215,9 +275,13 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.9,
         shadowRadius: 10,
+        bottom: 60,
+        alignItems: "center",
     },
     checkButton: {
-        marginTop: 30,
+        position: 'absolute',
+        bottom: 30,
+        left: "50%",
         backgroundColor: "#E1FF01",
         width: 50,
         height: 50,
