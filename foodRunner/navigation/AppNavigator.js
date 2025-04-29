@@ -13,8 +13,6 @@ import NutritionCalendarScreen from '../screens/NutritionCalendarScreen';
 import NutritionMainScreen from '../screens/NutritionMainScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import VitaminRegistrationScreen from '../screens/VitaminRegistrationScreen';
-import DietRecommendationScreen from '../screens/DietRecommendationScreen';
-import DietRecipeScreen from '../screens/DietRecipeScreen';
 import ExerciseRecommendVideo from '../screens/exercise_recommendvideo';
 import ExerciseHome  from '../screens/exercise_home';
 import ExerciseRegister from '../screens/exercise_register';
@@ -37,7 +35,7 @@ const AppNavigator = () => {
         <Stack.Screen name="DietRegistration" component={DietRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="VitaminRegistion" component={VitaminRegistrationScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="DietRecommendation" component={DietRecommendationScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="DietRecipe" component={DietRecipeScreen} />
+        <Stack.Screen name="DietRecipeScreen" component={DietRecipeScreen} />
         <Stack.Screen name="ExerciseHome" component={ExerciseHome} options={{ headerShown: false }}/>
         <Stack.Screen name="ExerciseRecommendVideo" component={ExerciseRecommendVideo} options={{ headerShown: false }}/>
         <Stack.Screen name="ExerciseRegister" component={ExerciseRegister} options={{ headerShown: false }}/>
