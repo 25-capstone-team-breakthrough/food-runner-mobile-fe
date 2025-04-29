@@ -1,13 +1,15 @@
 import { AntDesign } from "@expo/vector-icons";
 import { Audio } from "expo-av";
+import { BlurView } from 'expo-blur';
 import React, { useEffect, useRef, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
-// import successSound from "../assets/success.mp3"; // 경로에 mp3 파일 위치 필요
+import backgroundImage from '../assets/body.png';
 
 const VoiceExerciseLoggerScreen = () => {
     const [isRecording, setIsRecording] = useState(false);
@@ -95,6 +97,11 @@ const VoiceExerciseLoggerScreen = () => {
     };
 
     return (
+        <View style={{ flex: 1, backgroundColor: "black", alignItems: 'center', justifyContent: 'center' }}>
+        <View style={styles.imageWrapper}>
+          <Image source={backgroundImage} style={styles.backgroundImage} />
+          <BlurView intensity={15} tint="dark" style={styles.blurView} />
+        </View>
         <View style={styles.container}>
             <View style={styles.card}>
                 <Text style={styles.question}>
@@ -102,7 +109,12 @@ const VoiceExerciseLoggerScreen = () => {
                         ? isCompleted
                             ? "✅ 운동추가 완료!"
                             : "운동을 추가하시겠습니까?"
-                        : "오늘은 무슨 운동을 하셨나요?"}
+                        : (
+                            <>
+                                <Text>오늘은 무슨{"\n"}운동을 하셨나요?</Text>
+                            </>
+                        )
+                    }
                 </Text>
                 <Text style={styles.example}>"런지 10회 5세트 했어"</Text>
                 <Text style={styles.example}>"러닝 30분 뛰었어"</Text>
@@ -126,32 +138,53 @@ const VoiceExerciseLoggerScreen = () => {
                 <AntDesign name="sound" size={30} color="black" />
             </TouchableOpacity>
         </View>
+    </View>
     );
 };
 
 const styles = StyleSheet.create({
+    imageWrapper: {
+        width: '80%',
+        height: '80%',
+        position: 'absolute',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    backgroundImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 20, 
+    },
+    blurView: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        borderRadius: 20, 
+        overflow: 'hidden',
+    },
     container: {
         flex: 1,
-        backgroundColor: "black",
         alignItems: "center",
         justifyContent: "center",
+        zIndex: 1,
     },
     card: {
-        width: "80%",
-        backgroundColor: "rgba(255,255,255,0.08)",
-        borderRadius: 20,
+        width: 360,
+        height: 400,
+        backgroundColor: 'rgba(45, 45, 53, 0.93)',
+        borderRadius: 30,
         padding: 30,
-        alignItems: "center",
     },
     question: {
-        fontSize: 18,
+        fontSize: 30,
+        fontWeight: "700",
         fontWeight: "bold",
         color: "white",
         marginBottom: 20,
-        textAlign: "center",
     },
     example: {
-        color: "#ccc",
+        fontSize: 16,
+        color: "#B3B3B3",
         marginVertical: 2,
     },
     dots: {
