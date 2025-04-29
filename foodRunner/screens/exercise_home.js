@@ -338,6 +338,24 @@ export default function ExerciseHome() {
           >
             <Ionicons name="menu" size={28} color="black" />
           </TouchableOpacity>
+
+          {/* 마이크 버튼 추가 */}
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              bottom: 130,
+              left: 275,
+              width: 50,
+              height: 50,
+              borderRadius: 25,
+              backgroundColor: "#FFFFFF",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={() => navigation.navigate("VoiceExerciseLogger")}
+          >
+            <Ionicons name="mic" size={30} color="black" />
+          </TouchableOpacity>
         </View>
       </View>
 

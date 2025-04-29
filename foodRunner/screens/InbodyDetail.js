@@ -8,10 +8,6 @@ import { Image } from 'react-native';
 import { Dimensions } from 'react-native';
 import Svg, { Polyline, Circle, Text as SvgText } from 'react-native-svg';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-
-
-
-
 const screenWidth = Dimensions.get('window').width;
 
 const dateList = [
