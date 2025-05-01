@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,10 @@ import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { Entypo } from "@expo/vector-icons";
 import exerciseData from '../assets/ExerciseData.json';
+import { ExerciseContext } from "../context/ExerciseContext";
+
+
+
 
 export default function ExerciseRegister({ sheetRef, onClose }) {
   const [exerciseName, setExerciseName] = useState("");
@@ -21,6 +25,7 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
   const [currentExercise, setCurrentExercise] = useState(null);
   const [currentPage, setCurrentPage] = useState("exerciseList");
 
+  const { addExercise } = useContext(ExerciseContext);
   const snapPoints = useMemo(() => ["80%"], []);
 
   useEffect(() => {
@@ -68,17 +73,23 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
   };
 
   const handleSave = () => {
-    if (currentExercise?.type === "근력") {
-      console.log("근력운동 기록:", currentExercise.name, setData);
-    } else {
-      console.log("유산소운동 기록:", currentExercise.name, cardioData);
-    }
+    const newRecord = {
+      id: Date.now().toString(),
+      name: currentExercise.name,
+      part: currentExercise.target,
+      type: currentExercise.type,
+      date: new Date().toISOString().slice(0, 10), // <-- 정확히 이 형식으로 저장해야 함
+      records: currentExercise.type === "근력" ? [...setData] : { ...cardioData },
+    };
+
+    console.log("🟢 저장되는 운동 기록:", newRecord); // 이 줄 추가
+      
+    addExercise(newRecord); // context에 저장
     setCurrentPage("exerciseList");
     setCurrentExercise(null);
     setSetData([]);
     setCardioData({ distance: "", duration: "", pace: "" });
   };
-
   const favoriteExercises = exerciseList.filter((ex) => favorites[ex.name]);
   const regularExercises = exerciseList.filter((ex) => !favorites[ex.name]);
   const filteredFavorites = favoriteExercises.filter((ex) =>
