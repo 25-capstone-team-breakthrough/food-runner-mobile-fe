@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,30 +10,27 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { Entypo } from "@expo/vector-icons";
+import exerciseData from '../assets/ExerciseData.json';
 
 export default function ExerciseRegister({ sheetRef, onClose }) {
   const [exerciseName, setExerciseName] = useState("");
   const [favorites, setFavorites] = useState({});
-  const [exerciseList, setExerciseList] = useState([
-    { name: "바벨 스쿼트", target: "대퇴사두, 대퇴이두", type: "근력" },
-    { name: "러닝머신", target: "심폐지구력", type: "유산소" },
-    { name: "바벨 스쿼트1", target: "대퇴사두, 대퇴이두", type: "근력" },
-    { name: "러닝머신1", target: "심폐지구력", type: "유산소" },
-    { name: "바벨 스쿼트2", target: "대퇴사두, 대퇴이두", type: "근력" },
-    { name: "러닝머신2", target: "심폐지구력", type: "유산소" },
-    { name: "바벨 스쿼트3", target: "대퇴사두, 대퇴이두", type: "근력" },
-    { name: "러닝머신3", target: "심폐지구력", type: "유산소" },
-    { name: "바벨 스쿼트4", target: "대퇴사두, 대퇴이두", type: "근력" },
-    { name: "러닝머신4", target: "심폐지구력", type: "유산소" },
-    { name: "바벨 스쿼트5", target: "대퇴사두, 대퇴이두", type: "근력" },
-    { name: "러닝머신5", target: "심폐지구력", type: "유산소" },
-  ]);
+  const [exerciseList, setExerciseList] = useState([]);
   const [setData, setSetData] = useState([]);
   const [cardioData, setCardioData] = useState({ distance: "", duration: "", pace: "" });
   const [currentExercise, setCurrentExercise] = useState(null);
   const [currentPage, setCurrentPage] = useState("exerciseList");
 
   const snapPoints = useMemo(() => ["80%"], []);
+
+  useEffect(() => {
+    const cleaned = exerciseData.map((row) => ({
+      name: row.ExerciseName?.trim(),
+      target: row.ExerciseTarget?.replace(/#/g, "").trim() || "기타",
+      type: row.ExerciseType?.trim(),
+    }));
+    setExerciseList(cleaned);
+  }, []);
 
   const handleSearchChange = (text) => setExerciseName(text);
 
