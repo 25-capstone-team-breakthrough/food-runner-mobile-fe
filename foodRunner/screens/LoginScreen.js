@@ -1,53 +1,76 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Image } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from "react";
+import { Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import AuthFooter from "../components/AuthFooter";
 
 export default function LoginScreen({ navigation }) {
 
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [id, setid] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleLogin = () => {
+  // 자동로그인
+  useEffect(() => {
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem("token");
+      if (token) {
+        const isNewUser = await AsyncStorage.getItem("isNewUser");
+        if (isNewUser === "true") {
+        await AsyncStorage.removeItem("isNewUser");
+        navigation.replace("InputGenderAge");
+      } else {
+        navigation.replace("Home");
+      }
+      }
+    };
+    checkLogin();
+  }, []);
+
+  const handleLogin = async () => {
     // 유효성 검사
-    if (!emailOrPhone.trim()) {
-      setErrorMessage("이메일 또는 전화번호를 입력해주세요.");
+    if (!id.trim()) {
+      setErrorMessage("아이디를 입력해주세요.");
       return;
     }
     if (!password.trim()) {
       setErrorMessage("비밀번호를 입력해주세요.");
       return;
     }
-
-    // 유효성 검사 통과 시 로그인 진행 (추후 API 연동 가능)
-    setErrorMessage(""); // 오류 메시지 초기화
+    navigation.navigate("InputGenderAge");
     // try {
-    //   const response = await fetch("https://your-api.com/auth/login", {
+    //   // 백 서버 연결 해야 함 !
+    //   const response = await fetch("http://<YOUR_BACKEND_IP>:<PORT>/users/login", {
     //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
+    //     headers: { "Content-Type": "application/json" },
     //     body: JSON.stringify({
-    //       emailOrPhone,
-    //       password,
+    //       account: id,
+    //       password: password
     //     }),
     //   });
   
     //   const data = await response.json();
-  
+      
     //   if (response.ok) {
+    //     await AsyncStorage.setItem("token", data.token);
+    //     await AsyncStorage.setItem("name", data.name);
+    //     await AsyncStorage.setItem("role", data.role);
+      
+    //     const isNewUser = await AsyncStorage.getItem("isNewUser");
     //     console.log("로그인 성공:", data);
-    //     navigation.navigate("Ingredient"); // 로그인 성공 시 이동
-    //   } else {
-    //     setErrorMessage(data.message || "로그인 실패. 다시 시도해주세요.");
+    //     if (isNewUser === "true") {
+    //       await AsyncStorage.removeItem("isNewUser");
+    //       navigation.navigate("InputGenderAge");
+    //     } else {
+    //       navigation.navigate("Home");
+    //     }
+    //   }
+    //   else {
+    //     setErrorMessage(data.message || "아이디 또는 비밀번호 오류");
     //   }
     // } catch (error) {
     //   console.error("로그인 요청 오류:", error);
-    //   setErrorMessage("네트워크 오류가 발생했습니다.");
+    //   setErrorMessage("서버에 연결할 수 없습니다.");
     // }
-    console.log("로그인 요청:", emailOrPhone, password);
-    navigation.navigate("InputGenderAge"); // 로그인 성공 시 이동
-
   };
 
   return (
@@ -62,21 +85,21 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.inputContainer}>
         <TextInput 
           style={styles.input} 
-          placeholder="이메일 또는 전화번호" 
+          placeholder="아이디를 입력해주세요" 
           placeholderTextColor="#ccc"
-          value={emailOrPhone}
-          onChangeText={setEmailOrPhone}
+          value={id}
+          onChangeText={setid}
         />
-        <TouchableOpacity style={styles.verifyButton}>
+        {/* <TouchableOpacity style={styles.verifyButton}>
           <Text style={styles.verifyText}>인증</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* 비밀번호 입력 */}
       <View style={styles.inputContainer}>
         <TextInput 
           style={styles.input} 
-          placeholder="비밀번호 또는 인증번호" 
+          placeholder="비밀번호를 입력해주세요" 
           placeholderTextColor="#ccc"
           secureTextEntry
           value={password}
@@ -142,18 +165,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 10,
   },
-  verifyButton: {
-    backgroundColor: "#C8FF00",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 30,
-    marginLeft: 10,
-  },
-  verifyText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-  },
+  // verifyButton: {
+  //   backgroundColor: "#C8FF00",
+  //   paddingVertical: 10,
+  //   paddingHorizontal: 15,
+  //   borderRadius: 30,
+  //   marginLeft: 10,
+  // },
+  // verifyText: {
+  //   fontSize: 16,
+  //   fontWeight: "bold",
+  //   color: "#000",
+  // },
   errorText: {
     color: "red",
     fontSize: 14,

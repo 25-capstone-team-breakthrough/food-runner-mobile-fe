@@ -10,6 +10,7 @@
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
     "@gorhom/bottom-sheet": "^4.4.5",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/cli-server-api": "^17.0.0",
     "@react-native-picker/picker": "^2.11.0",
@@ -35,6 +36,7 @@
     "react-native-draggable-flatlist": "^4.0.1",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.20.2",
+    "react-native-global-props": "^1.1.5",
     "react-native-image-colors": "^2.4.0",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-modal-datetime-picker": "^18.0.0",

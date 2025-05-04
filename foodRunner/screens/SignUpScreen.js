@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import { Alert, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import AuthFooter from "../components/AuthFooter";
@@ -9,18 +10,31 @@ export default function SignUpScreen({ navigation }) {
   const [isIdChecked, setIsIdChecked] = useState(false); // 아이디 중복 확인 여부
 
   // 아이디 중복 확인 (예제)
-  const checkDuplicateId = () => {
+  const checkDuplicateId = async () => {
     if (id.trim().length < 4) {
       Alert.alert("아이디 오류", "아이디는 최소 4자 이상 입력해야 합니다.");
       return;
     }
-    // 실제 API 요청이 필요하지만, 여기서는 예제
-    setIsIdChecked(true);
-    Alert.alert("확인 완료", "아이디를 사용할 수 있습니다.");
+    // 실제 API 요청 아이디 중복
+    try {
+      const response = await fetch(`http://<YOUR_BACKEND_URL>/users/check-duplicate?account=${encodeURIComponent(id)}`);
+      const data = await response.json();
+  
+      if (response.ok) {
+        setIsIdChecked(true);
+        Alert.alert("사용 가능한 아이디입니다", data.message); // "사용 가능한 아이디입니다."
+      } else {
+        setIsIdChecked(false);
+        Alert.alert("이미 사용 중인 아이디입니다", data.message); // "이미 사용 중인 아이디입니다."
+      }
+    } catch (error) {
+      console.error("중복 확인 실패", error);
+      Alert.alert("에러", "서버에 연결할 수 없습니다.");
+    }
   };
 
   // 유효성 검사 및 회원가입 처리
-  const handleSignUp = () => {
+  const handleSignUp = async() => {
     if (name.trim() === "") {
       Alert.alert("입력 오류", "이름을 입력해주세요.");
       return;
@@ -37,20 +51,44 @@ export default function SignUpScreen({ navigation }) {
       Alert.alert("비밀번호 오류", "비밀번호는 최소 6자 이상이며 특수문자를 포함해야 합니다.");
       return;
     }
-
-    Alert.alert("회원가입 완료", "회원가입이 완료되었습니다.");
-    navigation.navigate("Login");
+  
+    try {
+      // 백엔드 서버
+      const response = await fetch("http://<YOUR_BACKEND_URL>/users/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          account: id,
+          password: password,
+          name: name,
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        await AsyncStorage.setItem("isNewUser", "true"); // 회원가입 직후라는 표시 -> InputGenderAge페이지 가기 위해
+        Alert.alert("회원가입 완료", `${data.name}님 가입을 환영합니다!`);
+        navigation.navigate("Login");
+      } else {
+        const error = await response.json();
+        Alert.alert("회원가입 실패", error.message || "서버 오류가 발생했습니다.");
+      }
+    } catch (error) {
+      Alert.alert("네트워크 오류", "서버에 연결할 수 없습니다.");
+      console.error(error);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 로고 */}
       <Image source={require("../assets/logo.png")} style={styles.logo} />
       <Text style={styles.title}>SIGN UP</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="이름"
+        placeholder="이름을 입력해주세요"
         placeholderTextColor="#ccc"
         value={name}
         onChangeText={setName}
@@ -59,7 +97,7 @@ export default function SignUpScreen({ navigation }) {
       <View style={styles.idContainer}>
         <TextInput
           style={styles.idInput}
-          placeholder="아이디"
+          placeholder="아이디를 입력해주세요"
           placeholderTextColor="#ccc"
           value={id}
           onChangeText={(text) => {
@@ -74,7 +112,7 @@ export default function SignUpScreen({ navigation }) {
 
       <TextInput
         style={styles.input}
-        placeholder="비밀번호"
+        placeholder="비밀번호를 입력해주세요"
         placeholderTextColor="#ccc"
         secureTextEntry
         value={password}
