@@ -1,15 +1,16 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, ScrollView, Keyboard,TouchableWithoutFeedback } from 'react-native';
+import { Alert, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import NextButton from '../components/NextButton';
 import BackButton from '../components/BackButton';
+import NextButton from '../components/NextButton';
 
 const InputGenderAgeScreen = ({ navigation }) => {
   const [gender, setGender] = useState(null);
   const [birthYear, setBirthYear] = useState('');
 
-  const handleNext = () => {
-    // ✅ 유효성 검사
+  const handleNext = async () => {
+    // 유효성 검사
     if (!gender) {
       Alert.alert('입력 필요', '성별을 선택해주세요.');
       return;
@@ -19,7 +20,9 @@ const InputGenderAgeScreen = ({ navigation }) => {
       return;
     }
 
-    // ✅ 유효성 검사를 통과하면 다음 페이지로 이동
+    // 유효성 검사 수행, 성별 생년월일 프론트에 저장
+    await AsyncStorage.setItem('gender', gender);
+    await AsyncStorage.setItem('age', birthYear);
     navigation.navigate('InputHeightWeight');
   };
 

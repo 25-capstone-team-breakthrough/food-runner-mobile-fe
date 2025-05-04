@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet,
-  Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import {
+  Alert, Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import NextButton from '../components/NextButton';
 import BackButton from '../components/BackButton';
+import NextButton from '../components/NextButton';
 
 const InputHeightWeightScreen = ({ navigation }) => {
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
 
-  const handleNext = () => {
-    // ✅ 유효성 검사
+  const handleNext = async () => {
+    // 유효성 검사
     if (!height || isNaN(height) || height < 50 || height > 250) {
       Alert.alert('입력 오류', '올바른 키를 입력해주세요.');
       return;
@@ -19,9 +25,45 @@ const InputHeightWeightScreen = ({ navigation }) => {
       Alert.alert('입력 오류', '올바른 몸무게(20~300kg)를 입력해주세요.');
       return;
     }
-
-    // ✅ 유효성 검사를 통과하면 다음 페이지로 이동
     navigation.navigate('Ingredient');
+    // 유효성 검사를 통과
+    // try {
+    //   // 저장된 성별/나이/token 가져오기
+    //   const gender = await AsyncStorage.getItem('gender');
+    //   const age = await AsyncStorage.getItem('age');
+    //   const token = await AsyncStorage.getItem('token');
+
+    //   if (!gender || !age || !token) {
+    //     Alert.alert("데이터 오류", "필수 정보가 누락되었습니다.");
+    //     return;
+    //   }
+
+    //   // 서버로 POST 요청 보내기
+    //   const response = await fetch("http://<YOUR_BACKEND_URL>/BMI/update", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       "Authorization": `Bearer ${token}`
+    //     },
+    //     body: JSON.stringify({
+    //       gender,
+    //       age: parseInt(age),
+    //       height: parseFloat(height),
+    //       weight: parseFloat(weight),
+    //     }),
+    //   });
+
+    //   if (response.ok) {
+    //     navigation.navigate('Ingredient');
+    //   } else {
+    //     const error = await response.text();
+    //     console.error("BMI 저장 실패:", error);
+    //     Alert.alert("저장 실패", "BMI 정보를 저장할 수 없습니다.");
+    //   }
+    // } catch (err) {
+    //   console.error("BMI 전송 에러:", err);
+    //   Alert.alert("에러", "서버에 연결할 수 없습니다.");
+    // }
   };
 
   return (
@@ -45,7 +87,7 @@ const InputHeightWeightScreen = ({ navigation }) => {
             <TextInput
               style={styles.input}
               placeholder="ex) 165"
-              placeholderTextColor="#999"
+              placeholderTextColor="#888"
               keyboardType="numeric"
               maxLength={3}
               value={height}
