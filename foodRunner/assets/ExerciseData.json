@@ -10,7 +10,7 @@
     "ExerciseName": "달리기",
     "EnergyPerkg": 7,
     "ExerciseType": "유산소",
-    "ExerciseTarget": "",
+    "ExerciseTarget": "유산소",
     "ExerciseId": 2
   },
   {
@@ -73,14 +73,14 @@
     "ExerciseName": "런닝",
     "EnergyPerkg": 7,
     "ExerciseType": "유산소",
-    "ExerciseTarget": "",
+    "ExerciseTarget": "유산소",
     "ExerciseId": 11
   },
   {
     "ExerciseName": "런닝머신",
     "EnergyPerkg": 6,
     "ExerciseType": "유산소",
-    "ExerciseTarget": "",
+    "ExerciseTarget": "유산소",
     "ExerciseId": 12
   },
   {
@@ -213,7 +213,7 @@
     "ExerciseName": "버피테스트",
     "EnergyPerkg": 7.65,
     "ExerciseType": "유산소",
-    "ExerciseTarget": "",
+    "ExerciseTarget": "유산소",
     "ExerciseId": 31
   },
   {
@@ -304,7 +304,7 @@
     "ExerciseName": "스텝밀(천국의 계단)",
     "EnergyPerkg": 7,
     "ExerciseType": "유산소",
-    "ExerciseTarget": "",
+    "ExerciseTarget": "유산소",
     "ExerciseId": 44
   },
   {
@@ -325,7 +325,7 @@
     "ExerciseName": "스피닝",
     "EnergyPerkg": 9,
     "ExerciseType": "유산소",
-    "ExerciseTarget": "",
+    "ExerciseTarget": "유산소",
     "ExerciseId": 47
   },
   {
@@ -353,14 +353,14 @@
     "ExerciseName": "싸이클",
     "EnergyPerkg": 7,
     "ExerciseType": "유산소",
-    "ExerciseTarget": "",
+    "ExerciseTarget": "유산소",
     "ExerciseId": 51
   },
   {
     "ExerciseName": "싸이클론",
     "EnergyPerkg": 7,
     "ExerciseType": "유산소",
-    "ExerciseTarget": "",
+    "ExerciseTarget": "유산소",
     "ExerciseId": 52
   },
   {

@@ -223,7 +223,9 @@ export default function ExerciseHome() {
             borderRadius: 25,
             backgroundColor: "#292929", // ✅ 어두운 회색 배경 추가
             justifyContent: "center",
-            alignItems: "center", }}
+            alignItems: "center", 
+            zIndex: 10,
+          }}
           onPress={() => setIsFrontView(!isFrontView)}
         >
           <Ionicons name="shuffle" size={30} color="#E1FF01" />
@@ -231,14 +233,14 @@ export default function ExerciseHome() {
       )}
 
       {/* 신체 이미지 및 버튼 */}
-      <View style={{ position: "absolute", bottom: 180, alignItems: "center" }}>
+      <View style={{ position: "absolute", bottom: 150, alignItems: "center" }}>
         <Image
           source={
             isFrontView
               ? require("../assets/body_front.png")
               : require("../assets/body_back.png")
           }
-          style={{ width: 360, height: 580 }}
+          style={{ width: 450, height: 700 }}
           resizeMode="contain"
         />
         {/* 부위별 버튼 */}
