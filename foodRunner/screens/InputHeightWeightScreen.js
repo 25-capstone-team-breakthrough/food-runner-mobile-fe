@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from 'react';
 import {
   Alert, Keyboard,
@@ -27,43 +28,47 @@ const InputHeightWeightScreen = ({ navigation }) => {
     }
     navigation.navigate('Ingredient');
     // 유효성 검사를 통과
-    // try {
-    //   // 저장된 성별/나이/token 가져오기
-    //   const gender = await AsyncStorage.getItem('gender');
-    //   const age = await AsyncStorage.getItem('age');
-    //   const token = await AsyncStorage.getItem('token');
+    try {
+      // 저장된 성별/나이/token 가져오기
+      const gender = await AsyncStorage.getItem('gender');
+      const age = await AsyncStorage.getItem('age');
+      const token = await AsyncStorage.getItem('token');
 
-    //   if (!gender || !age || !token) {
-    //     Alert.alert("데이터 오류", "필수 정보가 누락되었습니다.");
-    //     return;
-    //   }
+      if (!gender || !age || !token) {
+        Alert.alert("데이터 오류", "필수 정보가 누락되었습니다.");
+        return;
+      }
 
-    //   // 서버로 POST 요청 보내기
-    //   const response = await fetch("http://<YOUR_BACKEND_URL>/BMI/update", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       "Authorization": `Bearer ${token}`
-    //     },
-    //     body: JSON.stringify({
-    //       gender,
-    //       age: parseInt(age),
-    //       height: parseFloat(height),
-    //       weight: parseFloat(weight),
-    //     }),
-    //   });
+      // 서버로 POST 요청 보내기
+      const response = await fetch("http://ec2-13-125-126-160.ap-northeast-2.compute.amazonaws.com:8080/BMI/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          age: parseInt(age),
+          gender: gender,
+          height: parseFloat(height),
+          weight: parseFloat(weight),
+        }),
+      });
 
-    //   if (response.ok) {
-    //     navigation.navigate('Ingredient');
-    //   } else {
-    //     const error = await response.text();
-    //     console.error("BMI 저장 실패:", error);
-    //     Alert.alert("저장 실패", "BMI 정보를 저장할 수 없습니다.");
-    //   }
-    // } catch (err) {
-    //   console.error("BMI 전송 에러:", err);
-    //   Alert.alert("에러", "서버에 연결할 수 없습니다.");
-    // }
+      const message = await response.text();
+
+      if (response.ok) {
+        console.log("bmi 성공:", message);
+        Alert.alert("BMI 업데이트", message);
+        navigation.navigate('Home');
+      } else {
+        const error = await response.text();
+        console.error("BMI 저장 실패:", error);
+        Alert.alert("저장 실패", "BMI 정보를 저장할 수 없습니다.");
+      }
+    } catch (err) {
+      console.error("BMI 전송 에러:", err);
+      Alert.alert("에러", "서버에 연결할 수 없습니다.");
+    }
   };
 
   return (

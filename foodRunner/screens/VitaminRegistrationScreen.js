@@ -28,6 +28,27 @@ const supplementItems = [
     image: require("../assets/vitamin.png"),
   },
 ];
+// 백연결
+// useEffect(() => {
+//   const fetchSupplements = async () => {
+//     setLoading(true);
+//     try {
+//       const res = await fetch(`http://<YOUR_BACKEND_HOST>:8080/api/data/supplements/${searchText}`);
+//       const data = await res.json();
+//       setSupplementItems(data); // 이 데이터는 SupplementDataFromOpenApi DTO 리스트
+//     } catch (err) {
+//       console.error("영양제 데이터 로딩 실패:", err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   if (searchText.length > 0) {
+//     fetchSupplements();
+//   } else {
+//     setSupplementItems([]);
+//   }
+// }, [searchText]);
 
 const FoodSearchScreen = () => {
   const navigation = useNavigation();

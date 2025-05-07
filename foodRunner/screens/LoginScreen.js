@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import AuthFooter from "../components/AuthFooter";
 
@@ -10,21 +10,21 @@ export default function LoginScreen({ navigation }) {
   const [errorMessage, setErrorMessage] = useState("");
 
   // 자동로그인
-  useEffect(() => {
-    const checkLogin = async () => {
-      const token = await AsyncStorage.getItem("token");
-      if (token) {
-        const isNewUser = await AsyncStorage.getItem("isNewUser");
-        if (isNewUser === "true") {
-        await AsyncStorage.removeItem("isNewUser");
-        navigation.replace("InputGenderAge");
-      } else {
-        navigation.replace("Home");
-      }
-      }
-    };
-    checkLogin();
-  }, []);
+  // useEffect(() => {
+  //   const checkLogin = async () => {
+  //     const token = await AsyncStorage.getItem("token");
+  //     if (token) {
+  //       const isNewUser = await AsyncStorage.getItem("isNewUser");
+  //       if (isNewUser === "true") {
+  //       await AsyncStorage.removeItem("isNewUser");
+  //       navigation.replace("InputGenderAge");
+  //     } else {
+  //       navigation.replace("Home");
+  //     }
+  //     }
+  //   };
+  //   checkLogin();
+  // }, []);
 
   const handleLogin = async () => {
     // 유효성 검사
@@ -37,40 +37,40 @@ export default function LoginScreen({ navigation }) {
       return;
     }
     navigation.navigate("InputGenderAge");
-    // try {
-    //   // 백 서버 연결 해야 함 !
-    //   const response = await fetch("http://<YOUR_BACKEND_IP>:<PORT>/users/login", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       account: id,
-    //       password: password
-    //     }),
-    //   });
+    try {
+      // 백 서버 연결 해야 함 !
+      const response = await fetch("http://ec2-13-125-126-160.ap-northeast-2.compute.amazonaws.com:8080/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          account: id,
+          password: password
+        }),
+      });
   
-    //   const data = await response.json();
+      const data = await response.json();
       
-    //   if (response.ok) {
-    //     await AsyncStorage.setItem("token", data.token);
-    //     await AsyncStorage.setItem("name", data.name);
-    //     await AsyncStorage.setItem("role", data.role);
+      if (response.ok) {
+        await AsyncStorage.setItem("token", data.token);
+        await AsyncStorage.setItem("name", data.name);
+        await AsyncStorage.setItem("role", data.role);
       
-    //     const isNewUser = await AsyncStorage.getItem("isNewUser");
-    //     console.log("로그인 성공:", data);
-    //     if (isNewUser === "true") {
-    //       await AsyncStorage.removeItem("isNewUser");
-    //       navigation.navigate("InputGenderAge");
-    //     } else {
-    //       navigation.navigate("Home");
-    //     }
-    //   }
-    //   else {
-    //     setErrorMessage(data.message || "아이디 또는 비밀번호 오류");
-    //   }
-    // } catch (error) {
-    //   console.error("로그인 요청 오류:", error);
-    //   setErrorMessage("서버에 연결할 수 없습니다.");
-    // }
+        const isNewUser = await AsyncStorage.getItem("isNewUser");
+        console.log("로그인 성공:", data);
+        if (isNewUser === "true") {
+          await AsyncStorage.removeItem("isNewUser");
+          navigation.navigate("InputGenderAge");
+        } else {
+          navigation.navigate("Home");
+        }
+      }
+      else {
+        setErrorMessage(data.message || "아이디 또는 비밀번호 오류");
+      }
+    } catch (error) {
+      console.error("로그인 요청 오류:", error);
+      setErrorMessage("서버에 연결할 수 없습니다.");
+    }
   };
 
   return (

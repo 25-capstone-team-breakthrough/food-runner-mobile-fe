@@ -71,6 +71,21 @@ const foodItems = [
   },
 ];
 
+// useEffect(() => {
+//   const fetchFoods = async () => {
+//     try {
+//       const res = await fetch(`http://<YOUR_BACKEND_HOST>:8080/api/data/foods`);
+//       const data = await res.json();
+//       setFoodItems(data); // FoodDataResponse DTO 리스트
+//     } catch (err) {
+//       console.error("음식 데이터 로딩 실패:", err);
+//     }
+//   };
+
+//   fetchFoods();
+// }, []);
+
+
 const FoodSearchScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");

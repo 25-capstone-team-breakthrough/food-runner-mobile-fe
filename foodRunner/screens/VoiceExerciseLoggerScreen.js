@@ -1,4 +1,4 @@
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import { BlurView } from 'expo-blur';
 import React, { useEffect, useRef, useState } from "react";
@@ -125,12 +125,15 @@ const stopRecording = async () => {
     return (
         
         <View style={{ flex: 1, backgroundColor: "black", alignItems: 'center', justifyContent: 'center' }}>
-        <BackButton onPress={() => navigation.goBack()} color="white" /> 
+        
         <View style={styles.imageWrapper}>
           <Image source={backgroundImage} style={styles.backgroundImage} />
           <BlurView intensity={15} tint="dark" style={styles.blurView} />
         </View>
         <View style={styles.container}>
+        <View style={styles.backButtonWrapper}>
+            <BackButton onPress={() => navigation.goBack()} color="white" /> 
+        </View>
             <View style={styles.card}>
 
                 {/* <View style={styles.questionBlock}> */}
@@ -188,7 +191,7 @@ const stopRecording = async () => {
                 style={[styles.voiceButton, isRecording && styles.voiceButtonActive]}
                 onPress={toggleRecording}
             >
-                <AntDesign name="sound" size={30} color="black" />
+                <Ionicons name="mic" size={30} color="black" />
             </TouchableOpacity>
         </View>
     </View>
@@ -220,6 +223,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         zIndex: 1,
+    },
+    backButtonWrapper: {
+        position: 'absolute',
+        top: 40,      
+        left: 10,     
+        zIndex: 100,  
     },
     card: {
         width: 360,
