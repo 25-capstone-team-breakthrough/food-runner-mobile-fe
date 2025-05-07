@@ -1,15 +1,19 @@
-// ExerciseHistory.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { ExerciseContext } from '../context/ExerciseContext'; // ✅ 정확한 경로 확인
 
-export default function ExerciseHistory({ 
-  onClose, 
-  selectedDate 
-}) {
+export default function ExerciseHistory({ onClose, selectedDate }) {
   const [isDetailVisible, setIsDetailVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
+  const { exercises } = useContext(ExerciseContext);
 
+  console.log("🟡 전체 운동 기록들:", exercises); // 이 줄 추가
+
+  // 날짜 포맷 통일 (selectedDate: "2025.05.01" → "2025-05-01")
+  const formattedDate = selectedDate.replace(/\./g, "-");
+  const filteredExercises = exercises.filter((ex) => ex.date === formattedDate);
+  
   const handleExerciseClick = (exercise) => {
     setSelectedExercise(exercise);
     setIsDetailVisible(true);
@@ -20,31 +24,9 @@ export default function ExerciseHistory({
     setSelectedExercise(null);
   };
 
-  const historyData = [
-    {
-      id: "1",
-      name: "바벨 스쿼트",
-      part: "하체",
-      records: [
-        { set: 1, weight: 15, reps: 10 },
-        { set: 2, weight: 15, reps: 10 },
-        { set: 3, weight: 20, reps: 10 },
-        { set: 4, weight: 25, reps: 10 },
-      ]
-    },
-    {
-      id: "2",
-      name: "벤치프레스",
-      part: "가슴",
-      records: [
-        { set: 1, weight: 10, reps: 12 },
-        { set: 2, weight: 15, reps: 12 },
-      ]
-    }
-  ];
-
   return (
     <View style={{ flex: 1, backgroundColor: "#2D2D35", padding: 20 }}>
+      {/* 뒤로가기 버튼 */}
       {isDetailVisible && (
         <TouchableOpacity
           onPress={handleBack}
@@ -55,7 +37,6 @@ export default function ExerciseHistory({
             zIndex: 99,
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: "transparent",
             padding: 8,
           }}
         >
@@ -64,7 +45,7 @@ export default function ExerciseHistory({
         </TouchableOpacity>
       )}
 
-      {/* 날짜 + 닫기 버튼 */}
+      {/* 상단 날짜 및 닫기 버튼 */}
       <View style={{ position: "relative", alignItems: "center", marginBottom: 15 }}>
         <Text style={{ fontSize: 25, color: "white" }}>{selectedDate}</Text>
         <TouchableOpacity
@@ -73,13 +54,7 @@ export default function ExerciseHistory({
             setSelectedExercise(null);
             onClose();
           }}
-          style={{
-            position: "absolute",
-            right: 0,
-            top: -8,
-            zIndex: 10,
-            padding: 10,
-          }}
+          style={{ position: "absolute", right: 0, top: -8, padding: 10 }}
         >
           <Ionicons name="close" size={24} color="#DDFB21" />
         </TouchableOpacity>
@@ -87,52 +62,117 @@ export default function ExerciseHistory({
 
       <View style={{ height: 1, backgroundColor: "#8A8A8A", marginBottom: 12 }} />
 
+      {/* 상세 기록 화면 */}
       {isDetailVisible ? (
         <>
-          <Text style={{ fontSize: 25, color: "white", fontWeight: "bold", marginTop: 15, marginBottom: 20 }}>
+          <Text style={{
+            fontSize: 25,
+            color: "white",
+            fontWeight: "bold",
+            marginTop: 15,
+            marginBottom: 20
+          }}>
             {selectedExercise.name}
           </Text>
 
-          <Text style={{ fontSize: 16, color: "white", fontWeight: "500", marginBottom: 25 }}>
+          <Text style={{
+            fontSize: 16,
+            color: "white",
+            fontWeight: "500",
+            marginBottom: 25
+          }}>
             기록
           </Text>
 
-          <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, marginBottom: 16 }}>
-            <Text style={{ color: "white", fontSize: 16 }}>세트</Text>
-            <Text style={{ color: "white", fontSize: 16 }}>무게 (KG)</Text>
-            <Text style={{ color: "white", fontSize: 16 }}>횟수</Text>
-          </View>
-
-          <View style={{ height: 1, backgroundColor: "#8A8A8A", marginBottom: 10 }} />
-
-          <FlatList
-            data={selectedExercise.records}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 18, marginVertical: 10 }}>
+          {selectedExercise.type === "근력" ? (
+            <>
+            {/* 레이블 헤더 */}
+            <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 15 }}>
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ color: "#CCCCCC", fontSize: 14 }}>세트</Text>
+              </View>
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ color: "#CCCCCC", fontSize: 14 }}>무게 (KG)</Text>
+              </View>
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ color: "#CCCCCC", fontSize: 14 }}>횟수</Text>
+              </View>
+            </View>
+          
+            <View style={{ height: 1, backgroundColor: "#8A8A8A", marginBottom: 10 }} />
+          
+            {/* 기록 값 출력 */}
+            {selectedExercise.records.map((item, index) => (
+              <View
+                key={index}
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-around",
+                  marginBottom: 15,
+                }}
+              >
                 <Text style={{ color: "white", fontSize: 20 }}>{item.set}</Text>
                 <Text style={{ color: "white", fontSize: 20 }}>{item.weight}</Text>
                 <Text style={{ color: "white", fontSize: 20 }}>{item.reps}</Text>
               </View>
-            )}
-          />
+            ))}
+          </>
+          ) : (
+            <>
+              <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 15 }}>
+                <View style={{ alignItems: "center" }}>
+                  <Text style={{ color: "#CCCCCC", fontSize: 14 }}>거리(Km)</Text>
+                </View>
+                <View style={{ alignItems: "center" }}>
+                  <Text style={{ color: "#CCCCCC", fontSize: 14 }}>시간(m)</Text>
+                </View>
+                <View style={{ alignItems: "center" }}>
+                  <Text style={{ color: "#CCCCCC", fontSize: 14 }}>평균 페이스(/Km)</Text>
+                </View>
+              </View>
+
+              <View style={{ height: 1, backgroundColor: "#888", marginBottom: 10,  }} />
+
+              <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 30,  }}>
+                <Text style={{ color: "white", fontSize: 20 }}>
+                  {selectedExercise.records.distance}
+                </Text>
+                <Text style={{ color: "white", fontSize: 20 }}>
+                  {selectedExercise.records.duration}
+                </Text>
+                <Text style={{ color: "white", fontSize: 20 }}>
+                  {selectedExercise.records.pace}
+                </Text>
+              </View>
+            </>
+          )}
         </>
       ) : (
+        // 리스트 화면
         <FlatList
-          data={historyData}
+          data={filteredExercises}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => handleExerciseClick(item)}
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
+                flexDirection: "row", // 👉 수평 정렬
+                justifyContent: "space-between", // 👉 좌우 정렬
+                alignItems: "center",
                 marginVertical: 12,
-                paddingHorizontal: 4,
+                paddingHorizontal: 4
               }}
             >
-              <Text style={{ color: "white", fontSize: 17, fontWeight: "500" }}>{item.name}</Text>
-              <Text style={{ color: "white", fontSize: 15, opacity: 0.85 }}>{item.part}</Text>
+              <View>
+                <Text style={{ color: "white", fontSize: 22, fontWeight: "500" }}>
+                  {item.name}
+                </Text>
+              </View>
+              <View>
+                <Text style={{ color: "white", fontSize: 14, opacity: 0.7 }}>
+                  {item.part}
+                </Text>
+              </View>
             </TouchableOpacity>
           )}
         />

@@ -1,0 +1,569 @@
+[
+  {
+    "ExerciseName": "고블릿 스쿼트",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근, #코어",
+    "ExerciseId": 1
+  },
+  {
+    "ExerciseName": "달리기",
+    "EnergyPerkg": 7,
+    "ExerciseType": "유산소",
+    "ExerciseTarget": "유산소",
+    "ExerciseId": 2
+  },
+  {
+    "ExerciseName": "덤벨 바디 로테이션",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#복근, #측면복근",
+    "ExerciseId": 3
+  },
+  {
+    "ExerciseName": "덤벨 숄더프레스",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#어깨, #삼각근",
+    "ExerciseId": 4
+  },
+  {
+    "ExerciseName": "덤벨 프레스",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#가슴, #삼두",
+    "ExerciseId": 5
+  },
+  {
+    "ExerciseName": "덤벨 플라이",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#둔근, #햄스트링",
+    "ExerciseId": 6
+  },
+  {
+    "ExerciseName": "덩키킥",
+    "EnergyPerkg": 7,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#둔근, #햄스트링",
+    "ExerciseId": 7
+  },
+  {
+    "ExerciseName": "데드 리프트",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#허리, #햄스트링, #둔근",
+    "ExerciseId": 8
+  },
+  {
+    "ExerciseName": "딥스",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#삼두, #가슴",
+    "ExerciseId": 9
+  },
+  {
+    "ExerciseName": "랫플다운",
+    "EnergyPerkg": 4,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#광배근, #등",
+    "ExerciseId": 10
+  },
+  {
+    "ExerciseName": "런닝",
+    "EnergyPerkg": 7,
+    "ExerciseType": "유산소",
+    "ExerciseTarget": "유산소",
+    "ExerciseId": 11
+  },
+  {
+    "ExerciseName": "런닝머신",
+    "EnergyPerkg": 6,
+    "ExerciseType": "유산소",
+    "ExerciseTarget": "유산소",
+    "ExerciseId": 12
+  },
+  {
+    "ExerciseName": "런지",
+    "EnergyPerkg": 5.9,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근",
+    "ExerciseId": 13
+  },
+  {
+    "ExerciseName": "레그 레이즈",
+    "EnergyPerkg": 4.2,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#복근, #하복부",
+    "ExerciseId": 14
+  },
+  {
+    "ExerciseName": "레그 익스텐션",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두",
+    "ExerciseId": 15
+  },
+  {
+    "ExerciseName": "레그 컬",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#햄스트링",
+    "ExerciseId": 16
+  },
+  {
+    "ExerciseName": "레그 킥 백",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#둔근",
+    "ExerciseId": 17
+  },
+  {
+    "ExerciseName": "레그 프레스",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근",
+    "ExerciseId": 18
+  },
+  {
+    "ExerciseName": "레터럴 레이즈",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#측면삼각근",
+    "ExerciseId": 19
+  },
+  {
+    "ExerciseName": "렛 풀 다운",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#광배근, #등",
+    "ExerciseId": 20
+  },
+  {
+    "ExerciseName": "렛풀다운",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#광배근, #등",
+    "ExerciseId": 21
+  },
+  {
+    "ExerciseName": "로우",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#등, #후면삼각근",
+    "ExerciseId": 22
+  },
+  {
+    "ExerciseName": "루마니안 데드리프트",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#햄스트링, #둔근",
+    "ExerciseId": 23
+  },
+  {
+    "ExerciseName": "리버스 컬",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#이두, #상완근",
+    "ExerciseId": 24
+  },
+  {
+    "ExerciseName": "리어델트 머신",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#후면삼각근, #어깨",
+    "ExerciseId": 25
+  },
+  {
+    "ExerciseName": "바벨 숄더프레스",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#어깨, #삼각근",
+    "ExerciseId": 26
+  },
+  {
+    "ExerciseName": "바벨 스쿼트",
+    "EnergyPerkg": 6,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근, #코어",
+    "ExerciseId": 27
+  },
+  {
+    "ExerciseName": "백 스쿼트",
+    "EnergyPerkg": 6,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근",
+    "ExerciseId": 28
+  },
+  {
+    "ExerciseName": "백 익스텐션",
+    "EnergyPerkg": 3.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#허리, #둔근",
+    "ExerciseId": 29
+  },
+  {
+    "ExerciseName": "버드독",
+    "EnergyPerkg": 3.8,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#코어, #척추안정",
+    "ExerciseId": 30
+  },
+  {
+    "ExerciseName": "버피테스트",
+    "EnergyPerkg": 7.65,
+    "ExerciseType": "유산소",
+    "ExerciseTarget": "유산소",
+    "ExerciseId": 31
+  },
+  {
+    "ExerciseName": "벤치 프레스",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#가슴, #삼두",
+    "ExerciseId": 32
+  },
+  {
+    "ExerciseName": "벤치딥스",
+    "EnergyPerkg": 3,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#삼두, #가슴",
+    "ExerciseId": 33
+  },
+  {
+    "ExerciseName": "벤트 오버 바벨 로우",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#등, #광배근",
+    "ExerciseId": 34
+  },
+  {
+    "ExerciseName": "브릿지",
+    "EnergyPerkg": 3.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#둔근, #코어",
+    "ExerciseId": 35
+  },
+  {
+    "ExerciseName": "사이드 런지",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근, #내전근",
+    "ExerciseId": 36
+  },
+  {
+    "ExerciseName": "사이드 레그레이즈",
+    "EnergyPerkg": 4,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#외측둔근",
+    "ExerciseId": 37
+  },
+  {
+    "ExerciseName": "사이드 레터럴 레이즈",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#측면삼각근",
+    "ExerciseId": 38
+  },
+  {
+    "ExerciseName": "사이드 밴드",
+    "EnergyPerkg": 3.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#엉덩이, #둔근",
+    "ExerciseId": 39
+  },
+  {
+    "ExerciseName": "사이드 크런치",
+    "EnergyPerkg": 4,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#복근, #측면복근",
+    "ExerciseId": 40
+  },
+  {
+    "ExerciseName": "사이드 플랭크",
+    "EnergyPerkg": 3.8,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#코어, #측면복근",
+    "ExerciseId": 41
+  },
+  {
+    "ExerciseName": "슈퍼맨로우",
+    "EnergyPerkg": 4,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#등, #허리",
+    "ExerciseId": 42
+  },
+  {
+    "ExerciseName": "스쿼트 덤벨 프레스",
+    "EnergyPerkg": 7,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #어깨",
+    "ExerciseId": 43
+  },
+  {
+    "ExerciseName": "스텝밀(천국의 계단)",
+    "EnergyPerkg": 7,
+    "ExerciseType": "유산소",
+    "ExerciseTarget": "유산소",
+    "ExerciseId": 44
+  },
+  {
+    "ExerciseName": "스티프 레그 데드리프트",
+    "EnergyPerkg": 8,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#햄스트링, #둔근",
+    "ExerciseId": 45
+  },
+  {
+    "ExerciseName": "스플릿 스쿼트",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근",
+    "ExerciseId": 46
+  },
+  {
+    "ExerciseName": "스피닝",
+    "EnergyPerkg": 9,
+    "ExerciseType": "유산소",
+    "ExerciseTarget": "유산소",
+    "ExerciseId": 47
+  },
+  {
+    "ExerciseName": "시티드 니업",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#복근",
+    "ExerciseId": 48
+  },
+  {
+    "ExerciseName": "시티드 로우",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#등, #광배근",
+    "ExerciseId": 49
+  },
+  {
+    "ExerciseName": "시티드로우",
+    "EnergyPerkg": 4,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#등, #광배근",
+    "ExerciseId": 50
+  },
+  {
+    "ExerciseName": "싸이클",
+    "EnergyPerkg": 7,
+    "ExerciseType": "유산소",
+    "ExerciseTarget": "유산소",
+    "ExerciseId": 51
+  },
+  {
+    "ExerciseName": "싸이클론",
+    "EnergyPerkg": 7,
+    "ExerciseType": "유산소",
+    "ExerciseTarget": "유산소",
+    "ExerciseId": 52
+  },
+  {
+    "ExerciseName": "암풀다운",
+    "EnergyPerkg": 4,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#등, #광배근",
+    "ExerciseId": 53
+  },
+  {
+    "ExerciseName": "와이드 스쿼트",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#내전근, #둔근",
+    "ExerciseId": 54
+  },
+  {
+    "ExerciseName": "와일드 런지",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근, #코어",
+    "ExerciseId": 55
+  },
+  {
+    "ExerciseName": "워킹런지",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근",
+    "ExerciseId": 56
+  },
+  {
+    "ExerciseName": "원 암 덤벨로우",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#등, #광배근, #이두",
+    "ExerciseId": 57
+  },
+  {
+    "ExerciseName": "윗몸일으키기",
+    "EnergyPerkg": 3.8,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#복근",
+    "ExerciseId": 58
+  },
+  {
+    "ExerciseName": "이두 컬",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#이두",
+    "ExerciseId": 59
+  },
+  {
+    "ExerciseName": "인클라인 벤치 프레스",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#가슴(상부), #삼두",
+    "ExerciseId": 60
+  },
+  {
+    "ExerciseName": "점프 스쿼트",
+    "EnergyPerkg": 6,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근, #코어",
+    "ExerciseId": 61
+  },
+  {
+    "ExerciseName": "체스트 프레스",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#가슴, #삼두",
+    "ExerciseId": 62
+  },
+  {
+    "ExerciseName": "컨벤셔널 데드리프트",
+    "EnergyPerkg": 8,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#허리, #햄스트링, #둔근",
+    "ExerciseId": 63
+  },
+  {
+    "ExerciseName": "케이블 크로스 오버",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#가슴, #대흉근",
+    "ExerciseId": 64
+  },
+  {
+    "ExerciseName": "케틀벨",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#전신, #코어",
+    "ExerciseId": 65
+  },
+  {
+    "ExerciseName": "크런치",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#복근",
+    "ExerciseId": 66
+  },
+  {
+    "ExerciseName": "크로스 크런치",
+    "EnergyPerkg": 4.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#복근, #측면복근",
+    "ExerciseId": 67
+  },
+  {
+    "ExerciseName": "킥 백",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#둔근",
+    "ExerciseId": 68
+  },
+  {
+    "ExerciseName": "트라이셉스 익스텐션",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#삼두",
+    "ExerciseId": 69
+  },
+  {
+    "ExerciseName": "트라이셉스 푸시 다운",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#삼두",
+    "ExerciseId": 70
+  },
+  {
+    "ExerciseName": "푸쉬업",
+    "EnergyPerkg": 6,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#가슴, #삼두",
+    "ExerciseId": 71
+  },
+  {
+    "ExerciseName": "펙덱 플라이",
+    "EnergyPerkg": 5.5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#가슴, #대흉근",
+    "ExerciseId": 72
+  },
+  {
+    "ExerciseName": "풀 스쿼트",
+    "EnergyPerkg": 6,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#대퇴사두, #둔근",
+    "ExerciseId": 73
+  },
+  {
+    "ExerciseName": "풀업",
+    "EnergyPerkg": 3.3,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#등, #이두",
+    "ExerciseId": 74
+  },
+  {
+    "ExerciseName": "프론트 레이즈",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#전면삼각근",
+    "ExerciseId": 75
+  },
+  {
+    "ExerciseName": "프론트 풀다운",
+    "EnergyPerkg": 4,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#광배근, #등",
+    "ExerciseId": 76
+  },
+  {
+    "ExerciseName": "플랭크",
+    "EnergyPerkg": 3.8,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#코어",
+    "ExerciseId": 77
+  },
+  {
+    "ExerciseName": "해머 컬",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#이두, #전완근",
+    "ExerciseId": 78
+  },
+  {
+    "ExerciseName": "행잉 레그레이즈",
+    "EnergyPerkg": 10,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#복근, #하복부",
+    "ExerciseId": 79
+  },
+  {
+    "ExerciseName": "힙 쓰러스트",
+    "EnergyPerkg": 6,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#둔근, #코어",
+    "ExerciseId": 80
+  },
+  {
+    "ExerciseName": "힙 어브덕션",
+    "EnergyPerkg": 5,
+    "ExerciseType": "근력",
+    "ExerciseTarget": "#엉덩이, #측면둔근",
+    "ExerciseId": 81
+  }
+]
