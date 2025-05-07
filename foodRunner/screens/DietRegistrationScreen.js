@@ -1,5 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -12,64 +13,64 @@ import BottomNavigation from "../components/BottomNavigation";
 import RegisterButton from "../components/RegisterButton";
 import SearchBar from "../components/SearchBar";
 
-const foodItems = [
-  {
-    id: 1,
-    name: "빅맥버거",
-    brand: "맥도날드",
-    kcal: 889,
-    image: require("../assets/bigmac.png"),
-  },
-  {
-    id: 2,
-    name: "불고기버거",
-    brand: "롯데리아",
-    kcal: 489,
-    image: require("../assets/bulgogi.png"),
-  },
-  {
-    id: 3,
-    name: "쉑쉑버거",
-    brand: "쉑쉑",
-    kcal: 1089,
-    image: require("../assets/shakeshack.png"),
-  },
-  {
-    id: 4,
-    name: "빅맥버거",
-    brand: "맥도날드",
-    kcal: 889,
-    image: require("../assets/bigmac.png"),
-  },
-  {
-    id: 5,
-    name: "빅맥버거",
-    brand: "맥도날드",
-    kcal: 889,
-    image: require("../assets/bigmac.png"),
-  },
-  {
-    id: 6,
-    name: "빅맥버거",
-    brand: "맥도날드",
-    kcal: 889,
-    image: require("../assets/bigmac.png"),
-  },
-  {
-    id: 7,
-    name: "빅맥버거",
-    brand: "맥도날드",
-    kcal: 889,
-    image: require("../assets/bigmac.png"),
-  },
-  {
-    id: 8,
-    name: "빅맥버거",
-    brand: "맥도날드",
-    kcal: 889,
-    image: require("../assets/bigmac.png"),
-  },
-];
+// const foodItems = [
+//   {
+//     id: 1,
+//     name: "빅맥버거",
+//     brand: "맥도날드",
+//     kcal: 889,
+//     image: require("../assets/bigmac.png"),
+//   },
+//   {
+//     id: 2,
+//     name: "불고기버거",
+//     brand: "롯데리아",
+//     kcal: 489,
+//     image: require("../assets/bulgogi.png"),
+//   },
+//   {
+//     id: 3,
+//     name: "쉑쉑버거",
+//     brand: "쉑쉑",
+//     kcal: 1089,
+//     image: require("../assets/shakeshack.png"),
+//   },
+//   {
+//     id: 4,
+//     name: "빅맥버거",
+//     brand: "맥도날드",
+//     kcal: 889,
+//     image: require("../assets/bigmac.png"),
+//   },
+//   {
+//     id: 5,
+//     name: "빅맥버거",
+//     brand: "맥도날드",
+//     kcal: 889,
+//     image: require("../assets/bigmac.png"),
+//   },
+//   {
+//     id: 6,
+//     name: "빅맥버거",
+//     brand: "맥도날드",
+//     kcal: 889,
+//     image: require("../assets/bigmac.png"),
+//   },
+//   {
+//     id: 7,
+//     name: "빅맥버거",
+//     brand: "맥도날드",
+//     kcal: 889,
+//     image: require("../assets/bigmac.png"),
+//   },
+//   {
+//     id: 8,
+//     name: "빅맥버거",
+//     brand: "맥도날드",
+//     kcal: 889,
+//     image: require("../assets/bigmac.png"),
+//   },
+// ];
 
 // useEffect(() => {
 //   const fetchFoods = async () => {
@@ -91,14 +92,46 @@ const FoodSearchScreen = () => {
   const [searchText, setSearchText] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [foodItems, setFoodItems] = useState([]);
 
+  // ✅ API 호출 - 백엔드에서 음식 목록 가져오기
+  useEffect(() => {
+    const fetchFoods = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token"); // 저장된 토큰 가져오기
+        console.log("불러온 토큰:", token);
+  
+        const res = await fetch("http://ec2-13-125-232-235.ap-northeast-2.compute.amazonaws.com:8080/api/data/foods", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log("응답 상태:", res.status);
+        if (!res.ok) {
+          throw new Error(`서버 응답 오류: ${res.status}`);
+        }
+  
+        const data = await res.json();
+        // console.log("받아 온 데이터:", data);
+        setFoodItems(data);
+      } catch (err) {
+        console.error("❌ 음식 데이터 로딩 실패:", err);
+      }
+    };
+    
+  
+    fetchFoods();
+  }, []);
 
   // 🔹 검색어 변경 시 필터링
   const handleSearch = (text) => {
     setSearchText(text);
     if (text.length > 0) {
       const results = foodItems.filter((item) =>
-        item.name.includes(text)
+        item.foodName.includes(text) || (item.foodCompany?.includes?.(text))
       );
       setFilteredItems(results);
     } else {
@@ -108,8 +141,6 @@ const FoodSearchScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>           
-
-      
       {/* 🔹 검색창 */}
       <View style={styles.searchBar}>
         <SearchBar value={searchText} onChangeText={handleSearch} 
@@ -124,27 +155,23 @@ const FoodSearchScreen = () => {
           </Text>
           <FlatList
             data={filteredItems}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.foodId.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => {
-                  if (selectedItem?.id === item.id) {
-                    setSelectedItem(null);
-                  } else {
-                    setSelectedItem(item);
-                  }
-                }}
-                style={[
-                  styles.resultItem,
-                  selectedItem?.id === item.id && styles.selectedItem,
-                ]}
-              >
+              onPress={() => {
+                setSelectedItem(selectedItem?.foodId === item.foodId ? null : item);
+              }}
+              style={[
+                styles.resultItem,
+                selectedItem?.foodId === item.foodId && styles.selectedItem,
+              ]}
+            >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Image source={item.image} style={styles.itemImage} />
+                <Image source={{ uri: item.foodImage }} style={styles.itemImage} />
                   <View style={styles.threeText}>
-                    <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemBrand}>{item.brand}</Text>
-                    <Text style={styles.itemKcal}>{item.kcal} kcal</Text>
+                    <Text style={styles.itemName}>{item.foodName}</Text>
+                    <Text style={styles.itemBrand}>{item.foodCompany}</Text>
+                    <Text style={styles.itemKcal}>{item.calories} kcal</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -161,12 +188,17 @@ const FoodSearchScreen = () => {
         )
       )}
 
-
       {/* 🔹 등록하기 버튼 */}
       <RegisterButton
         onPress={() => {
           if (selectedItem) {
-            navigation.navigate("NutritionMain", { selectedItem });
+            navigation.navigate("NutritionMain", {
+              selectedItem: {
+                name: selectedItem.foodName,
+                kcal: selectedItem.calories,
+                image: { uri: selectedItem.foodImage },
+              },
+            });
           } else {
             alert("음식을 선택해주세요!");
           }

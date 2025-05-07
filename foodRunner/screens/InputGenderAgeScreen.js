@@ -15,13 +15,13 @@ const InputGenderAgeScreen = ({ navigation }) => {
       Alert.alert('입력 필요', '성별을 선택해주세요.');
       return;
     }
-    if (!birthYear || birthYear.length < 4) {
-      Alert.alert('입력 필요', '출생년도를 정확히 입력해주세요.');
+    if (!birthYear || birthYear.length < 1) {
+      Alert.alert('입력 필요', '만 나이를 정확히 입력해주세요.');
       return;
     }
 
     // 유효성 검사 수행, 성별 생년월일 프론트에 저장
-    await AsyncStorage.setItem('gender', gender);
+    await AsyncStorage.setItem('gender', gender === '여' ? 'female' : 'male');
     await AsyncStorage.setItem('age', birthYear);
     navigation.navigate('InputHeightWeight');
   };
@@ -63,13 +63,13 @@ const InputGenderAgeScreen = ({ navigation }) => {
       {/* 출생연도 입력 */}
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={styles.containerInput}>
-      <Text style={styles.label}>출생연도</Text>
+      <Text style={styles.label}>만 나이</Text>
       <View style={styles.inputWrapper}>
         <TextInput
             style={styles.input}
-            placeholder="ex) 1999"
+            placeholder="ex) 23"
             keyboardType="numeric"
-            maxLength={4}
+            maxLength={2}
             value={birthYear}
             onChangeText={setBirthYear}
             onSubmitEditing={() => Keyboard.dismiss()}
@@ -80,9 +80,6 @@ const InputGenderAgeScreen = ({ navigation }) => {
 
       {/* 다음 버튼 (유효성 검사 포함) */}
       <NextButton onPress={handleNext} />
-      {/* <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextButtonText}>다 음  &gt;</Text>
-      </TouchableOpacity> */}
     </SafeAreaView>
   );
 };

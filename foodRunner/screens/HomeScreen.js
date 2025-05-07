@@ -1,9 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import moment from 'moment';
-import React from 'react';
+import { default as React, useEffect, useState } from 'react';
 import { Dimensions, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavigation from "../components/BottomNavigation";
 import CalorieBar from '../components/CalorieBar';
+
 
 
 const screenWidth = Dimensions.get('window').width;
@@ -12,6 +14,36 @@ const HomeScreen = ({ navigation }) => {
 
   const name = "이민주";
   const dateToDisplay = moment().format("YYYY.MM.DD")
+  const [consumedCalories, setConsumedCalories] = useState(0);
+
+  useEffect(() => {
+    const fetchCalories = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        console.log("토큰:", token);
+        const today = new Date().toISOString();
+  
+        const response = await fetch("http://ec2-13-125-232-235.ap-northeast-2.compute.amazonaws.com:8080/api/diet/getNutrient", {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        setConsumedCalories(data.calories);
+      } catch (error) {
+        console.error('섭취 칼로리 가져오기 실패', error);
+      }
+    };
+  
+    fetchCalories();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -123,11 +155,11 @@ const HomeScreen = ({ navigation }) => {
           alignItems: 'center',
         }}>
           <Text style={styles.calorieTitleText}>섭취한 칼로리</Text>
-          <CalorieBar consumed={1800} goal={2000}
+          <CalorieBar consumed={consumedCalories} goal={2000}
           width={200} marginTop={20} marginRight={10} marginBottom={0} />
         </View>
         <Text style={styles.calorie}>
-          <Text style={styles.calorieMain}>1,800</Text>
+          <Text style={styles.calorieMain}>{consumedCalories}</Text>
           <Text style={styles.calorieSub}> / 2,000 kcal</Text>
         </Text>
         <View style={{
