@@ -84,7 +84,7 @@ const stopRecording = async () => {
             type: "audio/m4a"
         });
 
-        const response = await fetch("https://your-backend-api.com/upload", {
+        const response = await fetch("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/upload", {
             method: "POST",
             body: formData,
             headers: {

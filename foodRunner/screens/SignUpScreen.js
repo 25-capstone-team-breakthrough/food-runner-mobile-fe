@@ -7,31 +7,7 @@ export default function SignUpScreen({ navigation }) {
   const [name, setName] = useState("");
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
-  const [isIdChecked, setIsIdChecked] = useState(false); // 아이디 중복 확인 여부
 
-  // 아이디 중복 확인 (예제)
-  // const checkDuplicateId = async () => {
-  //   if (id.trim().length < 4) {
-  //     Alert.alert("아이디 오류", "아이디는 최소 4자 이상 입력해야 합니다.");
-  //     return;
-  //   }
-  //   // 실제 API 요청 아이디 중복
-  //   try {
-  //     const response = await fetch("http://ec2-13-125-126-160.ap-northeast-2.compute.amazonaws.com:8080/users");
-  //     const data = await response.json();
-  
-  //     if (response.ok) {
-  //       setIsIdChecked(true);
-  //       Alert.alert("사용 가능한 아이디입니다", data.message); // "사용 가능한 아이디입니다."
-  //     } else {
-  //       setIsIdChecked(false);
-  //       Alert.alert("이미 사용 중인 아이디입니다", data.message); // "이미 사용 중인 아이디입니다."
-  //     }
-  //   } catch (error) {
-  //     console.error("중복 확인 실패", error);
-  //     Alert.alert("에러", "서버에 연결할 수 없습니다.");
-  //   }
-  // };
 
   // 유효성 검사 및 회원가입 처리
   const handleSignUp = async() => {
@@ -43,46 +19,13 @@ export default function SignUpScreen({ navigation }) {
       Alert.alert("입력 오류", "아이디는 최소 4자 이상 입력해야 합니다.");
       return;
     }
-    // if (!isIdChecked) {
-    //   Alert.alert("확인 필요", "아이디 중복 확인을 해주세요.");
-    //   return;
-    // }
     if (password.length < 6 || !/\W/.test(password)) {
       Alert.alert("비밀번호 오류", "비밀번호는 최소 6자 이상이며 특수문자를 포함해야 합니다.");
       return;
     }
-  
-  //   try {
-  //     // 백엔드 서버
-  //     const response = await fetch("http://ec2-13-125-126-160.ap-northeast-2.compute.amazonaws.com:8080/users/signup", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         account: id,
-  //         password: password,
-  //         name: name,
-  //       }),
-  //     });
-  
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       await AsyncStorage.setItem("isNewUser", "true"); // 회원가입 직후라는 표시 -> InputGenderAge페이지 가기 위해
-  //       Alert.alert("회원가입 완료", `${data.name}님 가입을 환영합니다!`);
-  //       navigation.navigate("Login");
-  //     } else {
-  //       const error = await response.json();
-  //       Alert.alert("회원가입 실패", error.message || "서버 오류가 발생했습니다.");
-  //     }
-  //   } catch (error) {
-  //     Alert.alert("네트워크 오류", "서버에 연결할 수 없습니다.");
-  //     console.error(error);
-  //   }
-  // 
 
   try {
-    const response = await fetch("http://ec2-13-125-126-160.ap-northeast-2.compute.amazonaws.com:8080/users/signup", {
+    const response = await fetch("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/users/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -116,7 +59,7 @@ export default function SignUpScreen({ navigation }) {
       } catch {
         error = { message: responseText };
       }
-      Alert.alert("회원가입 실패", error.message || "서버 오류가 발생했습니다.");
+      Alert.alert("회원가입 실패", error.message || "이미 사용중인 아이디입니다.");
     }
   } catch (error) {
     Alert.alert("네트워크 오류", "서버에 연결할 수 없습니다.");
@@ -146,12 +89,8 @@ export default function SignUpScreen({ navigation }) {
           value={id}
           onChangeText={(text) => {
             setId(text);
-            // setIsIdChecked(false); // 아이디 변경 시 중복 확인 필요
           }}
         />
-        {/* <TouchableOpacity style={styles.checkButton} onPress={checkDuplicateId}>
-          <Text style={styles.checkText}>중복</Text>
-        </TouchableOpacity> */}
       </View>
 
       <TextInput

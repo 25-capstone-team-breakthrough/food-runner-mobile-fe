@@ -39,7 +39,7 @@ export default function LoginScreen({ navigation }) {
     navigation.navigate("InputGenderAge");
     try {
       // 백 서버 연결 해야 함 !
-      const response = await fetch("http://ec2-13-125-126-160.ap-northeast-2.compute.amazonaws.com:8080/users/login", {
+      const response = await fetch("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

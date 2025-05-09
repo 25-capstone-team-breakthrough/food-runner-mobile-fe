@@ -12,8 +12,8 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { Entypo } from "@expo/vector-icons";
 import exerciseData from '../assets/ExerciseData.json';
 import { ExerciseContext } from "../context/ExerciseContext";
-
-
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function ExerciseRegister({ sheetRef, onClose }) {
@@ -27,26 +27,64 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
 
   const { addExercise } = useContext(ExerciseContext);
   const snapPoints = useMemo(() => ["80%"], []);
-
+  
   useEffect(() => {
     const cleaned = exerciseData.map((row) => ({
+      ExerciseId: row.ExerciseId, // ← 여기 유지
       name: row.ExerciseName?.trim(),
       target: row.ExerciseTarget?.replace(/#/g, "").trim() || "기타",
-      type: row.ExerciseType?.trim(),
+      type: row.ExerciseType?.trim()
     }));
     setExerciseList(cleaned);
   }, []);
+  
 
   const handleSearchChange = (text) => setExerciseName(text);
 
-  const toggleFavorite = (exerciseName) => {
-    setFavorites((prev) => {
-      const updated = { ...prev };
-      if (updated[exerciseName]) delete updated[exerciseName];
-      else updated[exerciseName] = true;
-      return updated;
-    });
+  const toggleFavorite = async (exercise) => {
+    const exerciseId = exercise.ExerciseId;
+    const token = await AsyncStorage.getItem("token");
+  
+    if (!token) {
+      console.error("❗토큰 없음 - 로그인 확인 필요");
+      return;
+    }
+  
+    const isFavorited = favorites[exerciseId];
+  
+    // 👉 UI를 먼저 업데이트 (Optimistic UI)
+    setFavorites((prev) => ({
+      ...prev,
+      [exerciseId]: !isFavorited,
+    }));
+  
+    try {
+      if (isFavorited) {
+        // 삭제 요청
+        await axios.delete(
+          `http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/remove/${exerciseId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        // 추가 요청
+        const res = await axios.post(
+          `http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/favoriteAdd`,
+          { exerciseId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        console.log("✅ 즐겨찾기 추가 완료:", res.data); // ← 이 줄!
+      }
+    } catch (err) {
+      console.error("❌ 즐겨찾기 요청 실패:", err.response?.data || err.message);
+  
+      // ❗ 실패 시 원래 상태로 롤백
+      setFavorites((prev) => ({
+        ...prev,
+        [exerciseId]: isFavorited,
+      }));
+    }
   };
+        
 
   const handleExerciseClick = (exercise) => {
     setCurrentExercise(exercise);
@@ -71,33 +109,78 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
   const handleDeleteSet = (index) => {
     setSetData((prev) => prev.filter((_, i) => i !== index));
   };
-
-  const handleSave = () => {
+  
+  const handleSave = async () => {
     const newRecord = {
-      id: Date.now().toString(),
       name: currentExercise.name,
       part: currentExercise.target,
       type: currentExercise.type,
-      date: new Date().toISOString().slice(0, 10), // <-- 정확히 이 형식으로 저장해야 함
+      date: new Date().toISOString().slice(0, 10),
       records: currentExercise.type === "근력" ? [...setData] : { ...cardioData },
     };
+    const token = await AsyncStorage.getItem("token");
 
-    console.log("🟢 저장되는 운동 기록:", newRecord); // 이 줄 추가
-      
-    addExercise(newRecord); // context에 저장
+    const payload =
+    currentExercise.type === "근력"
+      ? {
+          exerciseId: currentExercise.ExerciseId,
+          strengthSets: setData.map((set) => ({
+            sets: set.set,
+            reps: Number(set.reps),
+            weight: Number(set.weight),
+          })),
+        }
+      : {
+          exerciseId: currentExercise.ExerciseId,
+          distance: parseFloat(cardioData.distance),
+          time: parseInt(cardioData.duration),
+          pace: parseFloat(cardioData.pace),
+        };
+  
+
+    try {
+      const res = await axios.post(
+        "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/log",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("✅ 운동 기록 저장 성공:", res.data);
+    } catch (err) {
+      console.error("❌ 운동 기록 저장 실패:", err);
+    }
+
+    addExercise(newRecord);
+    setRefreshKey((prev) => prev + 1);
     setCurrentPage("exerciseList");
     setCurrentExercise(null);
     setSetData([]);
     setCardioData({ distance: "", duration: "", pace: "" });
   };
-  const favoriteExercises = exerciseList.filter((ex) => favorites[ex.name]);
-  const regularExercises = exerciseList.filter((ex) => !favorites[ex.name]);
-  const filteredFavorites = favoriteExercises.filter((ex) =>
-    ex.name.includes(exerciseName)
-  );
-  const filteredRegular = regularExercises.filter((ex) =>
-    ex.name.includes(exerciseName)
-  );
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      const token = await AsyncStorage.getItem("token");
+      try {
+        const res = await axios.get("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/favoriteSearch", { headers: { Authorization: `Bearer ${token}` } });
+        const favoriteMap = {};
+        res.data.forEach((item) => { favoriteMap[item.exerciseId] = true; });
+        setFavorites(favoriteMap);
+      } catch (err) {
+        console.error("즐겨찾기 조회 실패", err);
+      }
+    };
+    fetchFavorites();
+  }, [exerciseList]);
+  
+  
+  const favoriteExercises = exerciseList.filter((ex) => favorites[ex.ExerciseId]);
+  const regularExercises = exerciseList.filter((ex) => !favorites[ex.ExerciseId]);
+  const filteredFavorites = favoriteExercises.filter((ex) => ex.name.includes(exerciseName));
+  const filteredRegular = regularExercises.filter((ex) => ex.name.includes(exerciseName));
 
   return (
     <BottomSheet
@@ -147,10 +230,14 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
                     {filteredFavorites.map((ex, idx) => (
                       <View key={idx} style={styles.exerciseItem}>
                         <TouchableOpacity
-                          onPress={() => toggleFavorite(ex.name)}
+                          onPress={() => toggleFavorite(ex)}
                           style={styles.favoriteButton}
                         >
-                          <Ionicons name="star" size={24} color="#E1FF01" />
+                          <Ionicons
+                            name={favorites[ex.ExerciseId] ? "star" : "star-outline"}
+                            size={24}
+                            color={favorites[ex.ExerciseId] ? "#E1FF01" : "gray"}
+                          />
                         </TouchableOpacity>
                         <View style={styles.exerciseTextContainer}>
                           <TouchableOpacity onPress={() => handleExerciseClick(ex)}>
@@ -167,7 +254,7 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
                     {filteredRegular.map((ex, idx) => (
                       <View key={idx} style={styles.exerciseItem}>
                         <TouchableOpacity
-                          onPress={() => toggleFavorite(ex.name)}
+                          onPress={() => toggleFavorite(ex)}
                           style={styles.favoriteButton}
                         >
                           <Ionicons name="star-outline" size={24} color="gray" />
