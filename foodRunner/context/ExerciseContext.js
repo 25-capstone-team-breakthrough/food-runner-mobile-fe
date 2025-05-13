@@ -1,19 +1,26 @@
 // context/ExerciseContext.js
-import React, { createContext, useState } from 'react';
+
+import React, { createContext, useState } from "react";
 
 export const ExerciseContext = createContext();
 
 export const ExerciseProvider = ({ children }) => {
-  const [exercises, setExercises] = useState([]);
-  const [refreshKey, setRefreshKey] = useState(0); // 💡 새로고침 트리거
+  const [exerciseList, setExerciseList] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0); // ✅ 새로고침 트리거용 상태
 
   const addExercise = (exercise) => {
-    setExercises((prev) => [...prev, exercise]);
-    setRefreshKey((prev) => prev + 1); // 👉 트리거 증가
+    setExerciseList((prev) => [...prev, exercise]);
   };
 
   return (
-    <ExerciseContext.Provider value={{ exercises, addExercise, refreshKey }}>
+    <ExerciseContext.Provider
+      value={{
+        exerciseList,
+        addExercise,
+        refreshKey,
+        setRefreshKey, // ✅ 꼭 포함해야 ExerciseRegister에서 작동함
+      }}
+    >
       {children}
     </ExerciseContext.Provider>
   );

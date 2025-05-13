@@ -14,9 +14,12 @@ import exerciseData from '../assets/ExerciseData.json';
 import { ExerciseContext } from "../context/ExerciseContext";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native"; // 상단에 추가
 
 
-export default function ExerciseRegister({ sheetRef, onClose }) {
+
+
+export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
   const [exerciseName, setExerciseName] = useState("");
   const [favorites, setFavorites] = useState({});
   const [exerciseList, setExerciseList] = useState([]);
@@ -24,8 +27,8 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
   const [cardioData, setCardioData] = useState({ distance: "", duration: "", pace: "" });
   const [currentExercise, setCurrentExercise] = useState(null);
   const [currentPage, setCurrentPage] = useState("exerciseList");
-
   const { addExercise } = useContext(ExerciseContext);
+
   const snapPoints = useMemo(() => ["80%"], []);
   
   useEffect(() => {
@@ -38,12 +41,31 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
     setExerciseList(cleaned);
   }, []);
   
+  useEffect(() => {
+    const distance = parseFloat(cardioData.distance);
+    const duration = parseFloat(cardioData.duration);
+  
+    if (distance > 0 && duration > 0) {
+      const paceTotalMinutes = duration / distance;
+      const minutes = Math.floor(paceTotalMinutes);
+      const seconds = Math.round((paceTotalMinutes - minutes) * 60);
+  
+      const paceFormatted = `${minutes}분 ${String(seconds).padStart(2, '0')}초/km`;
+  
+      setCardioData((prev) => ({ ...prev, pace: paceFormatted }));
+    } else {
+      setCardioData((prev) => ({ ...prev, pace: "" }));
+    }
+  }, [cardioData.distance, cardioData.duration]);
+  
+  
 
   const handleSearchChange = (text) => setExerciseName(text);
 
   const toggleFavorite = async (exercise) => {
     const exerciseId = exercise.ExerciseId;
     const token = await AsyncStorage.getItem("token");
+    console.log("🧪 가져온 토큰:", token);
   
     if (!token) {
       console.error("❗토큰 없음 - 로그인 확인 필요");
@@ -118,10 +140,10 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
       date: new Date().toISOString().slice(0, 10),
       records: currentExercise.type === "근력" ? [...setData] : { ...cardioData },
     };
+  
     const token = await AsyncStorage.getItem("token");
-
-    const payload =
-    currentExercise.type === "근력"
+  
+    const payload = currentExercise.type === "근력"
       ? {
           exerciseId: currentExercise.ExerciseId,
           strengthSets: setData.map((set) => ({
@@ -137,7 +159,6 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
           pace: parseFloat(cardioData.pace),
         };
   
-
     try {
       const res = await axios.post(
         "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/log",
@@ -149,16 +170,20 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
         }
       );
       console.log("✅ 운동 기록 저장 성공:", res.data);
-    } catch (err) {
-      console.error("❌ 운동 기록 저장 실패:", err);
-    }
+  
+      // ✅ 등록 성공 후 처리
+      Alert.alert("등록 완료", "운동 기록이 저장되었습니다.");
+      addExercise(newRecord);
+      setRefreshKey((prev) => prev + 1); 
+      setCurrentPage("exerciseList");
+      setCurrentExercise(null);
+      setSetData([]);
+      setCardioData({ distance: "", duration: "", pace: "" });
 
-    addExercise(newRecord);
-    setRefreshKey((prev) => prev + 1);
-    setCurrentPage("exerciseList");
-    setCurrentExercise(null);
-    setSetData([]);
-    setCardioData({ distance: "", duration: "", pace: "" });
+        
+    } catch (err) {
+      console.error("❌ 운동 기록 저장 실패:", err.response?.data || err.message);
+    }
   };
 
   useEffect(() => {
@@ -282,32 +307,44 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
                   <>
                     <Text style={styles.setTitle}>{currentExercise.name}</Text>
                     <Text style={styles.recordText}>기록</Text>
+                    // tableHeader
                     <View style={styles.tableHeader}>
-                      <Text style={styles.tableHeaderText}>세트</Text>
-                      <Text style={styles.tableHeaderText}>무게</Text>
-                      <Text style={styles.tableHeaderText}>횟수</Text>
-                      <Text style={styles.tableHeaderText}>삭제</Text>
+                      <Text style={styles.headerCell}>세트</Text>
+                      <Text style={styles.headerCell}>무게</Text>
+                      <Text style={styles.headerCell}>횟수</Text>
+                      <Text style={styles.headerCell}>삭제</Text>
                     </View>
+
+                    // tableRow
                     {setData.map((set, i) => (
                       <View key={i} style={styles.tableRow}>
-                        <Text style={styles.tableCell}>{set.set}</Text>
-                        <TextInput
-                          style={styles.input}
-                          keyboardType="numeric"
-                          value={set.weight}
-                          onChangeText={(t) => handleSetChange(i, "weight", t)}
-                        />
-                        <TextInput
-                          style={styles.input}
-                          keyboardType="numeric"
-                          value={set.reps}
-                          onChangeText={(t) => handleSetChange(i, "reps", t)}
-                        />
-                        <TouchableOpacity onPress={() => handleDeleteSet(i)}>
-                          <Ionicons name="trash" size={24} color="red" />
-                        </TouchableOpacity>
+                        <View style={styles.rowCell}>
+                          <Text style={styles.cellText}>{set.set}</Text>
+                        </View>
+                        <View style={styles.rowCell}>
+                          <TextInput
+                            style={styles.input}
+                            keyboardType="numeric"
+                            value={set.weight}
+                            onChangeText={(t) => handleSetChange(i, "weight", t)}
+                          />
+                        </View>
+                        <View style={styles.rowCell}>
+                          <TextInput
+                            style={styles.input}
+                            keyboardType="numeric"
+                            value={set.reps}
+                            onChangeText={(t) => handleSetChange(i, "reps", t)}
+                          />
+                        </View>
+                        <View style={styles.rowCell}>
+                          <TouchableOpacity onPress={() => handleDeleteSet(i)}>
+                            <Ionicons name="trash" size={22} color="red" />
+                          </TouchableOpacity>
+                        </View>
                       </View>
                     ))}
+
                     <TouchableOpacity onPress={handleAddSet} style={styles.addButton}>
                       <Entypo name="plus" size={24} color="black" />
                     </TouchableOpacity>
@@ -342,14 +379,15 @@ export default function ExerciseRegister({ sheetRef, onClose }) {
                       </View>
                       <View style={styles.cardioInputGroup}>
                         <Text style={styles.cardioLabel}>평균 페이스</Text>
-                        <TextInput
-                          style={styles.cardioInput}
-                          keyboardType="default"
-                          value={cardioData.pace}
-                          onChangeText={(t) =>
-                            setCardioData({ ...cardioData, pace: t })
-                          }
-                        />
+                        <Text style={[styles.cardioInput, {
+                          backgroundColor: "#333",
+                          color: "#bbb",
+                          textAlign: "center",
+                          paddingVertical: 10,
+                        }]}>
+                          {cardioData.pace || "0분 00초/km"}
+                        </Text>
+
                       </View>
                     </View>
                   </>
@@ -402,18 +440,43 @@ const styles = StyleSheet.create({
   targetText: { fontSize: 14, color: "#929090", marginTop: 5 },
   setTitle: { fontSize: 25, fontWeight: "bold", color: "white", marginBottom: 20 },
   recordText: { fontSize: 18, color: "white", marginBottom: 30, fontWeight: "bold" },
-  tableHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
+  tableHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+  },
+  headerCell: {
+    flex: 1,
+    textAlign: "center",
+    color: "white",
+    fontSize: 15,
+    fontWeight: "bold",
+  },
   tableHeaderText: { color: "white", flex: 1, textAlign: "center", fontSize: 16 },
-  tableRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  tableRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  rowCell: {
+    flex: 1,
+    alignItems: "center",
+  },
+  cellText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+  },
   tableCell: { color: "white", flex: 1, textAlign: "center" },
   input: {
     backgroundColor: "#444",
     color: "white",
-    flex: 1,
-    height: 40,
-    marginHorizontal: 10,
-    borderRadius: 5,
+    width: "80%", // 고정 너비 설정으로 줄 맞춤
+    height: 38,
+    borderRadius: 6,
     textAlign: "center",
+    fontSize: 15,
   },
   addButton: {
     width: 40,
@@ -434,7 +497,7 @@ const styles = StyleSheet.create({
   cardioInput: {
     backgroundColor: "#444",
     color: "white",
-    width: 80,
+    width: 100,
     height: 40,
     textAlign: "center",
     borderRadius: 10,

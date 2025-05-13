@@ -6,11 +6,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import exerciseData from "../assets/ExerciseData.json";
 
-export default function ExerciseHistory({ onClose, selectedDate }) {
+export default function ExerciseHistory({ onClose, selectedDate, refreshKey, setRefreshKey }) {
   const [isDetailVisible, setIsDetailVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
-  const { refreshKey } = useContext(ExerciseContext);
   const [exerciseLogs, setExerciseLogs] = useState([]);
+
 
   const formattedDate = selectedDate.replace(/\./g, "-");
 
@@ -37,9 +37,9 @@ export default function ExerciseHistory({ onClose, selectedDate }) {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setExerciseLogs((prev) => prev.filter((log) => log.id !== logId));
       setIsDetailVisible(false);
       setSelectedExercise(null);
+      setRefreshKey((prev) => prev + 1);
     } catch (err) {
       console.error("❌ 운동 기록 삭제 실패:", err.response?.data || err.message);
     }

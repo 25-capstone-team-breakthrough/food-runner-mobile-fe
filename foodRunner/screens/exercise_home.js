@@ -9,6 +9,9 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import ExerciseHistory from "../screens/exercise_history";
 import { BlurView } from "expo-blur";
 import Svg, { Polyline, Circle, Text as SvgText, Line } from 'react-native-svg';
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 export default function ExerciseHome() {
   const navigation = useNavigation();
@@ -22,18 +25,28 @@ export default function ExerciseHome() {
   const sheetRef = useRef(null);
   const historySheetRef = useRef(null);
   const calendarSheetRef = useRef(null);
+  const [totalCalories, setTotalCalories] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [weeklyCalories, setWeeklyCalories] = useState([]);
+  const [weekLabels, setWeekLabels] = useState([]);
+  
+
+
+
+
+
 
   const historySnapPoints = useMemo(() => ["80%"], []);
   const calendarSnapPoints = useMemo(() => ["80%"], []);
 
-  const SimpleLineChart = ({ data, weekDates }) => {
+  const SimpleLineChart = ({ data, weekDates, todayLabel }) => {
     const graphWidth = 330;
     const graphHeight = 160;
     const paddingLeft = 30;
     const paddingRight = 10;
     const paddingTop = 20;
     const paddingBottom = 30;
-    const yMax = 1500;
+    const yMax = 1000;
   
     const spacing = (graphWidth - paddingLeft - paddingRight) / (weekDates.length + 1);
   
@@ -55,7 +68,7 @@ export default function ExerciseHome() {
           <Line x1={paddingLeft} y1={graphHeight - paddingBottom} x2={graphWidth - paddingRight} y2={graphHeight - paddingBottom} stroke="#888" strokeWidth="1" />
   
           {/* 🔥 가로선 (Grid Lines) */}
-          {[0, 500, 1000, 1500].map((yValue, idx) => {
+          {[0, 250, 500, 750, 1000].map((yValue, idx) => {
             const y = paddingTop + (1 - yValue / yMax) * (graphHeight - paddingTop - paddingBottom);
             const isZeroLine = yValue === 0;
             return (
@@ -65,15 +78,16 @@ export default function ExerciseHome() {
                 y1={y}
                 x2={graphWidth - paddingRight}
                 y2={y}
-                stroke="#555555"     // grid 선 색 (#333 추천, 너무 튀지 않게)
-                strokeDasharray={isZeroLine ? undefined : "4 2"} // ✅ 0이면 실선, 나머지는 점선
+                stroke="#555555"
+                strokeDasharray={isZeroLine ? undefined : "4 2"}
                 strokeWidth="0.7"
               />
             );
           })}
+
   
           {/* Y축 레이블 */}
-          {[0, 500, 1000, 1500].map((yValue, idx) => {
+          {[0, 250, 500, 750, 1000].map((yValue, idx) => {
             const y = paddingTop + (1 - yValue / yMax) * (graphHeight - paddingTop - paddingBottom);
             return (
               <SvgText
@@ -88,6 +102,7 @@ export default function ExerciseHome() {
               </SvgText>
             );
           })}
+
   
           {/* X축 레이블 */}
           {weekDates.map((label, idx) => {
@@ -115,15 +130,21 @@ export default function ExerciseHome() {
           />
   
           {/* 점 */}
-          {pointCoordinates.map((point, idx) => (
-            <Circle
-              key={`point-${idx}`}
-              cx={point.x}
-              cy={point.y}
-              r="3"
-              fill="#DDFB21"
-            />
-          ))}
+          {pointCoordinates.map((point, idx) => {
+            const isToday = weekDates[idx] === todayLabel; // 오늘이면 강조 스타일 적용
+            return (
+              <Circle
+                key={`point-${idx}`}
+                cx={point.x}
+                cy={point.y}
+                r={isToday ? 5 : 3}
+                fill={isToday ? "#E1FF01" : "#DDFB21"}
+                stroke={isToday ? "#FFFFFF" : "none"}
+                strokeWidth={isToday ? 1.5 : 0}
+              />
+            );
+          })}
+
         </Svg>
       </View>
     );
@@ -148,6 +169,58 @@ export default function ExerciseHome() {
     setSelectedDay(dayName);
   }, []);
 
+  useEffect(() => {
+    const fetchCalories = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const res = await axios.get(
+          "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/calories",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+  
+        // 📆 선택된 날짜 객체
+        const selected = new Date(selectedDate.replace(/\./g, '-'));
+        const formattedToday = selected.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  
+        // 🗓️ 주간 시작일 (일요일)
+        const startOfWeek = new Date(selected);
+        startOfWeek.setDate(selected.getDate() - selected.getDay());
+  
+        const weekLabels = [];
+        const weekTotals = [];
+  
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(startOfWeek);
+          d.setDate(startOfWeek.getDate() + i);
+  
+          const iso = d.toISOString().slice(0, 10); // YYYY-MM-DD
+          const label = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+          weekLabels.push(label);
+  
+          const dayLogs = res.data.filter(log => log.createdAt.slice(0, 10) === iso);
+          const total = dayLogs.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
+          weekTotals.push(total);
+  
+          // ✅ 오늘 날짜일 경우 홈화면용 totalCalories 저장
+          if (iso === formattedToday) {
+            setTotalCalories(total);
+          }
+        }
+  
+        setWeeklyCalories(weekTotals);
+        setWeekLabels(weekLabels);
+  
+      } catch (err) {
+        console.error("❌ 칼로리 조회 실패:", err.response?.data || err.message);
+      }
+    };
+  
+    fetchCalories();
+  }, [selectedDate, refreshKey]);
+      
+  
   const onDateSelect = (date) => {
     // 날짜 선택 후 바로 이동하지 않도록 selectedDate 상태만 업데이트
     const formattedDate = date.dateString.split("-").join(".");
@@ -199,6 +272,26 @@ export default function ExerciseHome() {
       navigation.navigate("ExerciseRecommendVideo", { category: exercise });
     }
   };
+  const getWeekRangeLabels = (dateString) => {
+    const targetDate = new Date(dateString); // '2025-05-13'
+    const dayOfWeek = targetDate.getDay(); // 0 (일) ~ 6 (토)
+    
+    // 일요일 시작일 구하기
+    const startOfWeek = new Date(targetDate);
+    startOfWeek.setDate(targetDate.getDate() - dayOfWeek);
+  
+    const labels = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      labels.push(`${mm}.${dd}`);
+    }
+  
+    return labels;
+  };
+  
 
 
   return (
@@ -303,8 +396,9 @@ export default function ExerciseHome() {
         <View style={{ alignItems: "center", marginBottom: 10 }}>
           <Text style={{ color: "white", fontSize: 16, marginBottom: 5 }}>소모한 칼로리</Text>
           <Text style={{ color: "white", fontSize: 38, fontWeight: "bold" }}>
-            500 <Text style={{ fontSize: 20 }}>kcal</Text>
+            {totalCalories} <Text style={{ fontSize: 20 }}>kcal</Text>
           </Text>
+
         </View>
 
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
@@ -400,9 +494,15 @@ export default function ExerciseHome() {
 
           <View style={{ marginTop: 20 }}>
           <SimpleLineChart
-            data={[300, 500, 800, 400, 1000, 1200, 700]} // 7개 데이터
-            weekDates={['04.29', '04.30', '05.01', '05.02', '05.03', '05.04', '05.05']} // 선택한 주간 날짜
+            data={weeklyCalories}
+            weekDates={weekLabels}
+            todayLabel={selectedDate.slice(5)} // selectedDate: "2025.05.13" → "05.13" 추출
           />
+
+
+
+
+
           </View>
 
           <TouchableOpacity
@@ -424,6 +524,7 @@ export default function ExerciseHome() {
       <ExerciseRegister
         sheetRef={sheetRef}
         onClose={handleCloseBottomSheet}
+        setRefreshKey={setRefreshKey} 
         snapPoints={["80%"]}
         index={-1}
       />
@@ -437,10 +538,12 @@ export default function ExerciseHome() {
         backgroundStyle={{ backgroundColor: "#2D2D35" }}
         enablePanDownToClose={true}
       >
-        <ExerciseHistory
-          onClose={handleCloseHistorySheet}
-          selectedDate={selectedDate}
-        />
+      <ExerciseHistory
+        onClose={handleCloseHistorySheet}
+        selectedDate={selectedDate}
+        refreshKey={refreshKey}
+        setRefreshKey={setRefreshKey}
+      />
       </BottomSheet>
 
       {/* 하단 네비게이션 */}
