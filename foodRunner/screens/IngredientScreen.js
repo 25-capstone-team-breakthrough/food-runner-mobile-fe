@@ -13,28 +13,27 @@ import SearchBar from "../components/SearchBar";
 
 export default function IngredientScreen({ navigation }) {
   const [search, setSearch] = useState("");
-  const [ingredients, setIngredients] = useState([
-    "바나나",
-    "프로틴 쉐이크",
-    "삶은 달걀",
-    "고등어",
-    "양배추",
-    "시금치",
-    "사과",
-    "두부",
-    "삶은 달걀",
-    "고등어",
-    "양배추",
-    "시금치",
-    "사과",
-    "두부",
-  ]);
-
-  const [pressedStates, setPressedStates] = useState(
-    new Array(ingredients.length).fill(false) 
-  );
-  const [filteredItems, setFilteredItems] = useState([]);
+  const [ingredients, setIngredients] = useState([]); // 추천 식재료
+  const [filteredItems, setFilteredItems] = useState([]); // 검색 결과
   const [selectedItem, setSelectedItem] = useState(null);
+  const [pressedStates, setPressedStates] = useState([]);
+  // const [ingredients, setIngredients] = useState([
+  //   "바나나",
+  //   "프로틴 쉐이크",
+  //   "삶은 달걀",
+  //   "고등어",
+  //   "양배추",
+  //   "시금치",
+  //   "사과",
+  //   "두부",
+  //   "삶은 달걀",
+  //   "고등어",
+  //   "양배추",
+  //   "시금치",
+  //   "사과",
+  //   "두부",
+  // ]);
+
 
   useEffect(() => {
     if (search.trim().length === 0) {
@@ -42,23 +41,38 @@ export default function IngredientScreen({ navigation }) {
       return;
     }
 
-    fetch(`http://YOUR_BACKEND_URL/diet/ingredient/data/load`)
+    fetch("http://13.209.199.97:8080/diet/ingredient/data/load")
       .then((res) => res.json())
       .then((data) => {
+        console.log("검색데이터:",data)
         const filtered = data.filter((item) =>
           item.foodName.toLowerCase().includes(search.toLowerCase())
         );
         setFilteredItems(filtered);
       })
       .catch((err) => console.error("검색 실패:", err));
+      
   }, [search]);
 
-
+  // 추천 식재료 불러오기 (처음 로딩 + 검색어가 없을 때만)
+  useEffect(() => {
+    if (search.length === 0) {
+      fetch("http://13.209.199.97:8080/diet/ingredient/rec/load")
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("추천식재료데이터:",data)
+          setIngredients(data);
+          setPressedStates(new Array(data.length).fill(false));
+        })
+        .catch((err) => console.error("추천 식재료 불러오기 실패:", err));
+        console.log(data)
+    }
+  }, [search]);
 
   const handlePress = (index) => {
-    const newStates = [...pressedStates]; 
-    newStates[index] = !newStates[index]; 
-    setPressedStates(newStates); 
+    const newStates = [...pressedStates];
+    newStates[index] = !newStates[index];
+    setPressedStates(newStates);
   };
 
   return (
@@ -67,10 +81,6 @@ export default function IngredientScreen({ navigation }) {
       <SearchBar value={search} onChangeText={setSearch} 
         placeholder="식재료를 추가해주세요" 
       />
-
-      
-
-      
 
       {filteredItems.length > 0 ? (
         <>
