@@ -1,6 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import {
   FlatList,
+  Image,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,58 +20,73 @@ export default function IngredientScreen({ navigation }) {
   const [filteredItems, setFilteredItems] = useState([]); // 검색 결과
   const [selectedItem, setSelectedItem] = useState(null);
   const [pressedStates, setPressedStates] = useState([]);
-  // const [ingredients, setIngredients] = useState([
-  //   "바나나",
-  //   "프로틴 쉐이크",
-  //   "삶은 달걀",
-  //   "고등어",
-  //   "양배추",
-  //   "시금치",
-  //   "사과",
-  //   "두부",
-  //   "삶은 달걀",
-  //   "고등어",
-  //   "양배추",
-  //   "시금치",
-  //   "사과",
-  //   "두부",
-  // ]);
-  // 테스트
-
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   useEffect(() => {
-    if (search.trim().length === 0) {
-      setFilteredItems([]);
-      return;
-    }
+    const fetchSearchResults = async () => {
+      try {
+        if (search.trim().length === 0) {
+          setFilteredItems([]);
+          return;
+        }
 
-    fetch("http://13.209.199.97:8080/diet/ingredient/data/load")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("검색데이터:",data)
-        const filtered = data.filter((item) =>
-          item.foodName.toLowerCase().includes(search.toLowerCase())
-        );
+        const token = await AsyncStorage.getItem("token");
+        const res = await fetch("http://13.209.199.97:8080/diet/ingredient/data/load", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const text = await res.text();
+        if (!res.ok || !text) throw new Error("검색 응답 오류 또는 빈 응답");
+
+        const data = JSON.parse(text);
+        const filtered = data.filter((item) => {
+          const name = item.foodName || item.ingredientName || "";
+          return name.toLowerCase().includes(search.toLowerCase());
+        });
+
         setFilteredItems(filtered);
-      })
-      .catch((err) => console.error("검색 실패:", err));
-      
+      } catch (err) {
+        console.error("❌ 검색 실패:", err);
+      }
+    };
+
+    fetchSearchResults();
   }, [search]);
 
   // 추천 식재료 불러오기 (처음 로딩 + 검색어가 없을 때만)
   useEffect(() => {
+    console.log("🔥 useEffect 실행됨, search:", search);
+    const fetchRecommendedIngredients = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const res = await fetch("http://13.209.199.97:8080/diet/ingredient/rec/load", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const text = await res.text();
+        console.log("🧾 응답 텍스트:", text);
+        const data = JSON.parse(text);
+        if (!Array.isArray(data)) throw new Error("데이터 형식 오류");
+
+        setIngredients(data);
+        setPressedStates(new Array(data.length).fill(false));
+        // setIsFirstLoad(false);
+      } catch (err) {
+        console.error("❌ 추천 식재료 불러오기 실패:", err);
+      }
+    };
+
     if (search.length === 0) {
-      fetch("http://13.209.199.97:8080/diet/ingredient/rec/load")
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("추천식재료데이터:",data)
-          setIngredients(data);
-          setPressedStates(new Array(data.length).fill(false));
-        })
-        .catch((err) => console.error("추천 식재료 불러오기 실패:", err));
-        console.log(data)
+      fetchRecommendedIngredients();
     }
   }, [search]);
+
 
   const handlePress = (index) => {
     const newStates = [...pressedStates];
@@ -77,46 +95,53 @@ export default function IngredientScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       
-      <SearchBar value={search} onChangeText={setSearch} 
+      {/* <SearchBar value={search} onChangeText={setSearch} 
         placeholder="식재료를 추가해주세요" 
-      />
+      /> */}
+      <View style={styles.searchBar}>
+        <SearchBar value={search} onChangeText={setSearch} 
+          placeholder="제품명/추가해주세요" 
+        />
+      </View>
 
       {filteredItems.length > 0 ? (
         <>
-          <Text style={{ alignSelf: 'flex-start', marginLeft: 30, fontSize: 16 }}>
+          <Text style={styles.searchMountText}>
             검색결과 {filteredItems.length}개
           </Text>
           <FlatList
             data={filteredItems}
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item) => item.ingredientId.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => {
-                  setSelectedItem(selectedItem === item ? null : item);
-                  console.log("선택된 아이템:", item);
-                }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: selectedItem === item ? '#e0f7fa' : '#f1f1f1',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginVertical: 4,
-                  marginHorizontal: 20,
-                }}
-              >
-                <Text style={{ fontSize: 16 }}>{item.foodName || item}</Text>
+              onPress={() => {
+                setSelectedItem(selectedItem?.ingredientId === item.ingredientId ? null : item);
+              }}
+              style={[
+                styles.resultItem,
+                selectedItem?.ingredientId === item.ingredientId && styles.selectedItem,
+              ]}
+            >
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Image source={{ uri: item.ingredientImage }} style={styles.itemImage} />
+                  <View style={styles.threeText}>
+                    <Text style={styles.itemName}>{item.ingredientName}</Text>
+                    <Text style={styles.itemKcal}>{item.calories} kcal</Text>
+                  </View>
+                </View>
               </TouchableOpacity>
             )}
+            contentContainerStyle={{ 
+              paddingHorizontal: 30,
+              paddingBottom: 105,
+             }}
           />
         </>
       ) : (
         search.length > 0 && (
-          <Text style={{ alignSelf: 'center', marginVertical: 20 }}>
-            검색 결과가 없습니다.
-          </Text>
+          <Text style={styles.searchMountText}>검색 결과가 없습니다</Text>
         )
       )}
 
@@ -127,10 +152,13 @@ export default function IngredientScreen({ navigation }) {
           <Text style={styles.subTitle}>추천재료</Text>
           <FlatList
             data={ingredients}
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item, index) => {
+              console.log("🔥 item:", item);
+              return item.ingredientId?.toString() ?? `fallback-${index}`;
+            }}
             numColumns={2}
             columnWrapperStyle={styles.row}
-            scrollEnabled={false}
+            scrollEnabled={true}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.listContainer}
             renderItem={({ item, index }) => (
@@ -138,21 +166,54 @@ export default function IngredientScreen({ navigation }) {
                 style={[styles.ingredientButton, pressedStates[index] && styles.pressedEffect]}
                 onPress={() => handlePress(index)}
               >
-                <Text style={styles.ingredientText}>{item}</Text>
+                <Text style={styles.ingredientText}>{item.ingredientName}</Text>
               </TouchableOpacity>
             )}
           />
         </>
       )}
 
-
-
       {/* 등록하기 버튼 */}
-      <RegisterButton onPress={() => navigation.navigate("DietRecommendation")} />
+      <RegisterButton
+        onPress={async () => {
+          const token = await AsyncStorage.getItem("token");
+
+          // ✅ 추천 식재료 중 눌린 것만 필터링
+          const selectedIngredients = ingredients.filter((_, idx) => pressedStates[idx]);
+
+          // ✅ 각각 저장 요청 보내기
+          for (const item of selectedIngredients) {
+            try {
+              await fetch("http://13.209.199.97:8080/diet/ingredient/rec/save", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                body: new URLSearchParams({
+                  ingredientId: item.ingredientId.toString(),
+                }).toString(),
+              });
+              console.log("✅ 저장 성공:", item.ingredientName);
+            } catch (err) {
+              console.error("❌ 저장 실패:", item.ingredientName, err);
+            }
+          }
+
+          // ⛔ 검색 결과에서 선택된 항목은 보류 (주석만 표시)
+          // if (selectedItem) {
+          //   console.log("❗ 검색 결과 선택 항목:", selectedItem.ingredientName);
+          //   // 추후 저장 로직 구현 예정
+          // }
+
+          navigation.navigate("DietRecommendation");
+        }}
+      />
+
 
       {/* 하단 네비게이션 바 */}
       <BottomNavigation />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -160,29 +221,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  searchBar: {
     alignItems: "center",
-    paddingTop: 50,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F3F3F3",
-    width: "90%",
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderRadius: 50,
-    marginTop: 5,
-    marginBottom: 10,
-    height: 50,
-  },
-  searchIcon: {
-    marginLeft: 10,
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#000",
   },
   searchMountText: {
     fontSize: 16,

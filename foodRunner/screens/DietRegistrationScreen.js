@@ -160,7 +160,6 @@ const FoodSearchScreen = () => {
     </SafeAreaView>
   );
 };
-
 const styles = {
   container: {
     flex: 1,
