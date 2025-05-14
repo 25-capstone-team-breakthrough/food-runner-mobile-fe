@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState } from "react";
+import { useState } from "react";
 import { Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import AuthFooter from "../components/AuthFooter";
 
@@ -39,7 +39,7 @@ export default function LoginScreen({ navigation }) {
     navigation.navigate("InputGenderAge");
     try {
       // 백 서버 연결 해야 함 !
-      const response = await fetch("http://ec2-13-125-232-235.ap-northeast-2.compute.amazonaws.com:8080/users/login", {
+      const response = await fetch("http://13.209.199.97:8080/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

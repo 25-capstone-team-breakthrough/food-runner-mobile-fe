@@ -1,4 +1,5 @@
 import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -63,7 +64,70 @@ const NutritionMainScreen = () => {
   const [dietImages, setDietImages] = useState([]);
   const [supplementImages, setSupplementImages] = useState([]);
 
-  useEffect(() => {
+  const uploadAndSaveMealLog = async (localUri) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      console.log(token)
+
+      // 1. S3 업로드용 presigned URL 요청
+      const fileName = `meal-${Date.now()}.jpg`;
+      const contentType = "image";
+
+      const urlRes = await fetch(
+        `http://13.209.199.97:8080/diet/meal/getS3URL?fileName=${fileName}&contentType=${contentType}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(urlRes.status)
+      if (!urlRes.ok) throw new Error("S3 URL 요청 실패");
+      const presignedUrl = await urlRes.text();
+
+      // 2. 이미지 S3로 업로드
+      const imageRes = await fetch(localUri);
+      const blob = await imageRes.blob();
+
+      await fetch(presignedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "image" },
+        body: blob,
+      });
+
+      const s3ImageUrl = presignedUrl.split("?")[0]; // 쿼리 제거 → 실제 이미지 URL
+
+      // 3. 식사 기록 저장
+      const logRes = await fetch("http://13.209.199.97:8080/diet/meal/log/save", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "image", // 또는 다른 값
+          mealImage: s3ImageUrl,
+          foodId: null, // 실제 음식 ID 필요. route.params?.selectedItem?.foodId 등을 활용
+          dateTime: new Date().toISOString(),
+        }),
+      });
+
+      console.log("응답 상태:", urlRes.status);
+      if (!logRes.ok) throw new Error("식사 기록 저장 실패");
+      console.log("presigned 요청 상태코드:", urlRes.status);
+      const errorText = await urlRes.text();
+      console.log("에러 응답 내용:", errorText);
+
+      // 4. FlatList에 추가
+      setDietImages((prev) => [...prev, { uri: s3ImageUrl }]);
+
+    } catch (err) {
+      console.error("❌ 이미지 업로드 또는 저장 실패:", err);
+      Alert.alert("실패", "이미지 저장 중 오류가 발생했습니다.");
+    }
+  };
+
+
+  useEffect(() => { 
     (async () => {
       
       const galleryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -86,14 +150,96 @@ const NutritionMainScreen = () => {
       }
     })();
   }, [selectedItemFromRoute, selectedSupplementFromRoute]);
-  
-  
 
+  // 섭취한 음식 띄우기
+  useEffect(() => {
+    fetchMealLogs(); // 앱 시작 시 또는 필요한 시점에 불러오기
+  }, []);
+
+  const fetchMealLogs = async () => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+
+    const res = await fetch("http://13.209.199.97:8080/diet/meal/log/load", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("식사 기록 불러오기 실패: " + res.status);
+    }
+
+    const logs = await res.json();
+    console.log("식사 기록 가져오기 성공");
+    console.log("식사 섭취 기록:", logs);
+
+    const imageLogs = logs?.imageMealLogs
+      ?.map((log) => log.mealImage)
+      ?.filter(Boolean)
+      ?.map((url) => ({ uri: url }));
+
+
+    // mealImage 속성을 가진 배열로 변환
+    const searchLogs = logs?.searchMealLogs
+      ?.map((log) => log.foodImage)
+      ?.filter(Boolean)
+      ?.map((url) => ({ uri: url }));
+
+    const combinedImages = [...(imageLogs || []), ...(searchLogs || [])];
+
+    setDietImages(combinedImages);
+
+
+  } catch (err) {
+    console.error("❌ 식사 기록 불러오기 실패:", err);
+  }
+};
+
+  
+  // 섭취한 영양제 띄우기
+  useEffect(() => {
+    const fetchSupplementLogs = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+
+        const res = await fetch("http://13.209.199.97:8080/diet/sup/log/load", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("섭취 기록 불러오기 실패: " + res.status);
+        }
+
+        const logs = await res.json();
+        console.log("영양제 섭취 기록 가져오기 성공")
+        // console.log("✔️ 영양제 섭취 기록:", logs);
+
+        // 이미지 리스트 구성
+        const images = logs
+          .map((log) => log.supplementData?.supplementImage) 
+          .filter(Boolean) // null, undefined 제거
+          .map((url) => ({ uri: url })); // FlatList에 쓸 형태로 가공
+
+        setSupplementImages(images);
+      } catch (err) {
+        console.error("❌ 영양제 섭취 기록 불러오기 실패:", err);
+      }
+    };
+
+    fetchSupplementLogs();
+  }, []);
+
+  
   const openCamera = async () => {
     const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 1 });
     if (!result.canceled && result.assets?.length > 0) {
       const uri = result.assets[0].uri;
-      setDietImages((prev) => [...prev, { uri }]);
+      uploadAndSaveMealLog(uri); 
     }
   };
 
@@ -101,9 +247,10 @@ const NutritionMainScreen = () => {
     const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, quality: 1 });
     if (!result.canceled && result.assets?.length > 0) {
       const uri = result.assets[0].uri;
-      setDietImages((prev) => [...prev, { uri }]);
+      uploadAndSaveMealLog(uri);
     }
   };
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F3F3" }}>

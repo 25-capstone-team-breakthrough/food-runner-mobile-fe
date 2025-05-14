@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -33,6 +33,27 @@ export default function IngredientScreen({ navigation }) {
   const [pressedStates, setPressedStates] = useState(
     new Array(ingredients.length).fill(false) 
   );
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  useEffect(() => {
+    if (search.trim().length === 0) {
+      setFilteredItems([]);
+      return;
+    }
+
+    fetch(`http://YOUR_BACKEND_URL/diet/ingredient/data/load`)
+      .then((res) => res.json())
+      .then((data) => {
+        const filtered = data.filter((item) =>
+          item.foodName.toLowerCase().includes(search.toLowerCase())
+        );
+        setFilteredItems(filtered);
+      })
+      .catch((err) => console.error("검색 실패:", err));
+  }, [search]);
+
+
 
   const handlePress = (index) => {
     const newStates = [...pressedStates]; 
@@ -44,31 +65,76 @@ export default function IngredientScreen({ navigation }) {
     <View style={styles.container}>
       
       <SearchBar value={search} onChangeText={setSearch} 
-        placeholder="선호 식재료를 추가해주세요" 
+        placeholder="식재료를 추가해주세요" 
       />
-
-      <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
-
-      <Text style={styles.subTitle}>추천재료</Text>
 
       
-      <FlatList
-        data={ingredients}
-        keyExtractor={(item, index) => index.toString()}
-        numColumns={2} // 2열 배치
-        columnWrapperStyle={styles.row}
-        scrollEnabled={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.listContainer}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            style={[styles.ingredientButton, pressedStates[index] && styles.pressedEffect]} // ✅ 상태에 따라 스타일 변경
-            onPress={() => handlePress(index)}
-          >
-            <Text style={styles.ingredientText}>{item}</Text>
-          </TouchableOpacity>
-        )}
-      />
+
+      
+
+      {filteredItems.length > 0 ? (
+        <>
+          <Text style={{ alignSelf: 'flex-start', marginLeft: 30, fontSize: 16 }}>
+            검색결과 {filteredItems.length}개
+          </Text>
+          <FlatList
+            data={filteredItems}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedItem(selectedItem === item ? null : item);
+                  console.log("선택된 아이템:", item);
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: selectedItem === item ? '#e0f7fa' : '#f1f1f1',
+                  padding: 10,
+                  borderRadius: 10,
+                  marginVertical: 4,
+                  marginHorizontal: 20,
+                }}
+              >
+                <Text style={{ fontSize: 16 }}>{item.foodName || item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </>
+      ) : (
+        search.length > 0 && (
+          <Text style={{ alignSelf: 'center', marginVertical: 20 }}>
+            검색 결과가 없습니다.
+          </Text>
+        )
+      )}
+
+
+      {search.length === 0 && (
+        <>
+          <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
+          <Text style={styles.subTitle}>추천재료</Text>
+          <FlatList
+            data={ingredients}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
+            scrollEnabled={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.listContainer}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                style={[styles.ingredientButton, pressedStates[index] && styles.pressedEffect]}
+                onPress={() => handlePress(index)}
+              >
+                <Text style={styles.ingredientText}>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </>
+      )}
+
+
 
       {/* 등록하기 버튼 */}
       <RegisterButton onPress={() => navigation.navigate("DietRecommendation")} />
@@ -106,6 +172,49 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#000",
+  },
+  searchMountText: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: "#000000",
+    paddingTop: 30,
+    paddingBottom: 15,
+    paddingHorizontal: 40, 
+  },
+  resultItem: {
+    backgroundColor: "white",
+    borderRadius: 3,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  selectedItem: {
+    backgroundColor: "rgba(217, 217, 217, 0.4)",
+  },
+  itemImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 5,
+    marginLeft: 20,
+  },
+  threeText: {
+    marginLeft: 15,
+    gap: 5,
+  },
+  itemName: {
+    fontSize: 20,
+    fontWeight: "500",
+    color: "#000",
+  },
+  itemBrand: {
+    fontSize: 16,
+    color: "#898989",
+    marginTop: 4,
+  },
+  itemKcal: {
+    fontSize: 14,
+    color: "#898989",
+    marginTop: 4,
   },
   subTitle: {
     fontSize: 15,

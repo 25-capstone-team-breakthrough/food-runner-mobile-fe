@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -13,79 +13,6 @@ import BottomNavigation from "../components/BottomNavigation";
 import RegisterButton from "../components/RegisterButton";
 import SearchBar from "../components/SearchBar";
 
-// const foodItems = [
-//   {
-//     id: 1,
-//     name: "빅맥버거",
-//     brand: "맥도날드",
-//     kcal: 889,
-//     image: require("../assets/bigmac.png"),
-//   },
-//   {
-//     id: 2,
-//     name: "불고기버거",
-//     brand: "롯데리아",
-//     kcal: 489,
-//     image: require("../assets/bulgogi.png"),
-//   },
-//   {
-//     id: 3,
-//     name: "쉑쉑버거",
-//     brand: "쉑쉑",
-//     kcal: 1089,
-//     image: require("../assets/shakeshack.png"),
-//   },
-//   {
-//     id: 4,
-//     name: "빅맥버거",
-//     brand: "맥도날드",
-//     kcal: 889,
-//     image: require("../assets/bigmac.png"),
-//   },
-//   {
-//     id: 5,
-//     name: "빅맥버거",
-//     brand: "맥도날드",
-//     kcal: 889,
-//     image: require("../assets/bigmac.png"),
-//   },
-//   {
-//     id: 6,
-//     name: "빅맥버거",
-//     brand: "맥도날드",
-//     kcal: 889,
-//     image: require("../assets/bigmac.png"),
-//   },
-//   {
-//     id: 7,
-//     name: "빅맥버거",
-//     brand: "맥도날드",
-//     kcal: 889,
-//     image: require("../assets/bigmac.png"),
-//   },
-//   {
-//     id: 8,
-//     name: "빅맥버거",
-//     brand: "맥도날드",
-//     kcal: 889,
-//     image: require("../assets/bigmac.png"),
-//   },
-// ];
-
-// useEffect(() => {
-//   const fetchFoods = async () => {
-//     try {
-//       const res = await fetch(`http://<YOUR_BACKEND_HOST>:8080/api/data/foods`);
-//       const data = await res.json();
-//       setFoodItems(data); // FoodDataResponse DTO 리스트
-//     } catch (err) {
-//       console.error("음식 데이터 로딩 실패:", err);
-//     }
-//   };
-
-//   fetchFoods();
-// }, []);
-
 
 const FoodSearchScreen = () => {
   const navigation = useNavigation();
@@ -94,14 +21,14 @@ const FoodSearchScreen = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [foodItems, setFoodItems] = useState([]);
 
-  // ✅ API 호출 - 백엔드에서 음식 목록 가져오기
+
   useEffect(() => {
     const fetchFoods = async () => {
       try {
         const token = await AsyncStorage.getItem("token"); // 저장된 토큰 가져오기
         console.log("불러온 토큰:", token);
-  
-        const res = await fetch("http://ec2-13-125-232-235.ap-northeast-2.compute.amazonaws.com:8080/api/data/foods", {
+
+        const res = await fetch("http://13.209.199.97:8080/diet/food/data/load", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -113,18 +40,18 @@ const FoodSearchScreen = () => {
         if (!res.ok) {
           throw new Error(`서버 응답 오류: ${res.status}`);
         }
-  
+
         const data = await res.json();
-        // console.log("받아 온 데이터:", data);
         setFoodItems(data);
+        console.log("음식데이터 가져오기 성공");
       } catch (err) {
         console.error("❌ 음식 데이터 로딩 실패:", err);
       }
     };
-    
-  
+
     fetchFoods();
   }, []);
+
 
   // 🔹 검색어 변경 시 필터링
   const handleSearch = (text) => {
@@ -170,7 +97,9 @@ const FoodSearchScreen = () => {
                 <Image source={{ uri: item.foodImage }} style={styles.itemImage} />
                   <View style={styles.threeText}>
                     <Text style={styles.itemName}>{item.foodName}</Text>
-                    <Text style={styles.itemBrand}>{item.foodCompany}</Text>
+                    {item.foodCompany !== "해당없음" && (
+                      <Text style={styles.itemBrand}>{item.foodCompany}</Text>
+                    )}
                     <Text style={styles.itemKcal}>{item.calories} kcal</Text>
                   </View>
                 </View>
@@ -188,22 +117,53 @@ const FoodSearchScreen = () => {
         )
       )}
 
-      {/* 🔹 등록하기 버튼 */}
       <RegisterButton
-        onPress={() => {
-          if (selectedItem) {
-            navigation.navigate("NutritionMain", {
-              selectedItem: {
-                name: selectedItem.foodName,
-                kcal: selectedItem.calories,
-                image: { uri: selectedItem.foodImage },
-              },
-            });
-          } else {
+        onPress={async () => {
+          if (!selectedItem) {
             alert("음식을 선택해주세요!");
+            return;
+          }
+
+          try {
+            const token = await AsyncStorage.getItem("token");
+            console.log(token)
+
+            const response = await fetch("http://13.209.199.97:8080/diet/meal/log/save", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                type: "search", // 또는 LUNCH, DINNER, SNACK 등 사용자가 선택
+                mealImage: "http://image-url-from-s3", // 현재는 빈 문자열 또는 테스트용 URL로 넣어도 됨
+                foodId: selectedItem.foodId,
+                dateTime: new Date().toISOString(),
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`서버 오류: ${response.status}`);
+            }
+
+            alert("✅ 식사 기록이 저장되었습니다.");
+
+            navigation.navigate("NutritionMain"
+            //   , {
+            //   selectedItem: {
+            //     name: selectedItem.foodName,
+            //     kcal: selectedItem.calories,
+            //     image: { uri: selectedItem.foodImage },
+            //   },
+            // }
+          );
+          } catch (err) {
+            console.error("❌ 식사 기록 저장 실패:", err);
+            alert("식사 기록 저장에 실패했습니다.");
           }
         }}
       />
+
       <BottomNavigation />
     </SafeAreaView>
   );

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import BottomNavigation from "../components/BottomNavigation";
 import FoodItem from "../components/FoodItem";
@@ -10,6 +10,39 @@ import SearchBar from "../components/SearchBar";
 const DietRecommendationScreen = () => {
     const navigation = useNavigation();
     const [search, setSearch] = useState("");
+    const [allIngredients, setAllIngredients] = useState([]);
+    const [filteredIngredients, setFilteredIngredients] = useState([]);
+
+    // 검색어 입력 시 호출될 검색 함수
+    // const fetchIngredients = async () => {
+    //   try {
+    //     const token = await AsyncStorage.getItem("token");
+    //     const response = await fetch("http://13.209.199.97:8080/diet/ingredient/data/load", {
+    //       headers: { Authorization: `Bearer ${token}` },
+    //     });
+
+    //     if (!response.ok) throw new Error("식재료 불러오기 실패");
+    //     const data = await response.json();
+    //     // console.log(data)
+    //     setAllIngredients(data);
+    //     console.log(data);
+    //   } catch (err) {
+    //     console.error("❌ 식재료 불러오기 실패:", err);
+    //   }
+    // };
+
+    // useEffect(() => {
+    //   fetchIngredients();
+    // }, []);
+
+    // 검색어가 바뀔 때마다 필터링
+    // useEffect(() => {
+    //   const lower = search.toLowerCase();
+    //   const filtered = allIngredients.filter((item) =>
+    //     item.name?.toLowerCase().includes(lower)
+    //   );
+    //   setFilteredIngredients(filtered);
+    // }, [search, allIngredients]);
 
     const [images, setImages] = useState([
       { id: "1", name: "banana", src: require("../assets/banana.png") },
@@ -44,7 +77,15 @@ const DietRecommendationScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollViewContent} 
         showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
           {/* 검색 바 */}
-          <SearchBar value={search} onChangeText={setSearch} placeholder="식재료를 추가해주세요" />
+          <TouchableOpacity onPress={() => navigation.navigate("Ingredient")}>
+            <SearchBar
+              value={search}
+              onChangeText={setSearch}
+              placeholder="식재료를 추가해주세요"
+              editable={false} // 눌러도 키보드 안뜨게
+              pointerEvents="none" // 입력 막고 클릭만 허용
+            />
+          </TouchableOpacity>
  
           {/* 이미지 슬라이더 */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageSlider}>
@@ -60,6 +101,29 @@ const DietRecommendationScreen = () => {
           </ScrollView>
 
           <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
+
+          {filteredIngredients.length > 0 && (
+            <View style={{ width: "90%", marginTop: 10 }}>
+              <Text style={{ fontSize: 18, fontWeight: "500", marginBottom: 10 }}>검색 결과</Text>
+              {filteredIngredients.map((ingredient) => (
+                <TouchableOpacity
+                  key={ingredient.id}
+                  onPress={() => {
+                    console.log("선택된 식재료:", ingredient.name);
+                    // 필요한 경우 여기에 이미지 추가, 또는 저장 호출
+                  }}
+                  style={{
+                    backgroundColor: "#f1f1f1",
+                    borderRadius: 10,
+                    padding: 10,
+                    marginBottom: 5,
+                  }}
+                >
+                  <Text style={{ fontSize: 16 }}>{ingredient.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* 추천 식사 항목 */}
           <View style={styles.dietContainer}>

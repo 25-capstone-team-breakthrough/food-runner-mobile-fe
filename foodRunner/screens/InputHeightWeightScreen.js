@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Alert, Keyboard,
   StyleSheet,
@@ -40,7 +40,7 @@ const InputHeightWeightScreen = ({ navigation }) => {
       }
 
       // 서버로 POST 요청 보내기
-      const response = await fetch("http://ec2-13-125-232-235.ap-northeast-2.compute.amazonaws.com:8080/BMI/update", {
+      const response = await fetch("http://13.209.199.97:8080/BMI/update", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import moment from 'moment';
-import { default as React, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dimensions, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavigation from "../components/BottomNavigation";
 import CalorieBar from '../components/CalorieBar';
@@ -23,7 +23,7 @@ const HomeScreen = ({ navigation }) => {
         console.log("토큰:", token);
         const today = new Date().toISOString();
   
-        const response = await fetch("http://ec2-13-125-232-235.ap-northeast-2.compute.amazonaws.com:8080/api/diet/getNutrient", {
+        const response = await fetch("http://13.209.199.97:8080/api/diet/getNutrient", {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

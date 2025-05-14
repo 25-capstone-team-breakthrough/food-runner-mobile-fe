@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Alert, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import AuthFooter from "../components/AuthFooter";
 
@@ -25,7 +25,7 @@ export default function SignUpScreen({ navigation }) {
     }
 
   try {
-    const response = await fetch("http://ec2-13-125-232-235.ap-northeast-2.compute.amazonaws.com:8080/users/signup", {
+    const response = await fetch("http://13.209.199.97:8080/users/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
