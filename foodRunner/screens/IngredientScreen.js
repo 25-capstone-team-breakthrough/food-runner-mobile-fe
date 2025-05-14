@@ -33,6 +33,7 @@ export default function IngredientScreen({ navigation }) {
   //   "사과",
   //   "두부",
   // ]);
+  // 테스트
 
 
   useEffect(() => {
