@@ -148,15 +148,7 @@ const FoodSearchScreen = () => {
 
             alert("✅ 식사 기록이 저장되었습니다.");
 
-            navigation.navigate("NutritionMain"
-            //   , {
-            //   selectedItem: {
-            //     name: selectedItem.foodName,
-            //     kcal: selectedItem.calories,
-            //     image: { uri: selectedItem.foodImage },
-            //   },
-            // }
-          );
+            navigation.navigate("NutritionMain");
           } catch (err) {
             console.error("❌ 식사 기록 저장 실패:", err);
             alert("식사 기록 저장에 실패했습니다.");

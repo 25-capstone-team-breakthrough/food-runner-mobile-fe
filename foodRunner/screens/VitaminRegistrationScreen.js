@@ -1,5 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -8,60 +9,45 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import BottomNavigation from "../components/BottomNavigation";
 import RegisterButton from "../components/RegisterButton";
 import SearchBar from "../components/SearchBar";
-
-const supplementItems = [
-  {
-    id: 1,
-    name: "알티지 오메가",
-    brand: "종근당",
-    nutrients: "오메가 3, 비타민 D",
-    image: require("../assets/omega.png"),
-  },
-  {
-    id: 2,
-    name: "종근당 비타민C 1000",
-    brand: "종근당",
-    nutrients: "비타민 C",
-    image: require("../assets/vitamin.png"),
-  },
-];
-// 백연결
-// useEffect(() => {
-//   const fetchSupplements = async () => {
-//     setLoading(true);
-//     try {
-//       const res = await fetch(`http://<YOUR_BACKEND_HOST>:8080/api/data/supplements/${searchText}`);
-//       const data = await res.json();
-//       setSupplementItems(data); // 이 데이터는 SupplementDataFromOpenApi DTO 리스트
-//     } catch (err) {
-//       console.error("영양제 데이터 로딩 실패:", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   if (searchText.length > 0) {
-//     fetchSupplements();
-//   } else {
-//     setSupplementItems([]);
-//   }
-// }, [searchText]);
 
 const FoodSearchScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedsupplementItem, setSelectedsupplementItem] = useState(null);
+  const [supplementItems, setSupplementItems] = useState([]);
+
+  // 🔹 백엔드에서 전체 영양제 목록 가져오기
+  useEffect(() => {
+    const fetchSupplements = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const res = await fetch("http://13.209.199.97:8080/diet/sup/data/load", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
+        const data = await res.json();
+        console.log(data)
+        setSupplementItems(data);
+      } catch (err) {
+        console.error("❌ 영양제 데이터 로딩 실패:", err);
+      }
+    };
+
+    fetchSupplements();
+  }, []);
 
   // 🔹 검색어 변경 시 필터링
   const handleSearch = (text) => {
     setSearchText(text);
     if (text.length > 0) {
       const results = supplementItems.filter((item) =>
-        item.name.includes(text) || item.brand.includes(text)
+        item.supplementName.includes(text) || item.company?.includes?.(text)
       );
       setFilteredItems(results);
     } else {
@@ -71,23 +57,13 @@ const FoodSearchScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 🔹 검색창 */}
       <View style={styles.searchBar}>
-        <SearchBar value={searchText} onChangeText={handleSearch} 
-          placeholder="제품명/브랜드명" 
+        <SearchBar
+          value={searchText}
+          onChangeText={handleSearch}
+          placeholder="제품명/브랜드명"
         />
       </View>
-
-      {/* 🔹 검색 결과 리스트 */}
-      {/* <FlatList
-        data={filteredItems}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.resultItem}>
-            <Text>{item.name}</Text>
-          </View>
-        )}
-      /> */}
 
       {filteredItems.length > 0 ? (
         <>
@@ -96,11 +72,11 @@ const FoodSearchScreen = () => {
           </Text>
           <FlatList
             data={filteredItems}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.supplementId.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => {
-                  if (selectedsupplementItem?.id === item.id) {
+                  if (selectedsupplementItem?.supplementId === item.supplementId) {
                     setSelectedsupplementItem(null);
                   } else {
                     setSelectedsupplementItem(item);
@@ -108,23 +84,27 @@ const FoodSearchScreen = () => {
                 }}
                 style={[
                   styles.resultItem,
-                  selectedsupplementItem?.id === item.id && styles.selectedsupplementItem,
+                  selectedsupplementItem?.supplementId === item.supplementId &&
+                    styles.selectedsupplementItem,
                 ]}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Image source={item.image} style={styles.itemImage} />
+                  <Image
+                    source={{ uri: item.supplementImage }}
+                    style={styles.itemImage}
+                  />
                   <View style={styles.threeText}>
-                    <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemBrand}>{item.brand}</Text>
-                    <Text style={styles.itemNutrient}>{item.nutrients}</Text>
+                    <Text style={styles.itemName}>{item.supplementName}</Text>
+                    <Text style={styles.itemBrand}>{item.company}</Text>
+                    <Text style={styles.itemNutrient}>{item.mainNutrition}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
             )}
-            contentContainerStyle={{ 
+            contentContainerStyle={{
               paddingHorizontal: 30,
               paddingBottom: 105,
-             }}
+            }}
           />
         </>
       ) : (
@@ -135,15 +115,41 @@ const FoodSearchScreen = () => {
 
       {/* 🔹 등록하기 버튼 */}
       <RegisterButton
-        onPress={() => {
-          if (selectedsupplementItem) {
-            navigation.navigate("NutritionMain", { selectedsupplementItem });
-          } else {
+        onPress={async () => {
+          if (!selectedsupplementItem) {
             alert("영양제를 선택해주세요!");
+            return;
+          }
+
+          try {
+            const token = await AsyncStorage.getItem("token");
+            const response = await fetch("http://13.209.199.97:8080/diet/sup/log/save", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                id: selectedsupplementItem.supplementId,
+                dateTime: new Date().toISOString(),
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`서버 오류: ${response.status}`);
+            }
+
+            alert("✅ 영양제 섭취 기록이 저장되었습니다.");
+
+            navigation.navigate("NutritionMain", 
+          );
+          } catch (err) {
+            console.error("❌ 섭취 기록 저장 실패:", err);
+            alert("섭취 기록 저장에 실패했습니다.");
           }
         }}
       />
-      <BottomNavigation />
+
     </SafeAreaView>
   );
 };
@@ -162,7 +168,7 @@ const styles = {
     color: "#000000",
     paddingTop: 30,
     paddingBottom: 15,
-    paddingHorizontal: 40, 
+    paddingHorizontal: 40,
   },
   resultItem: {
     backgroundColor: "white",
