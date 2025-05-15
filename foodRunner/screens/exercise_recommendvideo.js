@@ -1,20 +1,32 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+
+const ITEM_WIDTH = 120; // category button width
 
 export default function ExerciseRecommendVideo() {
   const navigation = useNavigation();
   const route = useRoute();
+  const categoryRef = useRef(null);
+
+  const categories = ["어깨", "가슴", "팔", "하체", "복근", "등", "둔근", "종아리"];
   const [selectedCategory, setSelectedCategory] = useState("어깨");
 
   useEffect(() => {
-    if (route.params?.category) {
-      setSelectedCategory(route.params.category);
+    const incoming = route.params?.category;
+    if (incoming && categories.includes(incoming)) {
+      const index = categories.findIndex((c) => c === incoming);
+      setSelectedCategory(incoming);
+      setTimeout(() => {
+        categoryRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5, // 중앙 정렬
+        });
+      }, 300);
     }
   }, [route.params]);
-
-  const categories = ["어깨", "가슴", "팔", "하체", "복근", "등", "둔근", "종아리"];
 
   const exerciseList = {
     어깨: ["운동1", "운동2", "운동3", "운동4"],
@@ -40,58 +52,75 @@ export default function ExerciseRecommendVideo() {
         </TouchableOpacity>
       </View>
 
-      {/* 카테고리 탭 */}
       <View style={styles.categoryWrapper}>
-        <ScrollView
+        <FlatList
+          ref={categoryRef}
           horizontal
+          data={categories}
+          keyExtractor={(item) => item}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryScroll}
-        >
-          {categories.map((category) => (
+          renderItem={({ item }) => (
             <TouchableOpacity
-              key={category}
               style={[
                 styles.categoryButton,
-                selectedCategory === category ? styles.activeCategory : null,
+                selectedCategory === item && styles.activeCategory,
               ]}
-              onPress={() => setSelectedCategory(category)}
+              onPress={() => {
+                setSelectedCategory(item);
+                const index = categories.findIndex((c) => c === item);
+                categoryRef.current?.scrollToIndex({
+                  index,
+                  animated: true,
+                  viewPosition: 0.5,
+                });
+              }}
             >
               <Text style={[
                 styles.categoryText,
-                selectedCategory === category ? styles.activeCategoryText : null,
+                selectedCategory === item && styles.activeCategoryText,
               ]}>
-                {category}
+                {item}
               </Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          )}
+          getItemLayout={(_, index) => ({
+            length: ITEM_WIDTH,
+            offset: ITEM_WIDTH * index,
+            index,
+          })}
+          onScrollToIndexFailed={({ index }) => {
+            setTimeout(() => {
+              categoryRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
+            }, 300);
+          }}
+        />
       </View>
 
-
       <View style={styles.exerciseList}>
-      {/* 추천 운동 2개 */}
-      <Text style={styles.exerciseListTitle}>추천 운동</Text>
+        
       <FlatList
-        data={exerciseList[selectedCategory]} // 전체 다
+        data={exerciseList[selectedCategory]}
         keyExtractor={(item, index) => `${item}-${index}`}
         numColumns={2}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        ListHeaderComponent={() => (
+          <Text style={styles.exerciseListTitle}>추천 운동</Text>
+        )}
         renderItem={({ item, index }) => (
           <TouchableOpacity style={styles.exerciseItem} onPress={() => navigateToExerciseDetail(item)}>
             <View style={[
               styles.exerciseBox,
-              index < 2 && styles.recommendedBox // 추천 2개는 노란 테두리
+              index < 2 && styles.recommendedBox
             ]}>
               <Text style={styles.exerciseText}>{item}</Text>
             </View>
           </TouchableOpacity>
         )}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
       />
-
-    </View>
-
+      </View>
     </SafeAreaView>
   );
 }
@@ -129,18 +158,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
   },
+  categoryWrapper: {
+    height: 50,
+  },
   categoryScroll: {
-    marginTop: 4,
-    marginBottom: 4,
-    paddingLeft: 20,
+    paddingHorizontal: 10,
   },
   categoryButton: {
+    width: ITEM_WIDTH - 10,
     backgroundColor: "#444",
     paddingVertical: 5,
-    paddingHorizontal: 40,
     borderRadius: 12,
-    marginRight: 8,
-    height: 35,
+    marginHorizontal: 5,
+    height: 40,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -150,6 +180,7 @@ const styles = StyleSheet.create({
   categoryText: {
     color: "white",
     fontSize: 14,
+    fontWeight: "bold",
   },
   activeCategoryText: {
     color: "black",
@@ -170,30 +201,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginHorizontal: 5,
   },
-  exerciseText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  recommendedItem: {
-    flex: 1,
-    marginBottom: 10,
-    marginHorizontal: 5,
-  },
-  recommendedBox: {
-    backgroundColor: "#333",
-    height: 120,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2, // ⭐️ 테두리 추가
-    borderColor: "#DDFB21",
-  },
-  exerciseItem: {
-    flex: 1,
-    marginBottom: 10,
-    marginHorizontal: 5,
-  },
   exerciseBox: {
     backgroundColor: "#333",
     height: 120,
@@ -201,5 +208,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  
+  recommendedBox: {
+    borderWidth: 2,
+    borderColor: "#DDFB21",
+  },
+  exerciseText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
 });

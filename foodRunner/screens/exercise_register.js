@@ -52,7 +52,11 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
   
       const paceFormatted = `${minutes}분 ${String(seconds).padStart(2, '0')}초/km`;
   
-      setCardioData((prev) => ({ ...prev, pace: paceFormatted }));
+      setCardioData((prev) => ({
+        ...prev,
+        pace: paceFormatted,
+        paceValue: Number(paceTotalMinutes.toFixed(2)), // ← Double 값
+      }));
     } else {
       setCardioData((prev) => ({ ...prev, pace: "" }));
     }
@@ -133,15 +137,15 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
   };
   
   const handleSave = async () => {
-    const newRecord = {
-      name: currentExercise.name,
-      part: currentExercise.target,
-      type: currentExercise.type,
-      date: new Date().toISOString().slice(0, 10),
-      records: currentExercise.type === "근력" ? [...setData] : { ...cardioData },
-    };
-  
     const token = await AsyncStorage.getItem("token");
+  
+    const distance = parseFloat(cardioData.distance);
+    const duration = parseFloat(cardioData.duration);
+  
+    if (isNaN(distance) || isNaN(duration)) {
+      Alert.alert("입력 오류", "거리와 시간을 숫자로 입력해주세요.");
+      return;
+    }
   
     const payload = currentExercise.type === "근력"
       ? {
@@ -156,8 +160,10 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
           exerciseId: currentExercise.ExerciseId,
           distance: parseFloat(cardioData.distance),
           time: parseInt(cardioData.duration),
-          pace: parseFloat(cardioData.pace),
+          pace: cardioData.paceValue, // ← Double 형식만 허용됨!
         };
+  
+    console.log("🟢 payload:", payload);
   
     try {
       const res = await axios.post(
@@ -169,12 +175,8 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
           },
         }
       );
-      console.log("✅ 운동 기록 저장 성공:", res.data);
-  
-      // ✅ 등록 성공 후 처리
       Alert.alert("등록 완료", "운동 기록이 저장되었습니다.");
-      addExercise(newRecord);
-      setRefreshKey((prev) => prev + 1); 
+      setRefreshKey((prev) => prev + 1);
       setCurrentPage("exerciseList");
       setCurrentExercise(null);
       setSetData([]);
@@ -183,6 +185,8 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
         
     } catch (err) {
       console.error("❌ 운동 기록 저장 실패:", err.response?.data || err.message);
+      Alert.alert("등록 실패", "운동 기록 저장에 실패했습니다.");
+
     }
   };
 
@@ -209,6 +213,7 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
 
   return (
     <BottomSheet
+      containerStyle={{ zIndex: 20 }} // BlurView보다 위에 위치
       ref={sheetRef}
       index={-1}
       snapPoints={snapPoints}

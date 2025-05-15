@@ -1,10 +1,12 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { ExerciseContext } from '../context/ExerciseContext';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import exerciseData from "../assets/ExerciseData.json";
+import { Swipeable } from 'react-native-gesture-handler';
+
+
 
 export default function ExerciseHistory({ onClose, selectedDate, refreshKey, setRefreshKey }) {
   const [isDetailVisible, setIsDetailVisible] = useState(false);
@@ -17,6 +19,8 @@ export default function ExerciseHistory({ onClose, selectedDate, refreshKey, set
   const filteredExercises = exerciseLogs.filter(
     (ex) => ex.date === formattedDate
   );
+
+  
 
   const handleExerciseClick = (exercise) => {
     setSelectedExercise(exercise);
@@ -89,6 +93,39 @@ export default function ExerciseHistory({ onClose, selectedDate, refreshKey, set
     fetchLogs();
   }, [refreshKey]);
 
+  const renderRightActions = (item) => (
+    <TouchableOpacity
+      onPress={() => handleDeleteLog(item.id)}
+      style={{
+        backgroundColor: '#FF4C4C',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        paddingHorizontal: 20,
+        height: '100%',
+      }}
+    >
+      <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>삭제</Text>
+    </TouchableOpacity>
+  );
+
+  const renderItem = ({ item }) => (
+    <Swipeable renderRightActions={() => renderRightActions(item)}>
+      <TouchableOpacity
+        onPress={() => handleExerciseClick(item)}
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: 20,
+          backgroundColor: '#2D2D35',
+        }}
+      >
+        <Text style={{ color: 'white', fontSize: 20 }}>{item.name}</Text>
+        <Text style={{ color: 'white', fontSize: 14, opacity: 0.7 }}>{item.part}</Text>
+      </TouchableOpacity>
+    </Swipeable>
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: "#2D2D35", padding: 20 }}>
       {isDetailVisible && (
@@ -153,27 +190,12 @@ export default function ExerciseHistory({ onClose, selectedDate, refreshKey, set
               </View>
             </>
           )}
-
-          <TouchableOpacity
-            onPress={() => handleDeleteLog(selectedExercise.id)}
-            style={{ backgroundColor: "#FF4C4C", paddingVertical: 12, borderRadius: 10, marginTop: 20, marginBottom: 20, alignItems: "center" }}
-          >
-            <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>삭제하기</Text>
-          </TouchableOpacity>
         </>
       ) : (
         <FlatList
           data={filteredExercises}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => handleExerciseClick(item)}
-              style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 12, paddingHorizontal: 4 }}
-            >
-              <Text style={{ color: "white", fontSize: 22, fontWeight: "500" }}>{item.name}</Text>
-              <Text style={{ color: "white", fontSize: 14, opacity: 0.7 }}>{item.part}</Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderItem}
         />
       )}
     </View>

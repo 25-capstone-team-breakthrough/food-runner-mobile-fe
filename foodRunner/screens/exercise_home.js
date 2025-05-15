@@ -16,8 +16,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function ExerciseHome() {
   const navigation = useNavigation();
   const [isFrontView, setIsFrontView] = useState(true);
-  const [selectedDate, setSelectedDate] = useState("2025.01.21");
-  const [selectedDay, setSelectedDay] = useState("화");
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const [isHistorySheetVisible, setIsHistorySheetVisible] = useState(false);
   const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
@@ -29,6 +27,16 @@ export default function ExerciseHome() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [weeklyCalories, setWeeklyCalories] = useState([]);
   const [weekLabels, setWeekLabels] = useState([]);
+  const today = new Date();
+  const formattedToday = useMemo(() => {
+    return new Date().toISOString().split("T")[0].split("-").join(".");
+  }, []);
+  
+  
+  const dayNameToday = today.toLocaleDateString("ko-KR", { weekday: "short" });
+
+  const [selectedDate, setSelectedDate] = useState(formattedToday);
+  const [selectedDay, setSelectedDay] = useState(dayNameToday);
   
 
 
@@ -160,14 +168,6 @@ export default function ExerciseHome() {
     }
   }, [isBottomSheetVisible]);
 
-  useEffect(() => {
-    const today = new Date();
-    const formatted = today.toISOString().split("T")[0];
-    const pretty = formatted.split("-").join(".");
-    const dayName = today.toLocaleDateString("ko-KR", { weekday: "short" });
-    setSelectedDate(pretty);
-    setSelectedDay(dayName);
-  }, []);
 
   useEffect(() => {
     const fetchCalories = async () => {
@@ -291,6 +291,42 @@ export default function ExerciseHome() {
   
     return labels;
   };
+
+  const markedDates = useMemo(() => {
+    const todayDate = new Date().toISOString().split("T")[0];
+    const selected = selectedDate.replace(/\./g, "-");
+  
+    const result = {
+      [selected]: {
+        selected: true,
+        selectedColor: "#DDFB21",
+        selectedTextColor: "#000000",
+      },
+    };
+  
+    if (selected !== todayDate) {
+      result[todayDate] = {
+        customStyles: {
+          container: {
+            borderWidth: 2,
+            borderColor: "#E1FF01",
+            borderRadius: 20,
+            backgroundColor: "transparent",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 1,
+          },
+          text: {
+            color: "#FFFFFF",
+            fontWeight: "normal",
+          },
+        },
+      };
+    }
+  
+    return result;
+  }, [selectedDate]);
+    
   
 
 
@@ -301,7 +337,7 @@ export default function ExerciseHome() {
         <BlurView
           intensity={100} // 블러 강도 설정 (0에서 100까지)
           tint="dark"
-          style={StyleSheet.absoluteFillObject} // 화면 전체를 덮도록 설정
+          style={[StyleSheet.absoluteFillObject, { zIndex: 10 }]} // zIndex 낮게
         />
     )}
       {/* 셔플 버튼 */}
@@ -317,7 +353,7 @@ export default function ExerciseHome() {
             backgroundColor: "#292929", // ✅ 어두운 회색 배경 추가
             justifyContent: "center",
             alignItems: "center", 
-            zIndex: 10,
+            zIndex: 9,
           }}
           onPress={() => setIsFrontView(!isFrontView)}
         >
@@ -339,31 +375,63 @@ export default function ExerciseHome() {
         {/* 부위별 버튼 */}
         {isFrontView ? (
           <>
-            <TouchableOpacity style={buttonStyle("25%", "37%")} onPress={() => handleExerciseClick("어깨")}>
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={buttonStyle("25%", "37%")}
+              onPress={() => handleExerciseClick("어깨")}
+            >
               <Text style={{ opacity: 0 }}>어깨</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("29%", "51%")} onPress={() => handleExerciseClick("가슴")}>
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={buttonStyle("29%", "51%")}
+              onPress={() => handleExerciseClick("가슴")}
+            >
               <Text style={{ opacity: 0 }}>가슴</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("38%", "51%")} onPress={() => handleExerciseClick("복근")}>
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={buttonStyle("38%", "51%")}
+              onPress={() => handleExerciseClick("복근")}
+            >
               <Text style={{ opacity: 0 }}>복근</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("36%", "68%")} onPress={() => handleExerciseClick("팔")}>
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={buttonStyle("36%", "68%")}
+              onPress={() => handleExerciseClick("팔")}
+            >
               <Text style={{ opacity: 0 }}>팔</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("58%", "59%")} onPress={() => handleExerciseClick("하체")}>
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={buttonStyle("58%", "59%")}
+              onPress={() => handleExerciseClick("하체")}
+            >
               <Text style={{ opacity: 0 }}>하체</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
-            <TouchableOpacity style={buttonStyle("30%", "51%")} onPress={() => handleExerciseClick("등")}>
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={buttonStyle("30%", "51%")}
+              onPress={() => handleExerciseClick("등")}
+            >
               <Text style={{ opacity: 0 }}>등</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("51%", "58%")} onPress={() => handleExerciseClick("둔근")}>
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={buttonStyle("51%", "58%")}
+              onPress={() => handleExerciseClick("둔근")}
+            >
               <Text style={{ opacity: 0 }}>둔근</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("75%", "43%")} onPress={() => handleExerciseClick("종아리")}>
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={buttonStyle("70%", "43%")}
+              onPress={() => handleExerciseClick("종아리")}
+            >
               <Text style={{ opacity: 0 }}>종아리</Text>
             </TouchableOpacity>
           </>
@@ -457,6 +525,7 @@ export default function ExerciseHome() {
 
       {/* 달력 바텀시트 */}
       <BottomSheet
+        containerStyle={{ zIndex: 20 }} // BlurView보다 위에 위치
         ref={calendarSheetRef}
         index={-1}
         snapPoints={calendarSnapPoints}
@@ -467,42 +536,27 @@ export default function ExerciseHome() {
         <View style={{ padding: 20 }}>
           <Calendar
             locale="ko"
-            markedDates={{
-              [selectedDate.replace(/\./g, "-")]: {
-                selected: true,
-                selectedColor: "#DDFB21",
-                selectedTextColor: "#000000", // 선택된 날짜 텍스트 색상
-                selectedDayStyle: { // 선택된 날짜의 테두리 스타일
-                  borderWidth: 10,
-                  borderColor: "#DDFB21", // 테두리 색상
-                  borderRadius: 500, // 테두리의 둥글기
-                }
-              },
-            }}
+            markingType="custom"
+            markedDates={markedDates}
             theme={{
-              todayTextColor: "#FFFFFF", // 오늘 날짜 텍스트 색상
-              arrowColor: "#FFFFFF", // 화살표 색상
-              textSectionTitleColor: "#FFFFFF", // 달력 상단 요일 텍스트 색상
-              dayTextColor: "#FFFFFF", // 모든 날짜 텍스트 색상
+              todayTextColor: "#FFFFFF",
+              arrowColor: "#FFFFFF",
+              textSectionTitleColor: "#FFFFFF",
+              dayTextColor: "#FFFFFF",
               disabledDayTextColor: "#DDFB21",
-              monthTextColor: "#FFFFFF", // 월 텍스트 색상
-              calendarBackground: "#2D2D35", // 달력 배경색 (여기에서 배경색을 변경)
+              monthTextColor: "#FFFFFF",
+              calendarBackground: "#2D2D35",
             }}
-            style={{ backgroundColor: "#2D2D35" }}  // 바텀시트 색과 동일하게 설정
-            onDayPress={onDateSelect} // 날짜 선택 시 이동하지 않음
+            style={{ backgroundColor: "#2D2D35" }}
+            onDayPress={onDateSelect}
           />
 
           <View style={{ marginTop: 20 }}>
-          <SimpleLineChart
-            data={weeklyCalories}
-            weekDates={weekLabels}
-            todayLabel={selectedDate.slice(5)} // selectedDate: "2025.05.13" → "05.13" 추출
-          />
-
-
-
-
-
+            <SimpleLineChart
+              data={weeklyCalories}
+              weekDates={weekLabels}
+              todayLabel={`${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`}
+            />
           </View>
 
           <TouchableOpacity
@@ -520,8 +574,10 @@ export default function ExerciseHome() {
         </View>
       </BottomSheet>
 
+
       {/* 운동 등록 바텀시트 */}
       <ExerciseRegister
+        containerStyle={{ zIndex: 20 }} // BlurView보다 위에 위치
         sheetRef={sheetRef}
         onClose={handleCloseBottomSheet}
         setRefreshKey={setRefreshKey} 
@@ -531,6 +587,7 @@ export default function ExerciseHome() {
 
       {/* 운동 히스토리 바텀시트 */}
       <BottomSheet
+        containerStyle={{ zIndex: 20 }} // BlurView보다 위에 위치
         ref={historySheetRef}
         index={-1}
         snapPoints={historySnapPoints}
