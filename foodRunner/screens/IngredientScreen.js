@@ -73,10 +73,10 @@ export default function IngredientScreen({ navigation }) {
         console.log("🧾 응답 텍스트:", text);
         const data = JSON.parse(text);
         if (!Array.isArray(data)) throw new Error("데이터 형식 오류");
-
+        console.log(data)
         setIngredients(data);
         setPressedStates(new Array(data.length).fill(false));
-        // setIsFirstLoad(false);
+        
       } catch (err) {
         console.error("❌ 추천 식재료 불러오기 실패:", err);
       }
@@ -116,14 +116,14 @@ export default function IngredientScreen({ navigation }) {
             keyExtractor={(item) => item.ingredientId.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-              onPress={() => {
-                setSelectedItem(selectedItem?.ingredientId === item.ingredientId ? null : item);
-              }}
-              style={[
-                styles.resultItem,
-                selectedItem?.ingredientId === item.ingredientId && styles.selectedItem,
-              ]}
-            >
+                onPress={() => {
+                  setSelectedItem(selectedItem?.ingredientId === item.ingredientId ? null : item);
+                }}
+                style={[
+                  styles.resultItem,
+                  selectedItem?.ingredientId === item.ingredientId && styles.selectedItem,
+                ]}
+              >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Image source={{ uri: item.ingredientImage }} style={styles.itemImage} />
                   <View style={styles.threeText}>
@@ -166,7 +166,7 @@ export default function IngredientScreen({ navigation }) {
                 style={[styles.ingredientButton, pressedStates[index] && styles.pressedEffect]}
                 onPress={() => handlePress(index)}
               >
-                <Text style={styles.ingredientText}>{item.ingredientName}</Text>
+                <Text style={styles.ingredientText}>{item.ingredient.ingredientName}</Text>
               </TouchableOpacity>
             )}
           />
@@ -176,38 +176,42 @@ export default function IngredientScreen({ navigation }) {
       {/* 등록하기 버튼 */}
       <RegisterButton
         onPress={async () => {
-          const token = await AsyncStorage.getItem("token");
+        const token = await AsyncStorage.getItem("token");
 
-          // ✅ 추천 식재료 중 눌린 것만 필터링
-          const selectedIngredients = ingredients.filter((_, idx) => pressedStates[idx]);
+        // ✅ 추천 재료 중 선택된 것들
+        const selectedIngredients = ingredients.filter((_, idx) => pressedStates[idx]);
 
-          // ✅ 각각 저장 요청 보내기
-          for (const item of selectedIngredients) {
-            try {
-              await fetch("http://13.209.199.97:8080/diet/ingredient/rec/save", {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-                body: new URLSearchParams({
-                  ingredientId: item.ingredientId.toString(),
-                }).toString(),
-              });
-              console.log("✅ 저장 성공:", item.ingredientName);
-            } catch (err) {
-              console.error("❌ 저장 실패:", item.ingredientName, err);
-            }
+        // ✅ 검색 결과에서 선택된 항목도 추가 (중복 방지)
+        const allToSave = [...selectedIngredients];
+        if (
+          selectedItem &&
+          !selectedIngredients.some((item) => item.ingredientId === selectedItem.ingredientId)
+        ) {
+          allToSave.push(selectedItem);
+        }
+
+        // ✅ 모두 저장 요청 보내기
+        for (const item of allToSave) {
+          try {
+            await fetch("http://13.209.199.97:8080/diet/ingredient/rec/save", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/x-www-form-urlencoded", // URLSearchParams 사용 시
+              },
+              body: new URLSearchParams({
+                ingredientId: item.ingredient.ingredientId.toString(),
+              }).toString(),
+            });
+            console.log("✅ 저장 성공:", item.ingredient.ingredientName);
+          } catch (err) {
+            console.error("❌ 저장 실패:", item.ingredient.ingredientName, err);
           }
+        }
 
-          // ⛔ 검색 결과에서 선택된 항목은 보류 (주석만 표시)
-          // if (selectedItem) {
-          //   console.log("❗ 검색 결과 선택 항목:", selectedItem.ingredientName);
-          //   // 추후 저장 로직 구현 예정
-          // }
+        navigation.navigate("DietRecommendation");
+      }}
 
-          navigation.navigate("DietRecommendation");
-        }}
       />
 
 
@@ -280,6 +284,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     marginTop: 10,
+    alignItems: "center",
   },
   ingredientButton: {
     backgroundColor: "#fff",

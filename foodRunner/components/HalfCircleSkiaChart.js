@@ -1,5 +1,4 @@
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
-import React from "react";
 import { Text, View } from "react-native";
 
 const HalfCircleSkiaChart = ({
@@ -7,6 +6,7 @@ const HalfCircleSkiaChart = ({
   size = 280,
   strokeWidth = 30,
   progressStrokeWidth = 36,
+  targetCalories = 2000,
 }) => {
   const padding = 24;
   const canvasWidth = size + padding * 2;
@@ -96,7 +96,7 @@ const HalfCircleSkiaChart = ({
           {Math.round(progress * 2000)}
         </Text>
         <Text style={{ fontSize: 17, fontWeight: "400", color: "#000" }}>
-          권장 2,000kcal
+          권장 {targetCalories}kcal
         </Text>
       </View>
     </View>
