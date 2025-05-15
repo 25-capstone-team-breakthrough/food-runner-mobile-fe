@@ -1,52 +1,83 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { SafeAreaView, Text, Image, TouchableOpacity, View, StyleSheet, Dimensions} from "react-native";
+import {
+  SafeAreaView,
+  Text,
+  Image,
+  TouchableOpacity,
+  View,
+  StyleSheet
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import BottomNavigation from "../components/BottomNavigation";
 import { Calendar } from "react-native-calendars";
-import ExerciseRegister from "../screens/exercise_register";
 import BottomSheet from "@gorhom/bottom-sheet";
-import ExerciseHistory from "../screens/exercise_history";
 import { BlurView } from "expo-blur";
-import Svg, { Polyline, Circle, Text as SvgText, Line } from 'react-native-svg';
+import Svg, { Polyline, Circle, Text as SvgText, Line } from "react-native-svg";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming
+} from "react-native-reanimated";
+
+// Components
+import BottomNavigation from "../components/BottomNavigation";
+import ExerciseRegister from "../screens/exercise_register";
+import ExerciseHistory from "../screens/exercise_history";
 
 
 export default function ExerciseHome() {
   const navigation = useNavigation();
+
   const [isFrontView, setIsFrontView] = useState(true);
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const [isHistorySheetVisible, setIsHistorySheetVisible] = useState(false);
   const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
   const [isCalendarSheetVisible, setIsCalendarSheetVisible] = useState(false);
+
   const sheetRef = useRef(null);
   const historySheetRef = useRef(null);
   const calendarSheetRef = useRef(null);
+
   const [totalCalories, setTotalCalories] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
   const [weeklyCalories, setWeeklyCalories] = useState([]);
   const [weekLabels, setWeekLabels] = useState([]);
+
   const today = new Date();
-  const formattedToday = useMemo(() => {
-    return new Date().toISOString().split("T")[0].split("-").join(".");
-  }, []);
-  
-  
-  const dayNameToday = today.toLocaleDateString("ko-KR", { weekday: "short" });
-
+  const formattedToday = useMemo(() => new Date().toISOString().split("T")[0].split("-").join("."), []);
   const [selectedDate, setSelectedDate] = useState(formattedToday);
-  const [selectedDay, setSelectedDay] = useState(dayNameToday);
-  
+  const [selectedDay, setSelectedDay] = useState(today.toLocaleDateString("ko-KR", { weekday: "short" }));
 
 
+  const rotation = useSharedValue(0); // 0deg or 180deg
+  const animatedIconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }]
+  }));
 
-
-
-
+  const toggleFrontView = () => {
+    setIsFrontView((prev) => !prev);
+    rotation.value = withTiming(rotation.value === 0 ? 180 : 0, { duration: 400 });
+  };
   const historySnapPoints = useMemo(() => ["80%"], []);
   const calendarSnapPoints = useMemo(() => ["80%"], []);
 
+  const BODY_PART_POSITIONS = {
+    front: [
+      { name: "어깨", top: "25%", left: "37%" },
+      { name: "가슴", top: "29%", left: "51%" },
+      { name: "복근", top: "38%", left: "51%" },
+      { name: "팔",   top: "36%", left: "68%" },
+      { name: "하체", top: "58%", left: "59%" },
+    ],
+    back: [
+      { name: "등",     top: "30%", left: "51%" },
+      { name: "둔근",   top: "51%", left: "58%" },
+      { name: "종아리", top: "70%", left: "43%" },
+    ],
+  };
+  
   const SimpleLineChart = ({ data, weekDates, todayLabel }) => {
     const graphWidth = 330;
     const graphHeight = 160;
@@ -92,8 +123,6 @@ export default function ExerciseHome() {
               />
             );
           })}
-
-  
           {/* Y축 레이블 */}
           {[0, 250, 500, 750, 1000].map((yValue, idx) => {
             const y = paddingTop + (1 - yValue / yMax) * (graphHeight - paddingTop - paddingBottom);
@@ -110,8 +139,6 @@ export default function ExerciseHome() {
               </SvgText>
             );
           })}
-
-  
           {/* X축 레이블 */}
           {weekDates.map((label, idx) => {
             const x = paddingLeft + spacing * (idx + 1);
@@ -152,13 +179,11 @@ export default function ExerciseHome() {
               />
             );
           })}
-
         </Svg>
       </View>
     );
   };
-  
-    useEffect(() => {
+  useEffect(() => {
     if (isBottomSheetVisible && sheetRef.current) {
       sheetRef.current.expand();
       setIsBottomNavVisible(false);
@@ -343,22 +368,24 @@ export default function ExerciseHome() {
       {/* 셔플 버튼 */}
       {!isBottomSheetVisible && !isHistorySheetVisible && (
         <TouchableOpacity
-          style={{ 
-            position: "absolute",
-            top: 80,
-            right: 30,
-            width: 40,
-            height: 40,
-            borderRadius: 25,
-            backgroundColor: "#292929", // ✅ 어두운 회색 배경 추가
-            justifyContent: "center",
-            alignItems: "center", 
-            zIndex: 9,
-          }}
-          onPress={() => setIsFrontView(!isFrontView)}
-        >
+        style={{
+          position: "absolute",
+          top: 80,
+          right: 30,
+          width: 40,
+          height: 40,
+          borderRadius: 25,
+          backgroundColor: "#292929",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 9,
+        }}
+        onPress={toggleFrontView}
+      >
+        <Animated.View style={[animatedIconStyle]}>
           <Ionicons name="shuffle" size={30} color="#E1FF01" />
-        </TouchableOpacity>
+        </Animated.View>
+      </TouchableOpacity>
       )}
 
       {/* 신체 이미지 및 버튼 */}
@@ -373,69 +400,17 @@ export default function ExerciseHome() {
           resizeMode="contain"
         />
         {/* 부위별 버튼 */}
-        {isFrontView ? (
-          <>
-            <TouchableOpacity
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={buttonStyle("25%", "37%")}
-              onPress={() => handleExerciseClick("어깨")}
-            >
-              <Text style={{ opacity: 0 }}>어깨</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={buttonStyle("29%", "51%")}
-              onPress={() => handleExerciseClick("가슴")}
-            >
-              <Text style={{ opacity: 0 }}>가슴</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={buttonStyle("38%", "51%")}
-              onPress={() => handleExerciseClick("복근")}
-            >
-              <Text style={{ opacity: 0 }}>복근</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={buttonStyle("36%", "68%")}
-              onPress={() => handleExerciseClick("팔")}
-            >
-              <Text style={{ opacity: 0 }}>팔</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={buttonStyle("58%", "59%")}
-              onPress={() => handleExerciseClick("하체")}
-            >
-              <Text style={{ opacity: 0 }}>하체</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <TouchableOpacity
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={buttonStyle("30%", "51%")}
-              onPress={() => handleExerciseClick("등")}
-            >
-              <Text style={{ opacity: 0 }}>등</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={buttonStyle("51%", "58%")}
-              onPress={() => handleExerciseClick("둔근")}
-            >
-              <Text style={{ opacity: 0 }}>둔근</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={buttonStyle("70%", "43%")}
-              onPress={() => handleExerciseClick("종아리")}
-            >
-              <Text style={{ opacity: 0 }}>종아리</Text>
-            </TouchableOpacity>
-          </>
-        )}
+        {(isFrontView ? BODY_PART_POSITIONS.front : BODY_PART_POSITIONS.back).map(({ name, top, left }) => (
+          <TouchableOpacity
+            key={name}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={buttonStyle(top, left)}
+            onPress={() => handleExerciseClick(name)}
+          >
+            <Text style={{ opacity: 0 }}>{name}</Text>
+          </TouchableOpacity>
+        ))}
+
       </View>
 
       {/* 칼로리 카드 */}

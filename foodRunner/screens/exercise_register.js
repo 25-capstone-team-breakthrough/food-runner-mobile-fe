@@ -27,7 +27,6 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
   const [cardioData, setCardioData] = useState({ distance: "", duration: "", pace: "" });
   const [currentExercise, setCurrentExercise] = useState(null);
   const [currentPage, setCurrentPage] = useState("exerciseList");
-  const { addExercise } = useContext(ExerciseContext);
 
   const snapPoints = useMemo(() => ["80%"], []);
   
@@ -61,56 +60,25 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
       setCardioData((prev) => ({ ...prev, pace: "" }));
     }
   }, [cardioData.distance, cardioData.duration]);
-  
-  
 
   const handleSearchChange = (text) => setExerciseName(text);
 
   const toggleFavorite = async (exercise) => {
     const exerciseId = exercise.ExerciseId;
     const token = await AsyncStorage.getItem("token");
-    console.log("🧪 가져온 토큰:", token);
-  
-    if (!token) {
-      console.error("❗토큰 없음 - 로그인 확인 필요");
-      return;
-    }
-  
+    if (!token) return;
     const isFavorited = favorites[exerciseId];
-  
-    // 👉 UI를 먼저 업데이트 (Optimistic UI)
-    setFavorites((prev) => ({
-      ...prev,
-      [exerciseId]: !isFavorited,
-    }));
-  
+    setFavorites((prev) => ({ ...prev, [exerciseId]: !isFavorited }));
     try {
       if (isFavorited) {
-        // 삭제 요청
-        await axios.delete(
-          `http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/remove/${exerciseId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await axios.delete(`http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/remove/${exerciseId}`, { headers: { Authorization: `Bearer ${token}` } });
       } else {
-        // 추가 요청
-        const res = await axios.post(
-          `http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/favoriteAdd`,
-          { exerciseId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        console.log("✅ 즐겨찾기 추가 완료:", res.data); // ← 이 줄!
+        await axios.post(`http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/favoriteAdd`, { exerciseId }, { headers: { Authorization: `Bearer ${token}` } });
       }
     } catch (err) {
-      console.error("❌ 즐겨찾기 요청 실패:", err.response?.data || err.message);
-  
-      // ❗ 실패 시 원래 상태로 롤백
-      setFavorites((prev) => ({
-        ...prev,
-        [exerciseId]: isFavorited,
-      }));
+      setFavorites((prev) => ({ ...prev, [exerciseId]: isFavorited }));
     }
   };
-        
 
   const handleExerciseClick = (exercise) => {
     setCurrentExercise(exercise);
@@ -312,15 +280,13 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
                   <>
                     <Text style={styles.setTitle}>{currentExercise.name}</Text>
                     <Text style={styles.recordText}>기록</Text>
-                    // tableHeader
                     <View style={styles.tableHeader}>
                       <Text style={styles.headerCell}>세트</Text>
                       <Text style={styles.headerCell}>무게</Text>
                       <Text style={styles.headerCell}>횟수</Text>
                       <Text style={styles.headerCell}>삭제</Text>
                     </View>
-
-                    // tableRow
+                    
                     {setData.map((set, i) => (
                       <View key={i} style={styles.tableRow}>
                         <View style={styles.rowCell}>
