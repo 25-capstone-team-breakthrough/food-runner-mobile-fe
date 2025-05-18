@@ -20,6 +20,10 @@ const FoodSearchScreen = () => {
   const [selectedsupplementItem, setSelectedsupplementItem] = useState(null);
   const [supplementItems, setSupplementItems] = useState([]);
 
+  const toggleFavorite = async(item) => {
+    
+  };
+
   // 🔹 백엔드에서 전체 영양제 목록 가져오기
   useEffect(() => {
     const fetchSupplements = async () => {
@@ -90,6 +94,16 @@ const FoodSearchScreen = () => {
                 ]}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <TouchableOpacity
+                    onPress={() => toggleFavorite(item)}
+                    style={styles.favoriteButton}
+                  >
+                    <Ionicons
+                      name={favoriteItems.includes(Number(item.foodId)) ? "star" : "star-outline"}
+                      size={24}
+                      color={favoriteItems.includes(Number(item.foodId)) ? "#E1FF01" : "#C0C0C0"}
+                    />
+                  </TouchableOpacity>
                   <Image
                     source={{ uri: item.supplementImage }}
                     style={styles.itemImage}

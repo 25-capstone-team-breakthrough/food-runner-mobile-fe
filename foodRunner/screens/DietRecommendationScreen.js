@@ -14,7 +14,9 @@ const DietRecommendationScreen = () => {
     const [allIngredients, setAllIngredients] = useState([]);
     const [filteredIngredients, setFilteredIngredients] = useState([]);
     const [favoriteIngredients, setFavoriteIngredients] = useState([]);
+    const [recommendedRecipes, setRecommendedRecipes] = useState([]);
 
+    
     useEffect(() => {
       const fetchFavorites = async () => {
         try {
@@ -27,7 +29,7 @@ const DietRecommendationScreen = () => {
 
           if (!res.ok) throw new Error("즐겨찾기 불러오기 실패");
           const data = await res.json();
-          console.log("⭐️ 즐겨찾기 식재료:", data);
+          // console.log("⭐️ 즐겨찾기 식재료:", data);
           setFavoriteIngredients(data);
         } catch (err) {
           console.error("❌ 즐겨찾기 식재료 불러오기 실패:", err);
@@ -41,20 +43,33 @@ const DietRecommendationScreen = () => {
       fetchFavorites();
     }, []);
 
-    
+    useEffect(() => {
+      const fetchRecipes = async () => {
+        try {
+          const res = await fetch("http://13.209.199.97:8080/diet/recipe/data/load");
+          if (!res.ok) throw new Error("레시피 불러오기 실패");
+          const data = await res.json();
+          console.log("🍽 전체 레시피 데이터:", data);
 
-    const [images, setImages] = useState([
-      { id: "1", name: "banana", src: require("../assets/banana.png") },
-      { id: "2", name: "banana", src: require("../assets/banana.png") },
-      { id: "3", name: "banana", src: require("../assets/banana.png") },
-      { id: "4", name: "banana", src: require("../assets/banana.png") },
-      { id: "5", name: "banana", src: require("../assets/banana.png") },
-      { id: "6", name: "banana", src: require("../assets/banana.png") },
-    ]);
+          // 👉 필드 변환 없이 통째로 저장
+          setRecommendedRecipes(data);
+        } catch (err) {
+          console.error("❌ 레시피 불러오기 에러:", err);
+        }
+      };
 
-    const handleDelete = (id) => {
-      setImages(images.filter((image) => image.id !== id));
-    };
+      fetchRecipes();
+    }, []);
+
+
+    // 타입별로 추천 식단 분류
+  // const groupedRecipes = {
+  //   Breakfast: recommendedRecipes.filter(r => r.recipeType === "BREAKFAST"),
+  //   Lunch: recommendedRecipes.filter(r => r.recipeType === "LUNCH"),
+  //   Dinner: recommendedRecipes.filter(r => r.recipeType === "DINNER"),
+  // };
+
+
 
     const recommendedMeals = {
         Breakfast: [
@@ -70,6 +85,8 @@ const DietRecommendationScreen = () => {
             { id: "6", name: "연어 스테이크", calories: "208kcal 당 100g", image: require("../assets/logo.png") },
         ],
     };
+
+    // console.log("📄 groupedRecipes:", groupedRecipes);
 
     return (
       <SafeAreaView style={styles.container}>
@@ -168,10 +185,10 @@ const DietRecommendationScreen = () => {
                 </View>
                 {foods.map((food) => (
                   <TouchableOpacity style={styles.mealContainer}
-                    key={food.id}
+                    key={food.recipeId}
                     onPress={() => navigation.navigate("DietRecipe", { recipe: food })}
                   >
-                    <FoodItem food={food} />
+                    <FoodItem recipe={food} />
                   </TouchableOpacity>
                 ))}
                 </View>

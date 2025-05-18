@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
-import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useLayoutEffect } from "react";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import BottomNavigation from "../components/BottomNavigation";
 
 
@@ -71,13 +71,13 @@ const DietRecipeScreen = () => {
 
                 {/* 제목 및 설명 */}
                 <View style={styles.recipeContent}>
-                    <Text style={styles.recipeTitle}>{recipe.name}</Text>
+                    <Text style={styles.recipeTitle}>{recipe.recipeName}</Text>
                     <Text style={styles.recipeDescription}>{recipe.description}</Text>
 
                     {/* 재료 */}
                     <Text style={styles.sectionTitle}>재료</Text>
-                    <Text style={styles.ingredientItem}>
-                        {recipe.ingredients.join(", ")}
+                    <Text style={styles.ingredients}>
+                        {/* {recipe.ingredients.join(", ")} */}
                     </Text>
 
                     <View style={styles.separator}></View>

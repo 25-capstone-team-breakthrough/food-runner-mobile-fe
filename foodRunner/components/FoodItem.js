@@ -1,19 +1,25 @@
 import { useNavigation } from "@react-navigation/native";
-import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const FoodItem = ({ food }) => {
+const FoodItem = ({ recipe }) => {
   const navigation = useNavigation();
 
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={() => navigation.navigate("DietRecipe", { food })}
+      onPress={() => navigation.navigate("DietRecipe", { recipe })}
     >
-      <Image source={food.image} style={styles.image} />
+      <Image
+        source={
+          typeof recipe.recipeImage === "string"
+            ? { uri: recipe.recipeImage }
+            : recipe.recipeImage
+        }
+        style={styles.image}
+      />
       <View style={styles.textContainer}>
-        <Text style={styles.name}>{food.name}</Text>
-        <Text style={styles.calories}>{food.calories}</Text>
+        <Text style={styles.name}>{recipe.recipeName}</Text>
+        <Text style={styles.calories}>{recipe.recipeCalories}</Text>
       </View>
     </TouchableOpacity>
   );
