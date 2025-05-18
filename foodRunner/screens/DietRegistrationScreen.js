@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
@@ -20,37 +21,108 @@ const FoodSearchScreen = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [foodItems, setFoodItems] = useState([]);
+  const [favoriteItems, setFavoriteItems] = useState([]); 
+  const [favoriteFoodData, setFavoriteFoodData] = useState([]);
 
+  // 즐겨찾기 등록 api
+  const toggleFavorite = async (item) => {
+    const token = await AsyncStorage.getItem("token");
+    const isFavorited = favoriteItems.includes(item.foodId);
+    try {
+      if (isFavorited) {
+        // 삭제
+        const deleteRes = await fetch(
+          `http://13.209.199.97:8080/diet/food/pref/delete?pref_id=${item.prefId}`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!deleteRes.ok) throw new Error("삭제 실패");
+
+        setFavoriteItems((prev) => prev.filter((id) => id !== item.foodId));
+        setFavoriteFoodData((prev) => prev.filter((food) => food.foodId !== item.foodId));
+        console.log("⭐️ 즐겨찾기 삭제 성공:", item.foodName);
+      } else {
+        // 등록
+        const saveRes = await fetch(
+          `http://13.209.199.97:8080/diet/food/pref/save?food_id=${item.foodId}`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!saveRes.ok) throw new Error("등록 실패");
+
+        setFavoriteItems((prev) => [...prev, item.foodId]);
+        console.log("⭐️ 즐겨찾기 등록 성공:", item.foodName);
+      }
+
+      await fetchFavorites(); // 동기화용
+    } catch (err) {
+      console.error("❌ 즐겨찾기 처리 오류:", err);
+    }
+  };
+
+
+
+  // 즐겨찾기 불러오기 api
+  const fetchFavorites = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch("http://13.209.199.97:8080/diet/food/pref/load", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      setFavoriteItems(data.map((item) => item.foodId));
+      setFavoriteFoodData(data.map((item) => ({
+        ...item.food,
+        prefId: item.id,
+      })));
+
+      console.log("[📦 즐겨찾기 데이터]", data);
+    } catch (err) {
+      console.error("❌ 즐겨찾기 로드 실패:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchFoods = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token"); // 저장된 토큰 가져오기
-        console.log("불러온 토큰:", token);
-
-        const res = await fetch("http://13.209.199.97:8080/diet/food/data/load", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        console.log("응답 상태:", res.status);
-        if (!res.ok) {
-          throw new Error(`서버 응답 오류: ${res.status}`);
-        }
-
-        const data = await res.json();
-        setFoodItems(data);
-        console.log("음식데이터 가져오기 성공");
-      } catch (err) {
-        console.error("❌ 음식 데이터 로딩 실패:", err);
-      }
+    const fetchAll = async () => {
+      await fetchFoods();
+      await fetchFavorites(); // 반드시 함께 호출!
     };
 
-    fetchFoods();
+    fetchAll();
   }, []);
+
+
+  const fetchFoods = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token"); // 저장된 토큰 가져오기
+      console.log("불러온 토큰:", token);
+
+      const res = await fetch("http://13.209.199.97:8080/diet/food/data/load", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("응답 상태:", res.status);
+      if (!res.ok) {
+        throw new Error(`서버 응답 오류: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setFoodItems(data);
+      console.log("음식데이터 가져오기 성공");
+    } catch (err) {
+      console.error("❌ 음식 데이터 로딩 실패:", err);
+    }
+  };
+
 
 
   // 🔹 검색어 변경 시 필터링
@@ -66,6 +138,9 @@ const FoodSearchScreen = () => {
     }
   };
 
+  const visibleList = searchText.length > 0 ? filteredItems : favoriteFoodData;
+
+
   return (
     <SafeAreaView style={styles.container}>           
       {/* 🔹 검색창 */}
@@ -75,26 +150,39 @@ const FoodSearchScreen = () => {
         />
       </View>
 
-        {filteredItems.length > 0 ? (
-        <>
-          <Text style={styles.searchMountText}>
-            검색결과 {filteredItems.length}개
-          </Text>
+        <View style={{ flex: 1 }}>
+          {/* 검색어 있을 경우에만 검색 결과 개수 출력 */}
+          {searchText.length > 0 && (
+            <Text style={styles.searchMountText}>
+              검색결과 {filteredItems.length}개
+            </Text>
+          )}
+
           <FlatList
-            data={filteredItems}
+            data={searchText.length > 0 ? filteredItems : favoriteFoodData}
             keyExtractor={(item) => item.foodId.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-              onPress={() => {
-                setSelectedItem(selectedItem?.foodId === item.foodId ? null : item);
-              }}
-              style={[
-                styles.resultItem,
-                selectedItem?.foodId === item.foodId && styles.selectedItem,
-              ]}
-            >
+                onPress={() =>
+                  setSelectedItem(selectedItem?.foodId === item.foodId ? null : item)
+                }
+                style={[
+                  styles.resultItem,
+                  selectedItem?.foodId === item.foodId && styles.selectedItem,
+                ]}
+              >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Image source={{ uri: item.foodImage }} style={styles.itemImage} />
+                  <TouchableOpacity
+                    onPress={() => toggleFavorite(item)}
+                    style={styles.favoriteButton}
+                  >
+                    <Ionicons
+                      name={favoriteItems.includes(Number(item.foodId)) ? "star" : "star-outline"}
+                      size={24}
+                      color={favoriteItems.includes(Number(item.foodId)) ? "#E1FF01" : "#C0C0C0"}
+                    />
+                  </TouchableOpacity>
+                  <Image source={{ uri: item.foodImage }} style={styles.itemImage} />
                   <View style={styles.threeText}>
                     <Text style={styles.itemName}>{item.foodName}</Text>
                     {item.foodCompany !== "해당없음" && (
@@ -105,17 +193,18 @@ const FoodSearchScreen = () => {
                 </View>
               </TouchableOpacity>
             )}
-            contentContainerStyle={{ 
+            contentContainerStyle={{
               paddingHorizontal: 30,
               paddingBottom: 105,
-             }}
+            }}
+            ListEmptyComponent={
+              <Text style={styles.searchMountText}>
+                {searchText.length > 0 ? "검색 결과가 없습니다" : "즐겨찾기된 음식이 없습니다"}
+              </Text>
+            }
           />
-        </>
-      ) : (
-        searchText.length > 0 && (
-          <Text style={styles.searchMountText}>검색 결과가 없습니다</Text>
-        )
-      )}
+        </View>
+
 
       <RegisterButton
         onPress={async () => {
@@ -126,7 +215,7 @@ const FoodSearchScreen = () => {
 
           try {
             const token = await AsyncStorage.getItem("token");
-            console.log(token)
+            // console.log(token)
 
             const response = await fetch("http://13.209.199.97:8080/diet/meal/log/save", {
               method: "POST",

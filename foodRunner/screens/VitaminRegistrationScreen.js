@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import BottomNavigation from "../components/BottomNavigation";
 import RegisterButton from "../components/RegisterButton";
 import SearchBar from "../components/SearchBar";
 
@@ -149,6 +150,7 @@ const FoodSearchScreen = () => {
           }
         }}
       />
+      <BottomNavigation />
 
     </SafeAreaView>
   );

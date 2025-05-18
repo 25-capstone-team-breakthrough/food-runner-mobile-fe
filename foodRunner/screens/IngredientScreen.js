@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -57,35 +57,35 @@ export default function IngredientScreen({ navigation }) {
   }, [search]);
 
   // 추천 식재료 불러오기 (처음 로딩 + 검색어가 없을 때만)
+  const fetchRecommendedIngredients = useCallback(async () => {
+    try {
+      console.log("📡 추천 식재료 가져오는 중...");
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch("http://13.209.199.97:8080/diet/ingredient/rec/load", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const text = await res.text();
+      console.log("🧾 응답 텍스트:", text);
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) throw new Error("데이터 형식 오류");
+      setIngredients(data);
+      setPressedStates(new Array(data.length).fill(false));
+    } catch (err) {
+      console.error("❌ 추천 식재료 불러오기 실패:", err);
+    }
+  }, []);
+
+  // ✅ 처음 로딩되거나 검색이 초기화되면 자동 호출
   useEffect(() => {
-    console.log("🔥 useEffect 실행됨, search:", search);
-    const fetchRecommendedIngredients = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        const res = await fetch("http://13.209.199.97:8080/diet/ingredient/rec/load", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        const text = await res.text();
-        console.log("🧾 응답 텍스트:", text);
-        const data = JSON.parse(text);
-        if (!Array.isArray(data)) throw new Error("데이터 형식 오류");
-        console.log(data)
-        setIngredients(data);
-        setPressedStates(new Array(data.length).fill(false));
-        
-      } catch (err) {
-        console.error("❌ 추천 식재료 불러오기 실패:", err);
-      }
-    };
-
     if (search.length === 0) {
+      console.log("🔥 useEffect 실행됨, search:", search);
       fetchRecommendedIngredients();
     }
-  }, [search]);
+  }, [search, fetchRecommendedIngredients]);
 
 
   const handlePress = (index) => {
@@ -148,7 +148,12 @@ export default function IngredientScreen({ navigation }) {
 
       {search.length === 0 && (
         <>
-          <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
+          <RefreshButton
+            onPress={() => {
+              console.log("🔁 새로고침 버튼 클릭됨!");
+              fetchRecommendedIngredients();
+            }}
+          />
           <Text style={styles.subTitle}>추천재료</Text>
           <FlatList
             data={ingredients}
@@ -176,43 +181,76 @@ export default function IngredientScreen({ navigation }) {
       {/* 등록하기 버튼 */}
       <RegisterButton
         onPress={async () => {
-        const token = await AsyncStorage.getItem("token");
+          const token = await AsyncStorage.getItem("token");
 
-        // ✅ 추천 재료 중 선택된 것들
-        const selectedIngredients = ingredients.filter((_, idx) => pressedStates[idx]);
+          // ✅ 추천 재료 중 선택된 것들
+          const selectedIngredients = ingredients.filter((_, idx) => pressedStates[idx]);
 
-        // ✅ 검색 결과에서 선택된 항목도 추가 (중복 방지)
-        const allToSave = [...selectedIngredients];
-        if (
-          selectedItem &&
-          !selectedIngredients.some((item) => item.ingredientId === selectedItem.ingredientId)
-        ) {
-          allToSave.push(selectedItem);
-        }
-
-        // ✅ 모두 저장 요청 보내기
-        for (const item of allToSave) {
-          try {
-            await fetch("http://13.209.199.97:8080/diet/ingredient/rec/save", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/x-www-form-urlencoded", // URLSearchParams 사용 시
-              },
-              body: new URLSearchParams({
-                ingredientId: item.ingredient.ingredientId.toString(),
-              }).toString(),
-            });
-            console.log("✅ 저장 성공:", item.ingredient.ingredientName);
-          } catch (err) {
-            console.error("❌ 저장 실패:", item.ingredient.ingredientName, err);
+          // ✅ 검색 결과에서 선택된 항목도 추가 (중복 방지)
+          const allToSave = [...selectedIngredients];
+          if (
+            selectedItem &&
+            !selectedIngredients.some((item) => item.ingredientId === selectedItem.ingredientId)
+          ) {
+            allToSave.push(selectedItem);
           }
-        }
 
-        navigation.navigate("DietRecommendation");
-      }}
+          for (const item of allToSave) {
+            const ingredientId = item.ingredient?.ingredientId ?? item.ingredientId;
+            const ingredientName = item.ingredient?.ingredientName ?? item.ingredientName;
+            console.log("📦 저장하는 ingredientId:", ingredientId);
 
+            try {
+              // 1. 추천 저장
+              await fetch("http://13.209.199.97:8080/diet/ingredient/rec/save", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                  ingredientId: ingredientId.toString(),
+                }).toString(),
+              });
+              console.log("✅ 추천 저장 성공:", ingredientName);
+            } catch (err) {
+              console.error("❌ 추천 저장 실패:", ingredientName, err);
+            }
+
+            try {
+              // 2. 즐겨찾기 저장 (pref/save)
+              const res = await fetch(`http://13.209.199.97:8080/diet/ingredient/pref/save?id=${ingredientId}`, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+              const text = await res.text();
+              if (!res.ok) {
+                throw new Error(`❌ 저장 실패: ${text}`);
+              }
+              console.log("⭐️ 즐겨찾기 저장 응답:", text);
+
+              // await fetch(
+              //   `http://13.209.199.97:8080/diet/ingredient/pref/save?id=${ingredientId}`,
+              //   {
+              //     method: "POST",
+              //     headers: {
+              //       Authorization: `Bearer ${token}`,
+              //     },
+              //   }
+              // );
+
+              // console.log("⭐️ 즐겨찾기 저장 성공:", ingredientName);
+            } catch (err) {
+              console.error("❌ 즐겨찾기 저장 실패:", ingredientName, err);
+            }
+          }
+
+          navigation.navigate("DietRecommendation");
+        }}
       />
+
 
 
       {/* 하단 네비게이션 바 */}

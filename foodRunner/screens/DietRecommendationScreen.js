@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import BottomNavigation from "../components/BottomNavigation";
 import FoodItem from "../components/FoodItem";
@@ -12,37 +13,35 @@ const DietRecommendationScreen = () => {
     const [search, setSearch] = useState("");
     const [allIngredients, setAllIngredients] = useState([]);
     const [filteredIngredients, setFilteredIngredients] = useState([]);
+    const [favoriteIngredients, setFavoriteIngredients] = useState([]);
 
-    // 검색어 입력 시 호출될 검색 함수
-    // const fetchIngredients = async () => {
-    //   try {
-    //     const token = await AsyncStorage.getItem("token");
-    //     const response = await fetch("http://13.209.199.97:8080/diet/ingredient/data/load", {
-    //       headers: { Authorization: `Bearer ${token}` },
-    //     });
+    useEffect(() => {
+      const fetchFavorites = async () => {
+        try {
+          const token = await AsyncStorage.getItem("token");
+          const res = await fetch("http://13.209.199.97:8080/diet/ingredient/pref/load", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-    //     if (!response.ok) throw new Error("식재료 불러오기 실패");
-    //     const data = await response.json();
-    //     // console.log(data)
-    //     setAllIngredients(data);
-    //     console.log(data);
-    //   } catch (err) {
-    //     console.error("❌ 식재료 불러오기 실패:", err);
-    //   }
-    // };
+          if (!res.ok) throw new Error("즐겨찾기 불러오기 실패");
+          const data = await res.json();
+          console.log("⭐️ 즐겨찾기 식재료:", data);
+          setFavoriteIngredients(data);
+        } catch (err) {
+          console.error("❌ 즐겨찾기 식재료 불러오기 실패:", err);
+        }
+      };
 
-    // useEffect(() => {
-    //   fetchIngredients();
-    // }, []);
+      // useEffect(() => {
+      //   fetchFavorites(); // 🔄 mount 시에도 호출
+      // }, []);
 
-    // 검색어가 바뀔 때마다 필터링
-    // useEffect(() => {
-    //   const lower = search.toLowerCase();
-    //   const filtered = allIngredients.filter((item) =>
-    //     item.name?.toLowerCase().includes(lower)
-    //   );
-    //   setFilteredIngredients(filtered);
-    // }, [search, allIngredients]);
+      fetchFavorites();
+    }, []);
+
+    
 
     const [images, setImages] = useState([
       { id: "1", name: "banana", src: require("../assets/banana.png") },
@@ -89,16 +88,50 @@ const DietRecommendationScreen = () => {
  
           {/* 이미지 슬라이더 */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageSlider}>
-            {images.map((image) => (
-              <View key={image.id} style={styles.imageContainer}>
-                <TouchableOpacity onPress={() => handleDelete(image.id)} style={styles.deleteButton}>
+            {favoriteIngredients.map((item) => (
+              <View key={item.ingredient.ingredientId} style={styles.imageContainer}>
+                <TouchableOpacity
+                  onPress={async () => {
+                    try {
+                      const token = await AsyncStorage.getItem("token");
+
+                      const res = await fetch(`http://13.209.199.97:8080/diet/ingredient/pref/delete?pref_id=${item.id}`, {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      });
+
+                      const resultText = await res.text();
+                      console.log("📡 서버 응답:", res.status, resultText);
+
+                      if (!res.ok) throw new Error("삭제 실패");
+
+                      // 성공 시 프론트에서 삭제 반영
+                      setFavoriteIngredients(
+                        favoriteIngredients.filter(i => i.id !== item.id)
+                      );
+
+                      console.log("✅ 즐겨찾기 삭제 성공:", item.ingredient.ingredientName);
+                    } catch (err) {
+                      console.error("❌ 즐겨찾기 삭제 실패:", err);
+                    }
+                  }}
+                  style={styles.deleteButton}
+                >
                   <Ionicons name="remove-circle" size={30} color="red" />
                 </TouchableOpacity>
-                <Image source={image.src} style={styles.image} />
-                <Text style={styles.imageText}>{image.name}</Text>
+
+
+                <Image
+                  source={{ uri: item.ingredient.ingredientImage }}
+                  style={styles.image}
+                />
+                <Text style={styles.imageText}>{item.ingredient.ingredientName}</Text>
               </View>
             ))}
           </ScrollView>
+
 
           <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
 
