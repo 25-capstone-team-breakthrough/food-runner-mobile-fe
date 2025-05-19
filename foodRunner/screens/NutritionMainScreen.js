@@ -1,10 +1,11 @@
 import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import BottomSheet from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import moment from 'moment';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -19,6 +20,7 @@ import {
 import BottomNavigation from "../components/BottomNavigation";
 import HalfCircleSkiaChart from "../components/HalfCircleSkiaChart";
 import NutrientRing from "../components/NutrientRing";
+import NutritionCalendarScreen from "./NutritionCalendarScreen";
 
 // import { Home, User, Settings } from "lucide-react";
 
@@ -33,9 +35,10 @@ const NutritionMainScreen = () => {
   const navigation = useNavigation();
   const selectedItemFromRoute = route.params?.selectedItem;
   const selectedSupplementFromRoute = route.params?.selectedsupplementItem;
-  const selectedDate  = route.params?.selectedDate;
+  // const selectedDate  = route.params?.selectedDate;
 
-  const dateToDisplay = selectedDate || moment().format("YYYY.MM.DD")
+  
+
 
   const [currentPage, setCurrentPage] = useState(0);
   const dailyCalories = 2000;
@@ -68,7 +71,13 @@ const NutritionMainScreen = () => {
   const [macroNutrients, setMacroNutrients] = useState([]);
   const [etcNutrients, setEtcNutrients] = useState([]);
   const [smallNutrients, setSmallNutrients] = useState([]);
+  const calendarRef = useRef(null);
+  const selectedDateFromRoute = route.params?.selectedDate;
+  const [selectedDate, setSelectedDate] = useState(selectedDateFromRoute || moment().format("YYYY-MM-DD"));
+  const bottomSheetRef = useRef(null);
+  const snapPoints = useMemo(() => ['90%'], []);
 
+  const dateToDisplay = moment(selectedDate).format("YYYY.MM.DD");
 
   useEffect(() => {
     const fetchNutritionData = async () => {
@@ -320,15 +329,26 @@ const NutritionMainScreen = () => {
     }
   };
 
+  const handleOpen = () => {
+      bottomSheetRef.current?.expand();
+  };
+
+  const handleDateSelect = (date) => {
+      setSelectedDate(date);
+      bottomSheetRef.current?.close();
+  };
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F3F3" }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.dateContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate("NutritionCalendar")}> 
-            <AntDesign name="calendar" size={20} color="black" style={styles.calendarIcon} />
-          </TouchableOpacity>
+          {/* 캘린더 */}
+            <TouchableOpacity onPress={handleOpen}>
+              <AntDesign style={styles.calendarIcon} name="calendar" size={24} color="black" />
+            </TouchableOpacity>
           <Text style={styles.dateText}>{dateToDisplay}</Text>
+
         </View>
 
         <View style={styles.processContainerShadow}>
@@ -486,6 +506,15 @@ const NutritionMainScreen = () => {
             </View>
           )}
         />
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={-1}
+          snapPoints={snapPoints}
+          enablePanDownToClose
+          backgroundStyle={{ borderTopLeftRadius: 25, borderTopRightRadius: 25, backgroundColor: "#fff" }}
+        >
+          <NutritionCalendarScreen onSelectDate={handleDateSelect} />
+        </BottomSheet>
       </ScrollView>
       <BottomNavigation />
     </SafeAreaView>

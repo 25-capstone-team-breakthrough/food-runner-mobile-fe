@@ -1,6 +1,7 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Dimensions,
     StyleSheet,
@@ -26,9 +27,44 @@ const generateMonthlyData = () => {
 
 const monthlyCalorieData = generateMonthlyData();
 
-const NutritionCalendarScreen = () => {
+const NutritionCalendarScreen = ({ onSelectDate }) => {
     const navigation = useNavigation();
-    const [selectedDate, setSelectedDate] = useState("");
+    const [selectedDate, setSelectedDate] = useState(moment().format("YYYY-MM-DD"));
+    const [logData, setLogData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // 영양 정보 가져오기
+    useEffect(() => {
+        const fetchLog = async () => {
+            try {
+                const token = await AsyncStorage.getItem("token"); // 토큰 가져오기
+                const response = await fetch("http://13.209.199.97:8080/diet/nutrition/log/load", {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error("API 요청 실패");
+                }
+
+                const data = await response.json();
+                console.log("일자별 칼로리 가져오기",data)
+                setLogData(data);
+            } catch (error) {
+                console.error("영양 로그 불러오기 오류:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLog();
+    }, []);
+
+                                  
+
 
     useEffect(() => {
         const today = moment().format("YYYY-MM-DD");
@@ -45,7 +81,11 @@ const NutritionCalendarScreen = () => {
     };
 
     const weekDates = getWeekDates(selectedDate);
-    const calorieData = weekDates.map((d) => monthlyCalorieData[d.format("YYYY-MM-DD")] || 0);
+    const calorieData = weekDates.map((date) => {
+        const entry = logData.find((item) => item.date === date.format("YYYY-MM-DD"));
+        return entry ? entry.calories : 0;          
+    });
+    // const calorieData = weekDates.map((d) => monthlyCalorieData[d.format("YYYY-MM-DD")] || 0);
     const highlightIndex = weekDates.findIndex((d) => d.format("YYYY-MM-DD") === selectedDate);
 
     const labels = weekDates.map((d, i) => {
@@ -55,10 +95,24 @@ const NutritionCalendarScreen = () => {
         }
         return d.format("DD");
     });
-
+    // NutritionCalendarScreen 내부
     const handleSelect = () => {
-        navigation.navigate("NutritionMain", { selectedDate });
+        if (onSelectDate) {
+            onSelectDate(selectedDate);  // 부모에 전달 (닫기 + 이동은 부모가 처리)
+        }
     };
+
+    const handleDateSelect = (date) => {
+        setSelectedDate(date);
+        bottomSheetRef.current?.close(); // ✅ 바텀시트 닫기
+        navigation.navigate("NutritionMain", { selectedDate: date }); // ✅ 날짜 전달
+    };
+
+
+    // const handleSelect = () => {
+    //     bottomSheetRef.current?.close();
+    //     navigation.navigate("NutritionMain", { selectedDate });
+    // };
 
     const chartConfig = (highlightIndex) => ({
         backgroundGradientFrom: "#fff",
@@ -69,11 +123,12 @@ const NutritionCalendarScreen = () => {
         propsForDots: {
             r: "4",
             strokeWidth: "1",
-            stroke: "#000",
+            stroke: "#ccc",
             fill: "#E1FF01",
         },
         propsForBackgroundLines: {
             stroke: "#ddd",
+            strokeDasharray: "",
             strokeWidth: 1,
         },
         formatYLabel: (y) => {
@@ -122,7 +177,7 @@ const NutritionCalendarScreen = () => {
                     yAxisInterval: 1,
                 }}
                 width={screenWidth - 40}
-                height={180}
+                height={140}
                 chartConfig={chartConfig(highlightIndex)}
                 withShadow={false}
                 bezier={false}
@@ -148,13 +203,13 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#f0f0f0",
+        backgroundColor: "#fff",
     },
     calendarWrapper: {
         backgroundColor: "#fff",
         borderRadius: 30,
         padding: 10,
-        marginTop: 10,
+        marginTop: -150,
         width: screenWidth - 40,
     },
     chart: {
@@ -162,16 +217,16 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     selectButton: {
-        backgroundColor: "#E1FF01",
-        paddingVertical: 15,
-        paddingHorizontal: 60,
-        borderRadius: 30,
-        marginTop: 10,
+    //     backgroundColor: "#E1FF01",
+    //     paddingVertical: 15,
+    //     paddingHorizontal: 60,
+    //     borderRadius: 30,
+    //     marginTop: 10,
         marginBottom: -30,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
+    //     shadowColor: "#000",
+    //     shadowOffset: { width: 0, height: 3 },
+    //     shadowOpacity: 0.3,
+    //     shadowRadius: 5,
     },
 });
 
