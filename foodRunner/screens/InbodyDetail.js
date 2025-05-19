@@ -8,17 +8,13 @@ import { Image } from 'react-native';
 import { Dimensions } from 'react-native';
 import Svg, { Polyline, Circle, Text as SvgText } from 'react-native-svg';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-const screenWidth = Dimensions.get('window').width;
+import axios from 'axios';
+import * as ImagePicker from 'expo-image-picker'; // 이미지 선택용 (예: Expo 사용 시)
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 상단 import 필요import * as ImagePicker from 'expo-image-picker';
+const { MediaType } = ImagePicker;
 
-const dateList = [
-  '2024.04.19',
-  '2024.06.28',
-  '2024.08.12',
-  '2024.10.14',
-  '2024.12.28',
-  '2025.01.08',
-  '2025.02.08'
-];
+
+const screenWidth = Dimensions.get('window').width;
 
 const CustomLineChart = ({ data, title = '', noBorder = false  }) => {
   const graphWidth = screenWidth - 100;
@@ -38,6 +34,7 @@ const CustomLineChart = ({ data, title = '', noBorder = false  }) => {
   });
 
   const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+
 
   return (
     <View style={{
@@ -78,21 +75,18 @@ const CustomLineChart = ({ data, title = '', noBorder = false  }) => {
           ))}
           {title === "체지방량(kg)" && points.map((p, idx) => (
             <React.Fragment key={`label-${idx}`}>
-              {/* 연도 (윗줄) */}
               <SvgText
                 x={p.x}
-                y={graphHeight - 7}   // 그래프 밑에 약간 떨어지게
+                y={graphHeight - 7}
                 fontSize="10"
                 fill="white"
                 textAnchor="middle"
               >
                 {data[idx]?.x.split('.')[0]}
               </SvgText>
-
-              {/* 날짜 (아랫줄) */}
               <SvgText
                 x={p.x}
-                y={graphHeight + 5}   // 연도 밑에 한 줄 더
+                y={graphHeight + 5}
                 fontSize="10"
                 fill="white"
                 textAnchor="middle"
@@ -100,12 +94,13 @@ const CustomLineChart = ({ data, title = '', noBorder = false  }) => {
                 {data[idx]?.x.split('.').slice(1).join('.')}
               </SvgText>
             </React.Fragment>
-            ))}
+          ))}
         </Svg>
       </View>
     </View>
   );
 };
+
 
 const PartAnalysisBox = ({ labels }) => (
   <View style={styles.bodyBox}>
@@ -128,53 +123,237 @@ const PartAnalysisBox = ({ labels }) => (
 );
 
 export default function InbodyDetail() {
-  const [selectedDate, setSelectedDate] = useState('2025.02.08');
+  const [inbodyList, setInbodyList] = useState([]); // ✅ 전체 리스트
+  const [inbodyData, setInbodyData] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [inbodyPartData, setInbodyPartData] = useState(null);
+  
 
-  const inbodyData = {
-    '2024.04.19': { 체수분: 24.8, 단백질: 26.1, 무기질: 24.4, 체중: 59.5, 골격근: 19.4, 체지방: 22.1, BMI: 21.5, 체지방률: 28.9 },
-    '2024.06.28': { 체수분: 25.2, 단백질: 28.3, 무기질: 23.5, 체중: 59.2, 골격근: 20.5, 체지방: 22.1, BMI: 19.4, 체지방률: 28.4 },
-    '2024.08.12': { 체수분: 26.7, 단백질: 25.6, 무기질: 26.3, 체중: 58.6, 골격근: 20.1, 체지방: 22.1, BMI: 20.6, 체지방률: 28.3 },
-    '2024.10.14': { 체수분: 24.3, 단백질: 24.2, 무기질: 24.1, 체중: 58.0, 골격근: 20.1, 체지방: 22.1, BMI: 24.6, 체지방률: 28.0 },
-    '2024.12.28': { 체수분: 25.1, 단백질: 24.7, 무기질: 25.0, 체중: 57.9, 골격근: 20.5, 체지방: 22.0, BMI: 24.1, 체지방률: 27.2 },
-    '2025.01.08': { 체수분: 25.8, 단백질: 25.1, 무기질: 25.4, 체중: 57.3, 골격근: 20.8, 체지방: 22.1, BMI: 23.5, 체지방률: 27.4 },
-    '2025.02.08': { 체수분: 26.5, 단백질: 26.5, 무기질: 26.5, 체중: 57.1, 골격근: 21.5, 체지방: 22.8, BMI: 24.0, 체지방률: 27.6 },
+  
+  // 날짜 정제 함수
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}.${mm}.${dd}`;
   };
 
+  const fetchInbodyData = async () => {
+    const token = await AsyncStorage.getItem('token');
+    try {
+      const res = await axios.get('http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/inbody-info', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = res.data || [];
+      setInbodyList(data);
+      if (data.length > 0) {
+        const latest = formatDate(data[0].createdAt);
+        setSelectedDate(latest);
+      }
+    } catch (err) {
+      console.error('❌ 인바디 조회 실패:', err);
+    }
+  };
+
+  
+  
+  const fetchInbodyImages = async () => {
+    const token = await AsyncStorage.getItem('token');
+    const res = await axios.get(
+      'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/image-info',
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    return res.data;
+  };
+
+  const getInbodyByDate = (date) => {
+    return inbodyList.find(item => formatDate(item.createdAt) === date);
+  };
+
+  const currentInbody = getInbodyByDate(selectedDate);
+  const dateOptions = inbodyList.map(item => formatDate(item.createdAt));
 
   useEffect(() => {
-    // TODO: 백엔드 API 연동으로 교체
-    const fakeAPIResponse = {
-      muscleParts: {
-        leftArm: ['표준'],
-        rightArm: ['표준'],
-        leftLeg: ['표준'],
-        rightLeg: ['표준'],
-        trunk: ['표준', '이하'], // ⬅️ 줄바꿈 대신 배열로
-      },
-      fatParts: {
-        leftArm: ['표준'],
-        rightArm: ['표준'],
-        leftLeg: ['표준'],
-        rightLeg: ['표준'],
-        trunk: ['표준'],
+    const fetchInbodyData = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        alert('❗ 로그인 후 이용 가능합니다');
+        return;
+      }
+  
+      try {
+        const response = await axios.get(
+          'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/inbody-info',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        
+        const data = response.data || [];
+        console.log('✅ 인바디 데이터:', data);
+  
+        // 데이터 저장
+        setInbodyList(data);
+  
+        // 최신 날짜 자동 선택
+        if (data.length > 0) {
+          const latestDate = formatDate(data[0].createdAt);
+          setSelectedDate(latestDate);
+        }
+      } catch (error) {
+        console.error('❌ 인바디 조회 실패:', error);
+        if (error.response?.status === 401) {
+          alert('❗ 인증 실패: 다시 로그인해주세요');
+        } else {
+          alert('데이터 조회 중 오류 발생');
+        }
       }
     };
-    
-    setInbodyPartData(fakeAPIResponse);
-  }, [selectedDate]);
+  
+    fetchInbodyData();
+  }, []);
+
+  useEffect(() => {
+    if (!currentInbody) return;
+  
+    const parseAnalysis = (str) => {
+      const parts = str.split(',');
+      return {
+        leftArm: parts[0],
+        rightArm: parts[1],
+        trunk: parts[2],
+        leftLeg: parts[3],
+        rightLeg: parts[4],
+      };
+    };
+  
+    const updatedPartData = {
+      muscleParts: parseAnalysis(currentInbody.segmentalLeanAnalysis),
+      fatParts: parseAnalysis(currentInbody.segmentalFatAnalysis),
+    };
+  
+    setInbodyPartData(updatedPartData);
+  }, [selectedDate, currentInbody]);
+
 
   const generateGraphData = (field) => {
-    return dateList
-      .filter(date => inbodyData[date])
-      .map(date => ({
-        x: date,
-        y: inbodyData[date][field],
-      }));
+    if (!inbodyList || !Array.isArray(inbodyList)) return [];
+  
+    return inbodyList.map(item => {
+      const date = item.createdAt?.split("T")[0] || "날짜없음";
+      return {
+        x: date.replace(/-/g, "."),
+        y: item[field] || 0,
+      };
+    }).reverse(); // 최신순 정렬
+  };
+  const muscleFatStandards = {
+    weight:     { min: 40, midStart: 50, midEnd: 70, max: 100 },
+    muscleMass: { min: 18, midStart: 20, midEnd: 25, max: 35 },
+    fatMass:    { min: 15, midStart: 18, midEnd: 28, max: 45 },
+    bmi:        { min: 10, midStart: 18.5, midEnd: 25, max: 40 },
+    fatPercent: { min: 5, midStart: 18, midEnd: 28, max: 45 },
+  };
+  
+
+
+  const data = currentInbody;
+
+
+  // 그래프 렌더 전에 체크
+  if (!data) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.page}>
+          <Text style={{ color: '#fff', padding: 20 }}>해당 날짜에 인바디 데이터가 없습니다.</Text>
+          <BottomNavigation />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const BASE_URL = 'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080'; // ✅ 추가
+
+  const handleImageUpload = async () => {
+    console.log("📌 버튼 클릭됨");
+    // ✅ 1. accessToken 확인
+    const token = await AsyncStorage.getItem('token');
+    console.log("📦 저장된 accessToken:", token);
+
+    if (!token) {
+      alert("❗ 로그인 후 사용 가능합니다.");
+      return;
+    }
+
+    // ✅ 2. 권한 요청
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log("✅ 권한 granted?:", permission.granted);
+
+    if (!permission.granted) {
+      alert("사진 접근 권한이 필요합니다.");
+      return;
+    }
+
+    console.log("📸 이미지 선택 창 실행 전");
+    // ✅ 3. 이미지 선택
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: [ImagePicker.MediaType.IMAGE],
+      allowsEditing: true,
+      quality: 1,
+    });
+    console.log("✅ 선택된 이미지:", result);
+    console.log("✅ 이미지 선택 결과:", result);
+
+
+    if (result.canceled || !result.assets?.length) {
+      alert("이미지를 선택하지 않았습니다.");
+      return;
+    }
+
+    const imageAsset = result.assets[0];
+
+    // ✅ 4. FormData 구성
+    const formData = new FormData();
+    formData.append('file', {
+      uri: imageAsset.uri,
+      type: 'image/jpeg',
+      name: 'inbody.jpg',
+    });
+
+    // ✅ 5. 서버 업로드 요청
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/inbody/imageUpload`, // ✅ BASE_URL 사용
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      alert('✅ 업로드 성공!');
+      console.log('서버 응답:', response.data);
+    } catch (error) {
+      console.error('❌ 업로드 실패:', error);
+      if (error.response?.status === 401) {
+        alert('❗ 인증 실패: 로그인 다시 해주세요');
+      } else {
+        alert('❌ 업로드 중 오류 발생');
+      }
+    }
   };
 
-  const data = inbodyData[selectedDate];
+  
 
   const GraphBar = ({ value, min, midStart, midEnd, max }) => {
     const totalRange = max - min;
@@ -210,6 +389,21 @@ export default function InbodyDetail() {
   
   
 
+  const dataList = [
+    {
+      title: '체중(kg)',
+      data: generateGraphData('weight'),
+    },
+    {
+      title: '골격근량(kg)',
+      data: generateGraphData('skeletalMuscleMass'),
+    },
+    {
+      title: '체지방량(kg)',
+      data: generateGraphData('bodyFatAmount'),
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.safeArea}> {/* ✅ 상단만 감싸기 */}
       <View style={styles.page}>
@@ -227,28 +421,16 @@ export default function InbodyDetail() {
           </TouchableOpacity>
         </View>
 
-
-          {/* 모달 날짜 리스트 */}
-          <Modal transparent={true} visible={modalVisible} animationType="fade">
+        {/* 날짜 모달 */}
+        <Modal transparent visible={modalVisible} animationType="fade">
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <FlatList
-                  data={dateList}
+                  data={dateOptions}
                   keyExtractor={(item) => item}
                   renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.dateOption}
-                      onPress={() => {
-                        setSelectedDate(item);
-                        setModalVisible(false);
-                      }}
-                    >
-                      <Text style={[
-                        styles.optionText,
-                        item === selectedDate && { color: '#fff', fontWeight: 'bold' }
-                      ]}>
-                        {item}
-                      </Text>
+                    <TouchableOpacity onPress={() => { setSelectedDate(item); setModalVisible(false); }} style={styles.dateOption}>
+                      <Text style={[styles.optionText, item === selectedDate && { color: '#fff', fontWeight: 'bold' }]}>{item}</Text>
                     </TouchableOpacity>
                   )}
                 />
@@ -256,95 +438,118 @@ export default function InbodyDetail() {
             </View>
           </Modal>
 
-          {/* 분석 영역 */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>체성분분석</Text>
-            <Text style={styles.inbodyText}>InBody</Text>
-        </View>
-        <View style={styles.analysisBox}>
-            <View style={styles.analysisRow}>
-                {/* 왼쪽 항목 */}
-                <View style={styles.labelColumn}>
-                    <Text style={styles.labelText1}>체수분(L)</Text>
-                    <Text style={styles.labelText2}>단백질(kg)</Text>
-                    <Text style={styles.labelText3}>무기질(kg)</Text>
-                </View>
-
-                {/* 세로 구분선 */}
-                <View style={styles.verticalLine} />
-
-                {/* 오른쪽 수치 */}
-                <View style={styles.valueColumn}>
-                    <Text style={styles.valueText}>26.5 (26.4 ~ 32.2)</Text>
-                    <Text style={styles.valueText}>26.5 (26.4 ~ 32.2)</Text>
-                    <Text style={styles.valueText}>26.5 (26.4 ~ 32.2)</Text>
-                </View>
+          {currentInbody ? (
+            <View>
+              <Text style={styles.sectionTitle}>✅ 인바디 결과</Text>
+              <Text style={styles.infoText}>체중: {currentInbody.weight}kg</Text>
+              <Text style={styles.infoText}>골격근량: {currentInbody.skeletalMuscleMass}kg</Text>
+              <Text style={styles.infoText}>체지방량: {currentInbody.bodyFatAmount}kg</Text>
+              <Text style={styles.infoText}>BMI: {currentInbody.bmi}</Text>
+              <Text style={styles.infoText}>체지방률: {currentInbody.bodyFatPercentage}%</Text>
+              <Text style={styles.infoText}>단백질: {currentInbody.protein}kg</Text>
+              <Text style={styles.infoText}>무기질: {currentInbody.minerals}kg</Text>
+              <Text style={styles.infoText}>체수분: {currentInbody.bodyWater}L</Text>
+              <Text style={styles.infoText}>근육분석: {currentInbody.segmentalLeanAnalysis}</Text>
+              <Text style={styles.infoText}>지방분석: {currentInbody.segmentalFatAnalysis}</Text>
             </View>
+          ) : (
+            <Text style={{ color: 'gray', textAlign: 'center', marginTop: 40 }}>선택된 날짜에 데이터가 없습니다</Text>
+          )}
+
+          <View style={{ alignItems: 'center', marginBottom: 20 }}>
+          <TouchableOpacity
+            onPress={handleImageUpload}
+            style={{
+              backgroundColor: '#DDFB21',
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: '#000', fontWeight: 'bold' }}>인바디 이미지 업로드</Text>
+          </TouchableOpacity>
+
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>체성분분석</Text>
+        <Text style={styles.inbodyText}>InBody</Text>
+      </View>
+      <View style={styles.analysisBox}>
+        <View style={styles.analysisRow}>
+          {/* 왼쪽 항목 */}
+          <View style={styles.labelColumn}>
+            <Text style={styles.labelText1}>체수분(L)</Text>
+            <Text style={styles.labelText2}>단백질(kg)</Text>
+            <Text style={styles.labelText3}>무기질(kg)</Text>
+          </View>
+
+          {/* 세로 구분선 */}
+          <View style={styles.verticalLine} />
+
+          {/* 오른쪽 수치 */}
+          <View style={styles.valueColumn}>
+            <Text style={styles.valueText}>{currentInbody.bodyWater} (26.4 ~ 32.2)</Text>
+            <Text style={styles.valueText}>{currentInbody.protein} (6.0 ~ 8.0)</Text>
+            <Text style={styles.valueText}>{currentInbody.minerals} (2.5 ~ 3.5)</Text>
+          </View>
         </View>
+      </View>
 
-        <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>골격근 지방분석</Text>
-        </View>
-
-        
-
-        <View style={styles.analysisBox}>
-            <View style={styles.analysisRow}>
-                {/* 왼쪽 텍스트 */}
-                <View style={styles.labelColumn}>
-                    <Text style={styles.labelText4}>체중(kg)</Text>
-                    <Text style={styles.labelText5}>골격근량(kg)</Text>
-                    <Text style={styles.labelText6}>체지방량(kg)</Text>
-                </View>
-                {/* 세로 구분선 */}
-                <View style={styles.verticalLine} />
-                {/* 오른쪽 그래프 */}
-                <View style={styles.valueColumn}>
-                  {/* 상단 텍스트 구간: 범주 설명 + 기준 값 */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>골격근 지방분석</Text>
+      </View>
+      <View style={styles.analysisBox}>
+        {[
+          { key: 'weight', label: '체중(kg)', value: currentInbody.weight },
+          { key: 'muscleMass', label: '골격근량(kg)', value: currentInbody.skeletalMuscleMass },
+          { key: 'fatMass', label: '체지방량(kg)', value: currentInbody.bodyFatAmount },
+        ].map(({ key, label, value }) => {
+          const { min, midStart, midEnd, max } = muscleFatStandards[key];
+          return (
+            <View key={key} style={styles.graphRow}>
+              <Text style={styles.graphLabel}>{label}</Text>
+              <View style={{ flex: 1 }}>
                 <View style={styles.rangeLabelRow}>
                   <Text style={styles.rangeLabel}>표준이하</Text>
                   <Text style={styles.rangeLabel2}>표준</Text>
                   <Text style={styles.rangeLabel}>표준이상</Text>
                 </View>
-                <GraphBar value={110} min={55} midStart={85} midEnd={115} max={205} />
-                <GraphBar value={85} min={70} midStart={90} midEnd={110} max={170} />
-                <GraphBar value={170} min={40} midStart={80} midEnd={160} max={520} />
-                   
-                </View>
-            </View>
-        </View>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>비만 분석</Text>
-        </View>
-
-        <View style={styles.analysisBox}>
-          <View style={styles.analysisRow}>
-            {/* 왼쪽 텍스트 */}
-            <View style={styles.labelColumn}>
-              <Text style={styles.labelText7}>BMI(kg/m²)</Text>
-              <Text style={styles.labelText8}>체지방률(%)</Text>
-            </View>
-
-            {/* 세로 구분선 */}
-            <View style={styles.verticalLine} />
-
-            {/* 오른쪽 그래프 */}
-            <View style={styles.valueColumn}>
-              {/* 범주 레이블 한 번만 표시 */}
-              <View style={styles.rangeLabelRow}>
-                <Text style={styles.rangeLabel}>표준이하</Text>
-                <Text style={styles.rangeLabel2}>표준</Text>
-                <Text style={styles.rangeLabel}>표준이상</Text>
+                <GraphBar value={value} min={min} midStart={midStart} midEnd={midEnd} max={max} />
               </View>
-
-              <GraphBar value={data.BMI} min={10.0} midStart={18.5} midEnd={25.0} max={55.0} />
-              <GraphBar value={data.체지방률} min={8.0} midStart={18.0} midEnd={28.0} max={58.0} />
             </View>
-          </View>
-        </View>
+          );
+        })}
+      </View>
+
+      // 비만 분석
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>비만 분석</Text>
+      </View>
+      <View style={styles.analysisBox}>
+        {[
+          { key: 'bmi', label: 'BMI(kg/m²)', value: currentInbody.bmi },
+          { key: 'fatPercent', label: '체지방률(%)', value: currentInbody.bodyFatPercentage },
+        ].map(({ key, label, value }) => {
+          const { min, midStart, midEnd, max } = muscleFatStandards[key];
+          return (
+            <View key={key} style={styles.graphRow}>
+              <Text style={styles.graphLabel}>{label}</Text>
+              <View style={{ flex: 1 }}>
+                <View style={styles.rangeLabelRow}>
+                  <Text style={styles.rangeLabel}>표준이하</Text>
+                  <Text style={styles.rangeLabel2}>표준</Text>
+                  <Text style={styles.rangeLabel}>표준이상</Text>
+                </View>
+                <GraphBar value={value} min={min} midStart={midStart} midEnd={midEnd} max={max} />
+              </View>
+            </View>
+          );
+        })}
+      </View>
 
         {inbodyPartData && (
-            <View style={styles.bodyRow}>
+          <View style={styles.bodyRow}>
             {/* 왼쪽 - 근육분석 */}
             <View style={{ flex: 1, alignItems: 'center' }}>
               <Text style={styles.bodySectionTitle}>부위별 근육분석</Text>
@@ -352,7 +557,7 @@ export default function InbodyDetail() {
                 <PartAnalysisBox labels={inbodyPartData.muscleParts} />
               </View>
             </View>
-          
+
             {/* 오른쪽 - 체지방분석 */}
             <View style={{ flex: 1, alignItems: 'center' }}>
               <Text style={styles.bodySectionTitle}>부위별 체지방분석</Text>
@@ -361,14 +566,18 @@ export default function InbodyDetail() {
               </View>
             </View>
           </View>
-          )}
-          <View style={{ backgroundColor: '#000', marginTop: 20 }}>
+        )}
+        
+        <View style={{ backgroundColor: '#000', marginTop: 20 }}>
             <Text style={styles.sectionTitle}>신체변화</Text>
-            <CustomLineChart title="체중(kg)" data={generateGraphData('체중')} />
-            <CustomLineChart title="골격근량(kg)" data={generateGraphData('골격근')} />
-            <CustomLineChart title="체지방량(kg)" data={generateGraphData('체지방')} noBorder /> 
-            {/* 마지막 차트만 noBorder=true 로 경계선 없앰 */}
+            <CustomLineChart title="체중(kg)" data={generateGraphData('weight')} />
+            <CustomLineChart title="골격근량(kg)" data={generateGraphData('skeletalMuscleMass')} />
+            <CustomLineChart title="체지방량(kg)" data={generateGraphData('bodyFatAmount')} noBorder />
           </View>
+
+
+
+
           <View style={{ height: 200 }} />
     </ScrollView>
     </View>
@@ -718,5 +927,28 @@ const styles = StyleSheet.create({
     top: '50%',
     transform: [{ translateY: -0.5 }],
   },
+  graphRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  graphLabel: {
+    color: '#fff',
+    fontSize: 14,
+    textAlign: 'right',
+    height: 70, // ✅ 각 그래프에 맞게 라벨 높이 고정
+    lineHeight: 70,
+  },
+  
+  
+
+  rangeLabelCenter: {
+    color: '#fff',
+    fontSize: 12,
+    flex: 1,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  
   
 });
