@@ -933,11 +933,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   graphLabel: {
+    width: 100,
     color: '#fff',
     fontSize: 14,
-    textAlign: 'right',
-    height: 70, // ✅ 각 그래프에 맞게 라벨 높이 고정
-    lineHeight: 70,
+    marginRight: 12,
   },
   
   
