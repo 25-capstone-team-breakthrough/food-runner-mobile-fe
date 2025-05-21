@@ -54,7 +54,9 @@ export default function ExerciseHome() {
   const latestInbody = inbodyList[0] || {};
   const muscleParts = (latestInbody.segmentalLeanAnalysis || '').split(',');
 
-  const [muscleLevels, setMuscleLevels] = useState([]);
+  const [exercisedDays, setExercisedDays] = useState([]);
+  
+
 
   const muscleStatus = {
     leftArm: muscleParts[0],
@@ -265,6 +267,16 @@ export default function ExerciseHome() {
         // 📆 선택된 날짜 객체
         const selected = new Date(selectedDate.replace(/\./g, '-'));
         const formattedToday = selected.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+        const allExercisedDates = new Set();
+
+        // ✅ 모든 날짜에서 운동한 날 추출
+        res.data.forEach(log => {
+          const isoDate = log.createdAt.slice(0, 10);
+          if ((log.caloriesBurned || 0) > 0) {
+            allExercisedDates.add(isoDate);
+          }
+        });
   
         // 🗓️ 주간 시작일 (일요일)
         const startOfWeek = new Date(selected);
@@ -272,12 +284,11 @@ export default function ExerciseHome() {
   
         const weekLabels = [];
         const weekTotals = [];
-  
+        
         for (let i = 0; i < 7; i++) {
           const d = new Date(startOfWeek);
           d.setDate(startOfWeek.getDate() + i);
-  
-          const iso = d.toISOString().slice(0, 10); // YYYY-MM-DD
+          const iso = d.toISOString().slice(0, 10);
           const label = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
           weekLabels.push(label);
   
@@ -285,7 +296,6 @@ export default function ExerciseHome() {
           const total = dayLogs.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
           weekTotals.push(total);
   
-          // ✅ 오늘 날짜일 경우 홈화면용 totalCalories 저장
           if (iso === formattedToday) {
             setTotalCalories(total);
           }
@@ -293,12 +303,13 @@ export default function ExerciseHome() {
   
         setWeeklyCalories(weekTotals);
         setWeekLabels(weekLabels);
-  
+        setExercisedDays(Array.from(allExercisedDates));
+
       } catch (err) {
         console.error("❌ 칼로리 조회 실패:", err.response?.data || err.message);
       }
     };
-  
+
     fetchCalories();
   }, [selectedDate, refreshKey]);
       
@@ -405,9 +416,15 @@ export default function ExerciseHome() {
         },
       };
     }
+    exercisedDays.forEach(date => {
+      if (!result[date]) result[date] = {};
+      result[date].dots = [{ color: "#DDFB21" }];
+      result[date].marked = true;
+    });
+    
   
     return result;
-  }, [selectedDate]);
+  }, [selectedDate, exercisedDays]);
     
   
 
@@ -568,7 +585,7 @@ export default function ExerciseHome() {
         <View style={{ padding: 20 }}>
           <Calendar
             locale="ko"
-            markingType="custom"
+            markingType="multi-dot"
             markedDates={markedDates}
             theme={{
               todayTextColor: "#FFFFFF",
