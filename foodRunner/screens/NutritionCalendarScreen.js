@@ -14,24 +14,24 @@ import RegisterButton from "../components/RegisterButton";
 const screenWidth = Dimensions.get("window").width;
 
 // 이번 달 칼로리 데이터 생성 (1일부터 말일까지 랜덤값으로 예시)
-const generateMonthlyData = () => {
-    const data = {};
-    const startOfMonth = moment().startOf("month");
-    const daysInMonth = moment().daysInMonth();
-    for (let i = 0; i < daysInMonth; i++) {
-        const date = startOfMonth.clone().add(i, "days").format("YYYY-MM-DD");
-        data[date] = Math.floor(Math.random() * 1000) + 1500;
-    }
-    return data;
-};
+// const generateMonthlyData = () => {
+//     const data = {};
+//     const startOfMonth = moment().startOf("month");
+//     const daysInMonth = moment().daysInMonth();
+//     for (let i = 0; i < daysInMonth; i++) {
+//         const date = startOfMonth.clone().add(i, "days").format("YYYY-MM-DD");
+//         data[date] = Math.floor(Math.random() * 1000) + 1500;
+//     }
+//     return data;
+// };
 
-const monthlyCalorieData = generateMonthlyData();
+// const monthlyCalorieData = generateMonthlyData();
 
 const NutritionCalendarScreen = ({ onSelectDate }) => {
     const navigation = useNavigation();
     const [selectedDate, setSelectedDate] = useState(moment().format("YYYY-MM-DD"));
     const [logData, setLogData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
 
     // 영양 정보 가져오기
     useEffect(() => {
@@ -62,9 +62,6 @@ const NutritionCalendarScreen = ({ onSelectDate }) => {
 
         fetchLog();
     }, []);
-
-                                  
-
 
     useEffect(() => {
         const today = moment().format("YYYY-MM-DD");
@@ -102,11 +99,11 @@ const NutritionCalendarScreen = ({ onSelectDate }) => {
         }
     };
 
-    const handleDateSelect = (date) => {
-        setSelectedDate(date);
-        bottomSheetRef.current?.close(); // ✅ 바텀시트 닫기
-        navigation.navigate("NutritionMain", { selectedDate: date }); // ✅ 날짜 전달
-    };
+    // const handleDateSelect = (date) => {
+    //     setSelectedDate(date);
+    //     bottomSheetRef.current?.close(); // ✅ 바텀시트 닫기
+    //     navigation.navigate("NutritionMain", { selectedDate: date }); // ✅ 날짜 전달
+    // };
 
 
     // const handleSelect = () => {
@@ -217,16 +214,15 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     selectButton: {
-    //     backgroundColor: "#E1FF01",
-    //     paddingVertical: 15,
-    //     paddingHorizontal: 60,
-    //     borderRadius: 30,
-    //     marginTop: 10,
-        marginBottom: -30,
-    //     shadowColor: "#000",
-    //     shadowOffset: { width: 0, height: 3 },
-    //     shadowOpacity: 0.3,
-    //     shadowRadius: 5,
+        backgroundColor: "#E1FF01",
+        paddingVertical: 15,
+        paddingHorizontal: 60,
+        borderRadius: 30,
+        // marginTop: 0,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
     },
 });
 

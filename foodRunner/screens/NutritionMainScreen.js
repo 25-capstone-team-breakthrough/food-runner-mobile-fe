@@ -77,13 +77,17 @@ const NutritionMainScreen = () => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['90%'], []);
 
-  const dateToDisplay = moment(selectedDate).format("YYYY.MM.DD");
+  // const dateToDisplay = moment(selectedDate).format("YYYY.MM.DD");
+
+  // selectedDate 변경 시마다 최신 날짜 문자열 계산
+  const dateToDisplay = useMemo(() => moment(selectedDate).format("YYYY.MM.DD"), [selectedDate]);
 
   useEffect(() => {
     const fetchNutritionData = async () => {
       const token = await AsyncStorage.getItem("token");
 
-      const logRes = await fetch("http://13.209.199.97:8080/diet/nutrition/log/load", {
+      // logRes 여기 data 2025-05-10 이런식으로 들어가 잇음...!!
+      const logRes = await fetch(`http://13.209.199.97:8080/diet/nutrition/log/load?date=${selectedDate}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const logData = await logRes.json();
@@ -138,7 +142,7 @@ const NutritionMainScreen = () => {
       }
     };
     fetchNutritionData();
-  }, []);
+  }, [selectedDate]);
 
 
 
@@ -149,7 +153,7 @@ const NutritionMainScreen = () => {
 
       // 1. S3 업로드용 presigned URL 요청
       const fileName = `meal-${Date.now()}.jpg`;
-      const contentType = "image";
+      const contentType = "image/jpeg";
 
       const urlRes = await fetch(
         `http://13.209.199.97:8080/diet/meal/getS3URL?fileName=${fileName}&contentType=${contentType}`,
@@ -168,41 +172,47 @@ const NutritionMainScreen = () => {
 
       await fetch(presignedUrl, {
         method: "PUT",
-        headers: { "Content-Type": "image" },
+        headers: { "Key": "Content-Type", "Value": "image/jpeg"},
         body: blob,
       });
 
       const s3ImageUrl = presignedUrl.split("?")[0]; // 쿼리 제거 → 실제 이미지 URL
+      console.log("✅ 업로드된 S3 이미지 URL:", s3ImageUrl);
 
       // 3. 식사 기록 저장
-      const logRes = await fetch("http://13.209.199.97:8080/diet/meal/log/save", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "image", // 또는 다른 값
-          mealImage: s3ImageUrl,
-          foodId: null, // 실제 음식 ID 필요. route.params?.selectedItem?.foodId 등을 활용
-          dateTime: new Date().toISOString(),
-        }),
-      });
+      setTimeout(async () => {
+      try {
+        const logRes = await fetch("http://13.209.199.97:8080/diet/meal/log/save", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "image",
+            mealImage: s3ImageUrl,
+            foodId: null,
+            dateTime: `${selectedDate}T12:00:00`,
+          }),
+        });
 
-      console.log("응답 상태:", urlRes.status);
-      if (!logRes.ok) throw new Error("식사 기록 저장 실패");
-      console.log("presigned 요청 상태코드:", urlRes.status);
-      const errorText = await urlRes.text();
-      console.log("에러 응답 내용:", errorText);
+        console.log("📤 식사 기록 저장 응답 상태:", logRes.status);
+        if (!logRes.ok) throw new Error("식사 기록 저장 실패");
 
-      // 4. FlatList에 추가
-      setDietImages((prev) => [...prev, { uri: s3ImageUrl }]);
+        setDietImages((prev) => [...prev, { uri: s3ImageUrl }]);
+        console.log("✅ 식사 기록 저장 완료");
 
-    } catch (err) {
-      console.error("❌ 이미지 업로드 또는 저장 실패:", err);
-      Alert.alert("실패", "이미지 저장 중 오류가 발생했습니다.");
-    }
-  };
+      } catch (logErr) {
+        console.error("❌ 식사 기록 저장 실패:", logErr);
+        Alert.alert("실패", "식사 기록 저장 중 오류가 발생했습니다.");
+      }
+    }, 1500); // ✅ 1.5초 대기
+
+  } catch (err) {
+    console.error("❌ 이미지 업로드 실패:", err);
+    Alert.alert("실패", "이미지 업로드 중 오류가 발생했습니다.");
+  }
+};
 
 
   useEffect(() => { 
@@ -231,14 +241,16 @@ const NutritionMainScreen = () => {
 
   // 섭취한 음식 띄우기
   useEffect(() => {
+    // fetchNutritionData();
+    // fetchNutritionData
     fetchMealLogs(); // 앱 시작 시 또는 필요한 시점에 불러오기
-  }, []);
+  }, [selectedDate]);
 
   const fetchMealLogs = async () => {
   try {
     const token = await AsyncStorage.getItem("token");
 
-    const res = await fetch("http://13.209.199.97:8080/diet/meal/log/load", {
+    const res = await fetch(`http://13.209.199.97:8080/diet/meal/log/load?date=${selectedDate}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -513,7 +525,14 @@ const NutritionMainScreen = () => {
           enablePanDownToClose
           backgroundStyle={{ borderTopLeftRadius: 25, borderTopRightRadius: 25, backgroundColor: "#fff" }}
         >
-          <NutritionCalendarScreen onSelectDate={handleDateSelect} />
+          {/* <NutritionCalendarScreen onSelectDate={handleDateSelect} /> */}
+          <NutritionCalendarScreen
+            onSelectDate={(date) => {
+              console.log("선택된 날짜:", date);
+              setSelectedDate(date);
+              bottomSheetRef.current?.close();
+            }}
+          />
         </BottomSheet>
       </ScrollView>
       <BottomNavigation />

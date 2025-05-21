@@ -16,7 +16,7 @@ const DietRecommendationScreen = () => {
     const [favoriteIngredients, setFavoriteIngredients] = useState([]);
     const [recommendedRecipes, setRecommendedRecipes] = useState([]);
 
-    
+    // 저장한 식재료 불러오기
     useEffect(() => {
       const fetchFavorites = async () => {
         try {
@@ -43,13 +43,73 @@ const DietRecommendationScreen = () => {
       fetchFavorites();
     }, []);
 
+    // 식단 추천 생성 rec/set
+    useEffect(() => {
+      const fetchRecommendDietSet = async () => {
+        try {
+          const token = await AsyncStorage.getItem("token"); // 🔐 인증 필요 시 토큰 추가
+          // console.log("🔐 저장된 토큰:", token);
+          const res = await fetch("http://13.209.199.97:8080/diet/recipe/rec/set", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error("❌ 추천식단 생성 서버 에러 상태:", res.status, errorText);
+            throw new Error("추천식단 생성 실패");
+          }
+
+          
+          // const res = await fetch(...);
+          console.log(await res.text()); 
+
+          // const data = await res.json();
+          // console.log("✅ 추천 식단 생성 데이터:", data); // 콘솔 출력
+
+          // setRecommendedRecipes(data);
+        } catch (err) {
+          console.error("❌ 추천 식단 생성 에러:", err);
+        }
+      };
+
+      fetchRecommendDietSet();
+    }, []);
+
+    // 식단 추천 불러오기 rec/load
+    useEffect(() => {
+      const fetchRecipes = async () => {
+        try {
+          const token = await AsyncStorage.getItem("token"); // 🔐 인증 필요 시 토큰 추가
+          const res = await fetch("http://13.209.199.97:8080/diet/recipe/rec/load", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (!res.ok) throw new Error("레시피 불러오기 실패");
+
+          const data = await res.json();
+          console.log("✅ 추천 식단 데이터:", data); // 콘솔 출력
+
+          setRecommendedRecipes(data);
+        } catch (err) {
+          console.error("❌ 추천 식단 불러오기 에러:", err);
+        }
+      };
+
+      fetchRecipes();
+    }, []);
+
+    
+    // 레시피 불러오기
     useEffect(() => {
       const fetchRecipes = async () => {
         try {
           const res = await fetch("http://13.209.199.97:8080/diet/recipe/data/load");
           if (!res.ok) throw new Error("레시피 불러오기 실패");
           const data = await res.json();
-          console.log("🍽 전체 레시피 데이터:", data);
+          // console.log("🍽 전체 레시피 데이터:", data);
 
           // 👉 필드 변환 없이 통째로 저장
           setRecommendedRecipes(data);
@@ -100,8 +160,10 @@ const DietRecommendationScreen = () => {
               placeholder="식재료를 추가해주세요"
               editable={false} // 눌러도 키보드 안뜨게
               pointerEvents="none" // 입력 막고 클릭만 허용
+              onPress={() => navigation.navigate("Ingredient")}
             />
           </TouchableOpacity>
+          
  
           {/* 이미지 슬라이더 */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageSlider}>
@@ -152,7 +214,7 @@ const DietRecommendationScreen = () => {
 
           <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
 
-          {filteredIngredients.length > 0 && (
+          {/* {filteredIngredients.length > 0 && (
             <View style={{ width: "90%", marginTop: 10 }}>
               <Text style={{ fontSize: 18, fontWeight: "500", marginBottom: 10 }}>검색 결과</Text>
               {filteredIngredients.map((ingredient) => (
@@ -173,7 +235,7 @@ const DietRecommendationScreen = () => {
                 </TouchableOpacity>
               ))}
             </View>
-          )}
+          )} */}
 
           {/* 추천 식사 항목 */}
           <View style={styles.dietContainer}>

@@ -138,10 +138,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 170,
+    height: 170,
     marginTop: -80,
-    marginBottom: 30,
   },
   title: {
     color: "#C8FF00",

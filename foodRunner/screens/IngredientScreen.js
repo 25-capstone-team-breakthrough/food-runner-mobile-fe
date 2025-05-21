@@ -57,6 +57,7 @@ export default function IngredientScreen({ navigation }) {
   }, [search]);
 
   // 추천 식재료 불러오기 (처음 로딩 + 검색어가 없을 때만)
+  // 불러오기만
   const fetchRecommendedIngredients = useCallback(async () => {
     try {
       console.log("📡 추천 식재료 가져오는 중...");
@@ -149,9 +150,32 @@ export default function IngredientScreen({ navigation }) {
       {search.length === 0 && (
         <>
           <RefreshButton
-            onPress={() => {
+            onPress={async () => {
               console.log("🔁 새로고침 버튼 클릭됨!");
-              fetchRecommendedIngredients();
+
+              try {
+                const token = await AsyncStorage.getItem("token");
+
+                // 1️⃣ 먼저 추천 저장 요청 수행
+                const res = await fetch("http://13.209.199.97:8080/diet/ingredient/rec/save", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                  },
+                  body: new URLSearchParams({
+                    ingredientId: "1", // ✅ 여기에 실제 저장할 재료 ID를 넣어야 함
+                  }).toString(),
+                });
+
+                const result = await res.text();
+                console.log("✅ 추천 저장 응답:", result);
+
+                // 2️⃣ 저장 성공 후 추천 재료 새로고침
+                await fetchRecommendedIngredients();
+              } catch (err) {
+                console.error("❌ 새로고침 중 오류:", err);
+              }
             }}
           />
           <Text style={styles.subTitle}>추천재료</Text>

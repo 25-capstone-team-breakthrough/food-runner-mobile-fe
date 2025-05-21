@@ -165,6 +165,7 @@ const FoodSearchScreen = () => {
               <TouchableOpacity
                 onPress={() =>
                   setSelectedItem(selectedItem?.foodId === item.foodId ? null : item)
+                  // console.log("선택된 아이템", selectedItem)
                 }
                 style={[
                   styles.resultItem,
@@ -215,7 +216,7 @@ const FoodSearchScreen = () => {
 
           try {
             const token = await AsyncStorage.getItem("token");
-            // console.log(token)
+            console.log("토큰확인", token)
 
             const response = await fetch("http://13.209.199.97:8080/diet/meal/log/save", {
               method: "POST",
@@ -224,12 +225,15 @@ const FoodSearchScreen = () => {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                type: "search", // 또는 LUNCH, DINNER, SNACK 등 사용자가 선택
-                mealImage: "http://image-url-from-s3", // 현재는 빈 문자열 또는 테스트용 URL로 넣어도 됨
+                type: "search", 
                 foodId: selectedItem.foodId,
+                // mealImage: "http://image-url-from-s3",
+                mealImage: "",
                 dateTime: new Date().toISOString(),
               }),
             });
+            console.log("선택된 아이템:", selectedItem);
+            console.log("보내는 foodId:", selectedItem?.foodId);
 
             if (!response.ok) {
               throw new Error(`서버 오류: ${response.status}`);

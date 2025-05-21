@@ -13,6 +13,7 @@ import BottomNavigation from "../components/BottomNavigation";
 import RegisterButton from "../components/RegisterButton";
 import SearchBar from "../components/SearchBar";
 
+
 const FoodSearchScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState("");
@@ -94,16 +95,16 @@ const FoodSearchScreen = () => {
                 ]}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     onPress={() => toggleFavorite(item)}
                     style={styles.favoriteButton}
                   >
                     <Ionicons
-                      name={favoriteItems.includes(Number(item.foodId)) ? "star" : "star-outline"}
+                      name={favoriteItems.includes(Number(item.supplementId)) ? "star" : "star-outline"}
                       size={24}
-                      color={favoriteItems.includes(Number(item.foodId)) ? "#E1FF01" : "#C0C0C0"}
+                      color={favoriteItems.includes(Number(item.supplementId)) ? "#E1FF01" : "#C0C0C0"}
                     />
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                   <Image
                     source={{ uri: item.supplementImage }}
                     style={styles.itemImage}

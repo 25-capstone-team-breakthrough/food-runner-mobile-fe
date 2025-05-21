@@ -12,7 +12,9 @@ const screenWidth = Dimensions.get('window').width;
 
 const HomeScreen = ({ navigation }) => {
 
-  const name = "이민주";
+  // const name = await AsyncStorage.getItem("name");
+  const [name, setName] = useState("");
+  // const name = "이민주";
   const dateToDisplay = moment().format("YYYY.MM.DD")
   const [consumedCalories, setConsumedCalories] = useState(0);
 
@@ -20,9 +22,10 @@ const HomeScreen = ({ navigation }) => {
     const fetchCalories = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
-        console.log("토큰:", token);
+        // console.log("토큰:", token);
+        const storedName = await AsyncStorage.getItem("name"); // 이름 가져오기
+        setName(storedName || "");
         const today = new Date().toISOString();
-  
         const response = await fetch("http://13.209.199.97:8080/api/diet/getNutrient", {
           method: 'GET',
           headers: {
@@ -47,7 +50,6 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-
       <View style={{
         width: '100%',
         flexDirection: 'row',
