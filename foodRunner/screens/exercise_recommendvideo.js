@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import axios from "axios";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Linking } from "react-native";
+
 
 const ITEM_WIDTH = 120; // category button width
 
@@ -12,6 +16,73 @@ export default function ExerciseRecommendVideo() {
 
   const categories = ["어깨", "가슴", "팔", "하체", "복근", "등", "둔근", "종아리"];
   const [selectedCategory, setSelectedCategory] = useState("어깨");
+  const [videoData, setVideoData] = useState({ recommended: [], searched: {},});
+  const [loading, setLoading] = useState(true);
+  // 이건 유튜브 사용량때문에 만든 코드
+  const loadCachedVideos = async (category) => {
+    const json = await AsyncStorage.getItem(`videos_${category}`);
+    return json ? JSON.parse(json) : null;
+  };
+  
+  const saveVideosToCache = async (category, videos) => {
+    await AsyncStorage.setItem(`videos_${category}`, JSON.stringify(videos));
+  };
+
+  const fetchVideos = async () => {
+    const cached = await loadCachedVideos(selectedCategory);
+    if (cached) {
+      setVideoData(prev => ({
+        ...prev,
+        searched: {
+          ...prev.searched,
+          [selectedCategory]: cached
+        }
+      }));
+      return;
+    }
+  
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/videos/exercises", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      const videos = response.data.searched[selectedCategory]?.slice(0, 1) || [];
+      setVideoData(prev => ({
+        ...prev,
+        searched: {
+          ...prev.searched,
+          [selectedCategory]: videos
+        }
+      }));
+      await saveVideosToCache(selectedCategory, videos);
+  
+    } catch (error) {
+      console.error("영상 불러오기 실패:", error);
+    }
+  };  // 이건 유튜브 사용량때문에 만든 코드
+  
+
+  // useEffect(() => {
+  //   const fetchVideos = async () => {
+  //     try {
+  //       const token = await AsyncStorage.getItem('token'); // 또는 Redux에서 가져오기
+  //       console.log("🔥 현재 토큰:", token);
+  //       const res = await axios.get("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/videos/exercises", {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+  //       setVideoData(res.data);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error("영상 데이터 불러오기 실패:", error);
+  //       setLoading(false);
+  //     }
+  //   };
+  
+  //   fetchVideos();
+  // }, []);      이건 실제 사용 코드
 
   useEffect(() => {
     const incoming = route.params?.category;
@@ -28,21 +99,6 @@ export default function ExerciseRecommendVideo() {
     }
   }, [route.params]);
 
-  const exerciseList = {
-    어깨: ["운동1", "운동2", "운동3", "운동4"],
-    가슴: ["운동5", "운동6", "운동7", "운동8"],
-    팔: ["운동9", "운동10", "운동11", "운동12"],
-    하체: ["운동13", "운동14", "운동15", "운동16"],
-    복근: ["운동17", "운동18", "운동19", "운동20"],
-    등: ["운동21", "운동22", "운동23", "운동24"],
-    둔근: ["운동25", "운동26", "운동27", "운동28"],
-    종아리: ["운동29", "운동30", "운동31", "운동32"],
-  };
-
-  const navigateToExerciseDetail = (exerciseName) => {
-    navigation.navigate('ExerciseDetail', { exercise: exerciseName });
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -52,6 +108,7 @@ export default function ExerciseRecommendVideo() {
         </TouchableOpacity>
       </View>
 
+      {/* 카테고리 선택 바 */}
       <View style={styles.categoryWrapper}>
         <FlatList
           ref={categoryRef}
@@ -60,26 +117,16 @@ export default function ExerciseRecommendVideo() {
           keyExtractor={(item) => item}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryScroll}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                selectedCategory === item && styles.activeCategory,
-              ]}
+              style={[styles.categoryButton, selectedCategory === item && styles.activeCategory]}
               onPress={() => {
                 setSelectedCategory(item);
                 const index = categories.findIndex((c) => c === item);
-                categoryRef.current?.scrollToIndex({
-                  index,
-                  animated: true,
-                  viewPosition: 0.5,
-                });
+                categoryRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
               }}
             >
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === item && styles.activeCategoryText,
-              ]}>
+              <Text style={[styles.categoryText, selectedCategory === item && styles.activeCategoryText]}>
                 {item}
               </Text>
             </TouchableOpacity>
@@ -89,42 +136,67 @@ export default function ExerciseRecommendVideo() {
             offset: ITEM_WIDTH * index,
             index,
           })}
-          onScrollToIndexFailed={({ index }) => {
-            setTimeout(() => {
-              categoryRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
-            }, 300);
-          }}
         />
       </View>
 
+      {/* AI 추천 영상 */}
+      {videoData.recommended.length > 0 && (
+        <View style={styles.exerciseList}>
+          <Text style={styles.exerciseListTitle}>AI 추천 영상</Text>
+          <FlatList
+            data={videoData.recommended}
+            keyExtractor={(item, index) => `${item.videoId}-${index}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                style={[styles.exerciseItem, { width: 200, marginRight: 10 }]}
+                onPress={() => Linking.openURL(item.url)}
+              >
+                <View style={[styles.exerciseBox, styles.recommendedBox]}>
+                  <Image
+                    source={{ uri: `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` }}
+                    style={styles.thumbnail}
+                  />
+                  <Text style={styles.exerciseText} numberOfLines={1}>{item.title}</Text>
+                </View>
+              </TouchableOpacity>
+            )}            
+          />
+        </View>
+      )}
+      {/* 일반 검색 영상 */}
       <View style={styles.exerciseList}>
-        
-      <FlatList
-        data={exerciseList[selectedCategory]}
-        keyExtractor={(item, index) => `${item}-${index}`}
-        numColumns={2}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        ListHeaderComponent={() => (
-          <Text style={styles.exerciseListTitle}>추천 운동</Text>
-        )}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity style={styles.exerciseItem} onPress={() => navigateToExerciseDetail(item)}>
-            <View style={[
-              styles.exerciseBox,
-              index < 2 && styles.recommendedBox
-            ]}>
-              <Text style={styles.exerciseText}>{item}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+        <FlatList
+          data={videoData.searched[selectedCategory] || []}
+          keyExtractor={(item, index) => `${item.videoId}-${index}`}
+          numColumns={2}
+          columnWrapperStyle={{ justifyContent: "space-between" }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          ListHeaderComponent={() => (
+            <Text style={styles.exerciseListTitle}>유튜브 검색 영상</Text>
+          )}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity
+              style={styles.exerciseItem}
+              onPress={() => Linking.openURL(item.url)}
+            >
+              <View style={styles.exerciseBox}>
+                <Image
+                  source={{ uri: `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` }}
+                  style={styles.thumbnail}
+                />
+                <Text style={styles.exerciseText} numberOfLines={1}>{item.title}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+                    
+        />
       </View>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -155,7 +227,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "black",
-    position: 'absolute',
+    position: "absolute",
     right: 20,
   },
   categoryWrapper: {
@@ -203,10 +275,10 @@ const styles = StyleSheet.create({
   },
   exerciseBox: {
     backgroundColor: "#333",
-    height: 120,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
   },
   recommendedBox: {
     borderWidth: 2,
@@ -216,5 +288,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 14,
     fontWeight: "bold",
+    padding: 5,
+    textAlign: "center",
+  },
+  thumbnail: {
+    width: "100%",
+    height: 100,
   },
 });

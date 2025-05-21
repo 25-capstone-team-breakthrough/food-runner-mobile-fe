@@ -50,6 +50,63 @@ export default function ExerciseHome() {
   const [selectedDate, setSelectedDate] = useState(formattedToday);
   const [selectedDay, setSelectedDay] = useState(today.toLocaleDateString("ko-KR", { weekday: "short" }));
 
+  const [inbodyList, setInbodyList] = useState([]);
+  const latestInbody = inbodyList[0] || {};
+  const muscleParts = (latestInbody.segmentalLeanAnalysis || '').split(',');
+
+  const [muscleLevels, setMuscleLevels] = useState([]);
+
+  const muscleStatus = {
+    leftArm: muscleParts[0],
+    rightArm: muscleParts[1],
+    trunk: muscleParts[2],
+    leftLeg: muscleParts[3],
+    rightLeg: muscleParts[4],
+  };
+
+  useEffect(() => {
+    const fetchInbody = async () => {
+      const token = await AsyncStorage.getItem("token");
+      try {
+        const res = await axios.get("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/inbody-info", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setInbodyList(res.data || []);
+      } catch (err) {
+        console.error('❌ 인바디 불러오기 실패', err);
+      }
+    };
+    fetchInbody();
+  }, []);
+
+  const getButtonColor = (name) => {
+    const { leftArm, rightArm, trunk, leftLeg, rightLeg } = muscleStatus;
+  
+    switch (name) {
+      case "어깨":
+        return (leftArm === "표준이하" && rightArm === "표준이하") ? "#FF3B30" : "#DDFB21";
+  
+      case "팔":
+        return (leftArm === "표준이하" || rightArm === "표준이하") ? "#FF3B30" : "#DDFB21";
+  
+      case "가슴":
+      case "복근":
+      case "등":
+        return trunk === "표준이하" ? "#FF3B30" : "#DDFB21";
+  
+      case "하체":
+      case "둔근":
+      case "종아리":
+        return (leftLeg === "표준이하" || rightLeg === "표준이하") ? "#FF3B30" : "#DDFB21";
+  
+      default:
+        return "#DDFB21";
+    }
+  };
+  
+  
+
+
 
   const rotation = useSharedValue(0); // 0deg or 180deg
   const animatedIconStyle = useAnimatedStyle(() => ({
@@ -380,19 +437,17 @@ export default function ExerciseHome() {
           alignItems: "center",
           zIndex: 9,
         }}
-        onPress={toggleFrontView}
+        onPress={toggleFrontView} 
       >
         <Animated.View style={[animatedIconStyle]}>
           <Ionicons name="shuffle" size={30} color="#E1FF01" />
         </Animated.View>
       </TouchableOpacity>
       )}
-
       {/* 신체 이미지 및 버튼 */}
       <View style={{ position: "absolute", bottom: 150, alignItems: "center" }}>
         <Image
-          source={
-            isFrontView
+          source={              isFrontView
               ? require("../assets/body_front.png")
               : require("../assets/body_back.png")
           }
@@ -400,18 +455,20 @@ export default function ExerciseHome() {
           resizeMode="contain"
         />
         {/* 부위별 버튼 */}
-        {(isFrontView ? BODY_PART_POSITIONS.front : BODY_PART_POSITIONS.back).map(({ name, top, left }) => (
-          <TouchableOpacity
-            key={name}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={buttonStyle(top, left)}
-            onPress={() => handleExerciseClick(name)}
-          >
-            <Text style={{ opacity: 0 }}>{name}</Text>
-          </TouchableOpacity>
-        ))}
-
+        {(isFrontView ? BODY_PART_POSITIONS.front : BODY_PART_POSITIONS.back).map(
+          ({ name, top, left }) => (
+            <TouchableOpacity
+              key={name}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={[buttonStyle(top, left), { backgroundColor: getButtonColor(name) }]}
+              onPress={() => handleExerciseClick(name)}
+            >
+              <Text style={{ opacity: 0 }}>{name}</Text>
+            </TouchableOpacity>
+          )
+        )}
       </View>
+
 
       {/* 칼로리 카드 */}
       <View
@@ -591,7 +648,6 @@ const buttonStyle = (top, left) => ({
   transform: [{ translateX: -7 }],
   width: 7,
   height: 7,
-  backgroundColor: "#DDFB21",
   borderRadius: 10,
   justifyContent: "center",
   alignItems: "center",

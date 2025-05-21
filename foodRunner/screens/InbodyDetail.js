@@ -16,91 +16,69 @@ const { MediaType } = ImagePicker;
 
 const screenWidth = Dimensions.get('window').width;
 
-const CustomLineChart = ({ data, title = '', noBorder = false  }) => {
-  const graphWidth = screenWidth - 100;
-  const graphHeight = 200;
-  const paddingLeft = 15;   // 왼쪽 패딩
-  const paddingRight = 40;
-  const pointSpacing = (graphWidth - paddingLeft - paddingRight) / (data.length - 1);
+const CardChart = ({ title, data = [], unit = 'kg' }) => {
+  const chartWidth = screenWidth - 40;
+  const chartHeight = 140;
+  const paddingTop = 16;
+  const paddingBottom = 24;
+  const paddingLeft = 20;
+  const paddingRight = 20;
+  const pointRadius = 4;
+  const fontSize = 11;
 
-  const minY = Math.min(...data.map(d => d.y)) - 2;
-  const maxY = Math.max(...data.map(d => d.y)) + 2;
-  const yRange = maxY - minY;
+  if (!data.length) return null;
 
-  const points = data.map((d, idx) => {
-    const x = paddingLeft + idx * pointSpacing;
-    const y = graphHeight - 20 - ((d.y - minY) / yRange) * (graphHeight - 40);
-    return { x, y, value: d.y };
-  });
+  const values = data.map(d => d.value);
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const valueRange = max - min || 1;
 
-  const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
-
-
+  const xSpacing = (chartWidth - paddingLeft - paddingRight) / (data.length - 1);
+  const getY = val =>
+    paddingTop + (1 - (val - min) / valueRange) * (chartHeight - paddingTop - paddingBottom);
+  
   return (
-    <View style={{
-      paddingVertical: 10,
-      marginBottom: -120
-    }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 0 }}>
-        <View style={{ width: 80, alignItems: 'flex-end', paddingRight: 10 }}>
-          {title ? (
-            <Text style={{ color: 'white', fontSize: 12, fontWeight: "bold"}}>{title}</Text>
-          ) : null}
-        </View>
-        {/* 가운데 세로 구분선 */}
-        <View style={{ width: 1, backgroundColor: '#aaa', height: graphHeight - 80, marginRight: 10 }} />
-
-        <Svg width={graphWidth} height={graphHeight + (title === "체지방량(kg)" ? 30 : 0)}>
-          {/* 기존 선 + 점 */}
-          <Polyline
-            points={polylinePoints}
-            fill="none"
-            stroke="#555555"
-            strokeWidth="4"
-          />
-          {points.map((p, idx) => (
-            <React.Fragment key={idx}>
-              <Circle cx={p.x} cy={p.y} r="3.5" fill="#DDFB21" />
+    <View style={styles.chartCard}>
+      <Text style={styles.chartTitle}>{title}</Text>
+      <Svg width={chartWidth} height={chartHeight} >
+        <Polyline
+          points={data.map((d, i) => `${paddingLeft + i * xSpacing},${getY(d.value)}`).join(' ')}
+          stroke="#bbb"
+          strokeWidth={2}
+          fill="none"
+        />
+        {data.map((d, i) => {
+          const x = paddingLeft + i * xSpacing;
+          const y = getY(d.value);
+          const isLatest = i === data.length - 1;
+          return (
+            <React.Fragment key={i}>
+              <Circle cx={x} cy={y} r={pointRadius} fill={isLatest ? '#E40000' : '#fff'} />
               <SvgText
-                x={p.x}
-                y={p.y - 10}
-                fontSize="12"
-                fill="white"
+                x={x}
+                y={y - 8}
+                fontSize={fontSize}
+                fill={isLatest ? '#E40000' : '#fff'}
                 textAnchor="middle"
-
               >
-                {p.value.toFixed(1)}
+                {d.value.toFixed(1)}
+              </SvgText>
+              <SvgText
+                x={x}
+                y={chartHeight + 2} // 두 번째 줄: 월.일
+                fontSize={10}
+                fill="#aaa"
+                textAnchor="middle"
+              >
+                {`${d.date.split('.')[1]}.${d.date.split('.')[2]}`} {/* '05.21' */}
               </SvgText>
             </React.Fragment>
-          ))}
-          {title === "체지방량(kg)" && points.map((p, idx) => (
-            <React.Fragment key={`label-${idx}`}>
-              <SvgText
-                x={p.x}
-                y={graphHeight - 7}
-                fontSize="10"
-                fill="white"
-                textAnchor="middle"
-              >
-                {data[idx]?.x.split('.')[0]}
-              </SvgText>
-              <SvgText
-                x={p.x}
-                y={graphHeight + 5}
-                fontSize="10"
-                fill="white"
-                textAnchor="middle"
-              >
-                {data[idx]?.x.split('.').slice(1).join('.')}
-              </SvgText>
-            </React.Fragment>
-          ))}
-        </Svg>
-      </View>
+          );
+        })}
+      </Svg>
     </View>
   );
 };
-
 
 const PartAnalysisBox = ({ labels }) => (
   <View style={styles.bodyBox}>
@@ -124,7 +102,6 @@ const PartAnalysisBox = ({ labels }) => (
 
 export default function InbodyDetail() {
   const [inbodyList, setInbodyList] = useState([]); // ✅ 전체 리스트
-  const [inbodyData, setInbodyData] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [inbodyPartData, setInbodyPartData] = useState(null);
@@ -157,69 +134,70 @@ export default function InbodyDetail() {
     }
   };
 
-  
-  
-  const fetchInbodyImages = async () => {
-    const token = await AsyncStorage.getItem('token');
-    const res = await axios.get(
-      'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/image-info',
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
-    return res.data;
-  };
-
   const getInbodyByDate = (date) => {
     return inbodyList.find(item => formatDate(item.createdAt) === date);
   };
 
-  const currentInbody = getInbodyByDate(selectedDate);
+  const currentInbody = getInbodyByDate(selectedDate) || {
+    weight: 0, skeletalMuscleMass: 0, bodyFatAmount: 0, bmi: 0,
+    bodyFatPercentage: 0, protein: 0, minerals: 0, bodyWater: 0,
+    segmentalLeanAnalysis: '표준,표준,표준,표준,표준',
+    segmentalFatAnalysis: '표준,표준,표준,표준,표준',
+  };
+  
+  
+  
   const dateOptions = inbodyList.map(item => formatDate(item.createdAt));
 
   useEffect(() => {
     const fetchInbodyData = async () => {
       const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        alert('❗ 로그인 후 이용 가능합니다');
-        return;
-      }
+      if (!token) return;
   
       try {
         const response = await axios.get(
           'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/inbody-info',
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` }
           }
         );
-        
+  
         const data = response.data || [];
         console.log('✅ 인바디 데이터:', data);
   
-        // 데이터 저장
+        // 빈 배열이면 더미 데이터 삽입
+        if (data.length === 0) {
+          const dummy = {
+            createdAt: new Date().toISOString(),
+            weight: 0,
+            skeletalMuscleMass: 0,
+            bodyFatAmount: 0,
+            bmi: 0,
+            bodyFatPercentage: 0,
+            protein: 0,
+            minerals: 0,
+            bodyWater: 0,
+            segmentalLeanAnalysis: '표준,표준,표준,표준,표준',
+            segmentalFatAnalysis: '표준,표준,표준,표준,표준',
+          };
+          data.push(dummy);
+        }
+  
         setInbodyList(data);
   
-        // 최신 날짜 자동 선택
-        if (data.length > 0) {
-          const latestDate = formatDate(data[0].createdAt);
-          setSelectedDate(latestDate);
-        }
+        // 최초 날짜 선택
+        const latest = formatDate(data[0].createdAt);
+        setSelectedDate(latest);
+  
       } catch (error) {
         console.error('❌ 인바디 조회 실패:', error);
-        if (error.response?.status === 401) {
-          alert('❗ 인증 실패: 다시 로그인해주세요');
-        } else {
-          alert('데이터 조회 중 오류 발생');
-        }
       }
     };
   
     fetchInbodyData();
   }, []);
+  
+  
 
   useEffect(() => {
     if (!currentInbody) return;
@@ -241,11 +219,35 @@ export default function InbodyDetail() {
     };
   
     setInbodyPartData(updatedPartData);
-  }, [selectedDate, currentInbody]);
+  }, [selectedDate]); // ✅ currentInbody 제거
+  
+  const tripleData = inbodyList.map(item => ({
+    date: formatDate(item.createdAt),
+    weight: item.weight,
+    muscle: item.skeletalMuscleMass,
+    fat: item.bodyFatAmount,
+  })).reverse();
 
+  const weightData = inbodyList.map(item => ({
+    date: formatDate(item.createdAt),
+    value: item.weight ?? 0
+  })).reverse();
+
+  const muscleData = inbodyList.map(item => ({
+    date: formatDate(item.createdAt),
+    value: item.skeletalMuscleMass ?? 0
+  })).reverse();
+  
+  const fatData = inbodyList.map(item => ({
+    date: formatDate(item.createdAt),
+    value: item.bodyFatAmount ?? 0
+  })).reverse();
+  
 
   const generateGraphData = (field) => {
-    if (!inbodyList || !Array.isArray(inbodyList)) return [];
+    if (!inbodyList || !Array.isArray(inbodyList) || inbodyList.length === 0) {
+      return [{ x: '데이터없음', y: 0 }];
+    }
   
     return inbodyList.map(item => {
       const date = item.createdAt?.split("T")[0] || "날짜없음";
@@ -255,6 +257,7 @@ export default function InbodyDetail() {
       };
     }).reverse(); // 최신순 정렬
   };
+  
   const muscleFatStandards = {
     weight:     { min: 40, midStart: 50, midEnd: 70, max: 100 },
     muscleMass: { min: 18, midStart: 20, midEnd: 25, max: 35 },
@@ -264,95 +267,74 @@ export default function InbodyDetail() {
   };
   
 
-
-  const data = currentInbody;
-
-
-  // 그래프 렌더 전에 체크
-  if (!data) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.page}>
-          <Text style={{ color: '#fff', padding: 20 }}>해당 날짜에 인바디 데이터가 없습니다.</Text>
-          <BottomNavigation />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   const BASE_URL = 'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080'; // ✅ 추가
 
   const handleImageUpload = async () => {
     console.log("📌 버튼 클릭됨");
-    // ✅ 1. accessToken 확인
-    const token = await AsyncStorage.getItem('token');
+  
+    const token = await AsyncStorage.getItem("token");
     console.log("📦 저장된 accessToken:", token);
-
+  
     if (!token) {
       alert("❗ 로그인 후 사용 가능합니다.");
       return;
     }
-
-    // ✅ 2. 권한 요청
+  
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     console.log("✅ 권한 granted?:", permission.granted);
-
+  
     if (!permission.granted) {
       alert("사진 접근 권한이 필요합니다.");
       return;
     }
-
+  
     console.log("📸 이미지 선택 창 실행 전");
-    // ✅ 3. 이미지 선택
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.IMAGE],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
     });
-    console.log("✅ 선택된 이미지:", result);
-    console.log("✅ 이미지 선택 결과:", result);
-
-
+  
     if (result.canceled || !result.assets?.length) {
       alert("이미지를 선택하지 않았습니다.");
       return;
     }
-
-    const imageAsset = result.assets[0];
-
-    // ✅ 4. FormData 구성
-    const formData = new FormData();
-    formData.append('file', {
-      uri: imageAsset.uri,
-      type: 'image/jpeg',
-      name: 'inbody.jpg',
-    });
-
-    // ✅ 5. 서버 업로드 요청
+  
     try {
-      const response = await axios.post(
-        `${BASE_URL}/inbody/imageUpload`, // ✅ BASE_URL 사용
-        formData,
-        {
+      const localUri = result.assets[0].uri;
+      console.log("✅ 이미지 URI:", localUri);
+  
+      const formData = new FormData();
+        formData.append("file", {
+          uri: localUri,
+          type: "image/jpeg",
+          name: "test.jpg",
+        });
+
+        const token = await AsyncStorage.getItem("token");
+
+        const response = await fetch("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/imageUpload", {
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`, // ✅ Content-Type은 절대 쓰지 마세요
           },
-        }
-      );
+          body: formData,
+        });
+        console.log("✅ 업로드 응답 상태:", response.status);
 
-      alert('✅ 업로드 성공!');
-      console.log('서버 응답:', response.data);
-    } catch (error) {
-      console.error('❌ 업로드 실패:', error);
-      if (error.response?.status === 401) {
-        alert('❗ 인증 실패: 로그인 다시 해주세요');
-      } else {
-        alert('❌ 업로드 중 오류 발생');
-      }
+  
+      if (!response.ok) throw new Error("서버 응답 오류: " + response.status);
+  
+      const resultText = await response.text();
+      console.log("✅ 업로드 성공:", resultText);
+      alert("✅ 이미지 업로드 완료!");
+    } catch (err) {
+      console.error("❌ 업로드 실패:", err);
+      alert("이미지 업로드 중 오류 발생");
     }
+    await fetchInbodyData(); // 여기 추가! 업로드 후 그래프에 바로 반영
   };
-
+      
   
 
   const GraphBar = ({ value, min, midStart, midEnd, max }) => {
@@ -385,24 +367,6 @@ export default function InbodyDetail() {
       </View>
     );
   };
-  
-  
-  
-
-  const dataList = [
-    {
-      title: '체중(kg)',
-      data: generateGraphData('weight'),
-    },
-    {
-      title: '골격근량(kg)',
-      data: generateGraphData('skeletalMuscleMass'),
-    },
-    {
-      title: '체지방량(kg)',
-      data: generateGraphData('bodyFatAmount'),
-    },
-  ];
 
   return (
     <SafeAreaView style={styles.safeArea}> {/* ✅ 상단만 감싸기 */}
@@ -425,15 +389,27 @@ export default function InbodyDetail() {
         <Modal transparent visible={modalVisible} animationType="fade">
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
-                <FlatList
-                  data={dateOptions}
-                  keyExtractor={(item) => item}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => { setSelectedDate(item); setModalVisible(false); }} style={styles.dateOption}>
-                      <Text style={[styles.optionText, item === selectedDate && { color: '#fff', fontWeight: 'bold' }]}>{item}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
+              <FlatList
+              data={dateOptions}
+              keyExtractor={(item, index) => `${item}_${index}`} // ← 고유 key 보장
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedDate(item);
+                    setModalVisible(false);
+                  }}
+                  style={styles.dateOption}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    item === selectedDate && { color: '#fff', fontWeight: 'bold' }
+                  ]}>
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+
               </View>
             </View>
           </Modal>
@@ -471,33 +447,11 @@ export default function InbodyDetail() {
 
       </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>체성분분석</Text>
-        <Text style={styles.inbodyText}>InBody</Text>
-      </View>
-      <View style={styles.analysisBox}>
-        <View style={styles.analysisRow}>
-          {/* 왼쪽 항목 */}
-          <View style={styles.labelColumn}>
-            <Text style={styles.labelText1}>체수분(L)</Text>
-            <Text style={styles.labelText2}>단백질(kg)</Text>
-            <Text style={styles.labelText3}>무기질(kg)</Text>
-          </View>
-
-          {/* 세로 구분선 */}
-          <View style={styles.verticalLine} />
-
-          {/* 오른쪽 수치 */}
-          <View style={styles.valueColumn}>
-            <Text style={styles.valueText}>{currentInbody.bodyWater} (26.4 ~ 32.2)</Text>
-            <Text style={styles.valueText}>{currentInbody.protein} (6.0 ~ 8.0)</Text>
-            <Text style={styles.valueText}>{currentInbody.minerals} (2.5 ~ 3.5)</Text>
-          </View>
-        </View>
-      </View>
+      
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>골격근 지방분석</Text>
+        <Text style={styles.inbodyText}>InBody</Text>
       </View>
       <View style={styles.analysisBox}>
         {[
@@ -522,7 +476,6 @@ export default function InbodyDetail() {
         })}
       </View>
 
-      // 비만 분석
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>비만 분석</Text>
       </View>
@@ -567,18 +520,40 @@ export default function InbodyDetail() {
             </View>
           </View>
         )}
-        
-        <View style={{ backgroundColor: '#000', marginTop: 20 }}>
-            <Text style={styles.sectionTitle}>신체변화</Text>
-            <CustomLineChart title="체중(kg)" data={generateGraphData('weight')} />
-            <CustomLineChart title="골격근량(kg)" data={generateGraphData('skeletalMuscleMass')} />
-            <CustomLineChart title="체지방량(kg)" data={generateGraphData('bodyFatAmount')} noBorder />
+        <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>체성분분석</Text>
+      </View>
+      <View style={styles.analysisBox}>
+        <View style={styles.analysisRow}>
+          {/* 왼쪽 항목 */}
+          <View style={styles.labelColumn}>
+            <Text style={styles.labelText1}>체수분(L)</Text>
+            <Text style={styles.labelText2}>단백질(kg)</Text>
+            <Text style={styles.labelText3}>무기질(kg)</Text>
           </View>
 
+          {/* 세로 구분선 */}
+          <View style={styles.verticalLine} />
 
+          {/* 오른쪽 수치 */}
+          <View style={styles.valueColumn}>
+            <Text style={styles.valueText}>{currentInbody.bodyWater} (26.4 ~ 32.2)</Text>
+            <Text style={styles.valueText}>{currentInbody.protein} (6.0 ~ 8.0)</Text>
+            <Text style={styles.valueText}>{currentInbody.minerals} (2.5 ~ 3.5)</Text>
+          </View>
+        </View>
+      </View>
 
+      <View style={{ marginTop: 20, backgroundColor: '#000', paddingHorizontal: 8 }}>
+        <Text style={styles.sectionTitle}>신체변화</Text>
+        <View style={{ gap: 18 }}>
+        <CardChart title="체중 (kg)" unit="kg" data={weightData} />
+        <CardChart title="골격근량 (kg)" unit="kg" data={muscleData} />
+        <CardChart title="체지방량 (kg)" unit="kg" data={fatData} />
+        </View>
+      </View>
 
-          <View style={{ height: 200 }} />
+      <View style={{ height: 200 }} />
     </ScrollView>
     </View>
     <BottomNavigation/>
@@ -947,6 +922,20 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontWeight: 'bold',
+  },
+  
+  chartCard: {
+    backgroundColor: '#111',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  chartTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
   
   
