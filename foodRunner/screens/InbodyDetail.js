@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList
 } from 'react-native';
@@ -15,6 +15,7 @@ const { MediaType } = ImagePicker;
 
 
 const screenWidth = Dimensions.get('window').width;
+
 
 const CardChart = ({ title, data = [], unit = 'kg' }) => {
   const chartWidth = screenWidth - 40;
@@ -91,11 +92,12 @@ const PartAnalysisBox = ({ labels }) => (
     <Text style={[styles.bodyLabel, styles.topRight]}>{labels.rightArm}</Text>
     <Text style={[styles.bodyLabel, styles.bottomLeft]}>{labels.leftLeg}</Text>
     <Text style={[styles.bodyLabel, styles.bottomRight]}>{labels.rightLeg}</Text>
-    <Text style={[styles.bodyLabel, styles.center]}>
-      {(Array.isArray(labels.trunk) ? labels.trunk : [labels.trunk]).map((line, idx) => (
-        <Text key={idx}>{line}{'\n'}</Text>
-      ))}
+    <Text style={[styles.bodyLabel, styles.center, { color: '#000' }]}>
+      {labels.trunk.length > 2
+        ? `${labels.trunk.slice(0, 2)}\n${labels.trunk.slice(2)}`
+        : labels.trunk}
     </Text>
+
 
   </View>
 );
@@ -105,6 +107,101 @@ export default function InbodyDetail() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [inbodyPartData, setInbodyPartData] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
+
+  const calculateStandards = (userInfo) => {
+    if (!userInfo || !userInfo.height || !userInfo.gender) {
+      return {}; // 기본값 또는 예외 처리
+    }
+    
+    const gender =
+    userInfo.gender === '남' || userInfo.gender === 'male' ? 'male' : 'female';
+    const { height, age, weight } = userInfo;
+    const heightM = height / 100;
+  
+    // 1. 표준 체중 (BMI 기준 22 적용)
+    const standardWeight = 22 * (heightM ** 2);
+    const weightRange = {
+      min: standardWeight * 0.8,         // 표준 이하
+      midStart: standardWeight * 0.9,    // 표준 시작
+      midEnd: standardWeight * 1.1,      // 표준 끝
+      max: standardWeight * 1.4          // 표준 이상
+    };
+  
+    // 2. 골격근량 (근육량은 성별/키 기반 추정)
+    let standardMuscle;
+    if (gender === 'male') {
+      standardMuscle = height * 0.2;  // 기존보다 낮춘 기준
+    } else {
+      standardMuscle = height * 0.17;
+    }
+    
+    const muscleMass = {
+      standard: standardMuscle,
+      min: standardMuscle * 0.8,
+      midStart: standardMuscle * 0.9,
+      midEnd: standardMuscle * 1.1,
+      max: standardMuscle * 1.4
+    };
+  
+    // 3. 체지방량 (성별 평균 체지방률을 키와 성별로 설정 후 역산)
+    let fatPercentStandard;
+    if (gender === 'male') {
+      fatPercentStandard = 15;
+      if (age >= 40) fatPercentStandard += 3;
+    } else {
+      fatPercentStandard = 23;
+      if (age >= 40) fatPercentStandard += 4;
+    }
+    const fatWeightStandard = fatPercentStandard / 100 * standardWeight;
+    const fatMass = {
+      min: fatWeightStandard * 0.7,
+      midStart: fatWeightStandard * 0.9,
+      midEnd: fatWeightStandard * 1.1,
+      max: fatWeightStandard * 1.6
+    };
+  
+    // 4. BMI (고정값)
+    const bmi = {
+      min: 10,
+      midStart: 18.5,
+      midEnd: 23,
+      max: 35
+    };
+  
+    // 5. 체지방률 (%)
+    const fatPercent = gender === 'male'
+      ? { min: 5, midStart: 10, midEnd: 20, max: 35 }
+      : { min: 10, midStart: 18, midEnd: 28, max: 45 };
+
+    // 6. 체성분 수치 기준 추가
+    const bodyWaterStandard = gender === 'male' ? weight * 0.6 : weight * 0.5;
+    const bodyWater = {
+      min: bodyWaterStandard * 0.9,
+      max: bodyWaterStandard * 1.1,
+    };
+    const protein = {
+      min: weight * 0.08,
+      max: weight * 0.12,
+    };
+    const minerals = {
+      min: 2.5,  // 보통 고정
+      max: 3.5,
+    };
+
+  
+    return {
+      weight: weightRange,
+      muscleMass,
+      fatMass,
+      bmi,
+      fatPercent,
+      bodyWater,
+      protein,
+      minerals,
+    };
+  };
+
   
 
   
@@ -148,6 +245,24 @@ export default function InbodyDetail() {
   
   
   const dateOptions = inbodyList.map(item => formatDate(item.createdAt));
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const token = await AsyncStorage.getItem('token');
+      try {
+        const res = await axios.get('http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/BMI/info', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUserInfo(res.data); // { age, gender, height, weight }
+        console.log('🧍 userInfo:', res.data); // 👈 요기 넣으세요
+      } catch (err) {
+        console.error('❌ 사용자 BMI 정보 조회 실패:', err);
+      }
+    };
+  
+    fetchUserInfo();
+  }, []);
+  
 
   useEffect(() => {
     const fetchInbodyData = async () => {
@@ -257,14 +372,15 @@ export default function InbodyDetail() {
       };
     }).reverse(); // 최신순 정렬
   };
+  const muscleFatStandards = useMemo(() => {
+    const standards = calculateStandards(userInfo);
+    console.log('📌 재계산된 muscleFatStandards:', standards); // ✅ 추가
+    return standards;
+  }, [userInfo]);
   
-  const muscleFatStandards = {
-    weight:     { min: 40, midStart: 50, midEnd: 70, max: 100 },
-    muscleMass: { min: 18, midStart: 20, midEnd: 25, max: 35 },
-    fatMass:    { min: 15, midStart: 18, midEnd: 28, max: 45 },
-    bmi:        { min: 10, midStart: 18.5, midEnd: 25, max: 40 },
-    fatPercent: { min: 5, midStart: 18, midEnd: 28, max: 45 },
-  };
+  console.log('📌 muscleFatStandards:', muscleFatStandards);
+  
+  
   
 
   const BASE_URL = 'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080'; // ✅ 추가
@@ -334,39 +450,73 @@ export default function InbodyDetail() {
     }
     await fetchInbodyData(); // 여기 추가! 업로드 후 그래프에 바로 반영
   };
-      
-  
 
   const GraphBar = ({ value, min, midStart, midEnd, max }) => {
     const totalRange = max - min;
-    const percent = Math.min(Math.max((value - min) / totalRange, 0), 1);
+    const clamp = (v) => Math.max(0, Math.min(100, v));
   
-    const barPercent = percent * 100;
+    const barPercent = clamp(((value - min) / totalRange) * 100);
     const midStartPercent = ((midStart - min) / totalRange) * 100;
     const midEndPercent = ((midEnd - min) / totalRange) * 100;
-
+    const midCenterPercent = (midStartPercent + midEndPercent) / 2;
   
     return (
       <View style={{ marginBottom: 30 }}>
-        <View style={styles.rangeNumberRow}>
-          <Text style={styles.rangeNumber}>{min}</Text>
-          <Text style={[styles.rangeNumber, { left: `${midStartPercent}%`, position: 'absolute' }]}>{midStart}</Text>
-          <Text style={[styles.rangeNumber, { left: `${midEndPercent}%`, position: 'absolute' }]}>{midEnd}</Text>
-          <Text style={[styles.rangeNumber, { position: 'absolute', right: 0 }]}>{max} (%)</Text>
+        {/* 라벨 영역 */}
+        <View style={styles.rangeLabelRow}>
+          <Text style={styles.rangeLabel}>표준이하</Text>
+          <View style={{ position: 'absolute', left: `${midCenterPercent}%`, transform: [{ translateX: -20 }] }}>
+            <Text style={styles.rangeLabel2}>표준</Text>
+          </View>
+          <Text style={styles.rangeLabel3}>표준이상</Text>
         </View>
   
         {/* 바 영역 */}
         <View style={styles.barBackground}>
-          <View style={[styles.barFill, { width: `${barPercent}%` }]}>
-            <Text style={styles.barTextInside}>{value}</Text>
-          </View>
-          {/* 기준선 */}
+        <View style={[styles.barFill, { width: `${Math.max(barPercent, 2)}%`, alignItems: 'flex-end' }]}>
+          <Text style={styles.barTextInside}>{value.toFixed(1)}</Text>
+        </View>
           <View style={[styles.standardLine, { left: `${midStartPercent}%` }]} />
           <View style={[styles.standardLine, { left: `${midEndPercent}%` }]} />
         </View>
       </View>
     );
   };
+  
+  
+      
+  
+
+  // const GraphBar = ({ value, min, midStart, midEnd, max }) => {
+  //   const totalRange = max - min;
+  //   const percent = Math.min(Math.max((value - min) / totalRange, 0), 1);
+  
+  //   const barPercent = percent * 100;
+  //   const midStartPercent = ((midStart - min) / totalRange) * 100;
+  //   const midEndPercent = ((midEnd - min) / totalRange) * 100;
+
+  
+  //   return (
+  //     <View style={{ marginBottom: 30 }}>
+  //       <View style={styles.rangeNumberRow}>
+  //         <Text style={styles.rangeNumber}>{min}</Text>
+  //         <Text style={[styles.rangeNumber, { left: `${midStartPercent}%`, position: 'absolute' }]}>{midStart}</Text>
+  //         <Text style={[styles.rangeNumber, { left: `${midEndPercent}%`, position: 'absolute' }]}>{midEnd}</Text>
+  //         <Text style={[styles.rangeNumber, { position: 'absolute', right: 0 }]}>{max} (%)</Text>
+  //       </View>
+  
+  //       {/* 바 영역 */}
+  //       <View style={styles.barBackground}>
+  //         <View style={[styles.barFill, { width: `${barPercent}%` }]}>
+  //           <Text style={styles.barTextInside}>{value}</Text>
+  //         </View>
+  //         {/* 기준선 */}
+  //         <View style={[styles.standardLine, { left: `${midStartPercent}%` }]} />
+  //         <View style={[styles.standardLine, { left: `${midEndPercent}%` }]} />
+  //       </View>
+  //     </View>
+  //   );
+  // };
 
   return (
     <SafeAreaView style={styles.safeArea}> {/* ✅ 상단만 감싸기 */}
@@ -413,25 +563,6 @@ export default function InbodyDetail() {
               </View>
             </View>
           </Modal>
-
-          {currentInbody ? (
-            <View>
-              <Text style={styles.sectionTitle}>✅ 인바디 결과</Text>
-              <Text style={styles.infoText}>체중: {currentInbody.weight}kg</Text>
-              <Text style={styles.infoText}>골격근량: {currentInbody.skeletalMuscleMass}kg</Text>
-              <Text style={styles.infoText}>체지방량: {currentInbody.bodyFatAmount}kg</Text>
-              <Text style={styles.infoText}>BMI: {currentInbody.bmi}</Text>
-              <Text style={styles.infoText}>체지방률: {currentInbody.bodyFatPercentage}%</Text>
-              <Text style={styles.infoText}>단백질: {currentInbody.protein}kg</Text>
-              <Text style={styles.infoText}>무기질: {currentInbody.minerals}kg</Text>
-              <Text style={styles.infoText}>체수분: {currentInbody.bodyWater}L</Text>
-              <Text style={styles.infoText}>근육분석: {currentInbody.segmentalLeanAnalysis}</Text>
-              <Text style={styles.infoText}>지방분석: {currentInbody.segmentalFatAnalysis}</Text>
-            </View>
-          ) : (
-            <Text style={{ color: 'gray', textAlign: 'center', marginTop: 40 }}>선택된 날짜에 데이터가 없습니다</Text>
-          )}
-
           <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <TouchableOpacity
             onPress={handleImageUpload}
@@ -459,16 +590,16 @@ export default function InbodyDetail() {
           { key: 'muscleMass', label: '골격근량(kg)', value: currentInbody.skeletalMuscleMass },
           { key: 'fatMass', label: '체지방량(kg)', value: currentInbody.bodyFatAmount },
         ].map(({ key, label, value }) => {
-          const { min, midStart, midEnd, max } = muscleFatStandards[key];
+          const ranges = muscleFatStandards?.[key];
+          console.log('📊 데이터 확인:', { key, label, value, ranges });
+          if (!ranges) return null;
+
+          const { min, midStart, midEnd, max, standard } = ranges;
+
           return (
             <View key={key} style={styles.graphRow}>
               <Text style={styles.graphLabel}>{label}</Text>
               <View style={{ flex: 1 }}>
-                <View style={styles.rangeLabelRow}>
-                  <Text style={styles.rangeLabel}>표준이하</Text>
-                  <Text style={styles.rangeLabel2}>표준</Text>
-                  <Text style={styles.rangeLabel}>표준이상</Text>
-                </View>
                 <GraphBar value={value} min={min} midStart={midStart} midEnd={midEnd} max={max} />
               </View>
             </View>
@@ -484,16 +615,15 @@ export default function InbodyDetail() {
           { key: 'bmi', label: 'BMI(kg/m²)', value: currentInbody.bmi },
           { key: 'fatPercent', label: '체지방률(%)', value: currentInbody.bodyFatPercentage },
         ].map(({ key, label, value }) => {
-          const { min, midStart, midEnd, max } = muscleFatStandards[key];
+          const ranges = muscleFatStandards?.[key];
+          if (!ranges) return null;
+
+          const { min, midStart, midEnd, max } = ranges;
+
           return (
             <View key={key} style={styles.graphRow}>
               <Text style={styles.graphLabel}>{label}</Text>
               <View style={{ flex: 1 }}>
-                <View style={styles.rangeLabelRow}>
-                  <Text style={styles.rangeLabel}>표준이하</Text>
-                  <Text style={styles.rangeLabel2}>표준</Text>
-                  <Text style={styles.rangeLabel}>표준이상</Text>
-                </View>
                 <GraphBar value={value} min={min} midStart={midStart} midEnd={midEnd} max={max} />
               </View>
             </View>
@@ -527,9 +657,9 @@ export default function InbodyDetail() {
         <View style={styles.analysisRow}>
           {/* 왼쪽 항목 */}
           <View style={styles.labelColumn}>
-            <Text style={styles.labelText1}>체수분(L)</Text>
-            <Text style={styles.labelText2}>단백질(kg)</Text>
-            <Text style={styles.labelText3}>무기질(kg)</Text>
+            <Text style={styles.labelText}>체수분(L)</Text>
+            <Text style={styles.labelText}>단백질(kg)</Text>
+            <Text style={styles.labelText}>무기질(kg)</Text>
           </View>
 
           {/* 세로 구분선 */}
@@ -537,9 +667,15 @@ export default function InbodyDetail() {
 
           {/* 오른쪽 수치 */}
           <View style={styles.valueColumn}>
-            <Text style={styles.valueText}>{currentInbody.bodyWater} (26.4 ~ 32.2)</Text>
-            <Text style={styles.valueText}>{currentInbody.protein} (6.0 ~ 8.0)</Text>
-            <Text style={styles.valueText}>{currentInbody.minerals} (2.5 ~ 3.5)</Text>
+            <Text style={styles.valueText}>
+              {currentInbody.bodyWater} ({muscleFatStandards.bodyWater?.min.toFixed(1)} ~ {muscleFatStandards.bodyWater?.max.toFixed(1)})
+            </Text>
+            <Text style={styles.valueText}>
+              {currentInbody.protein} ({muscleFatStandards.protein?.min.toFixed(1)} ~ {muscleFatStandards.protein?.max.toFixed(1)})
+            </Text>
+            <Text style={styles.valueText}>
+              {currentInbody.minerals} ({muscleFatStandards.minerals?.min.toFixed(1)} ~ {muscleFatStandards.minerals?.max.toFixed(1)})
+            </Text>
           </View>
         </View>
       </View>
@@ -625,7 +761,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: '#E1FF01',
-    fontSize: 18,
+    fontSize: 22,
     marginTop: 10,
     fontWeight: 'bold',
   },
@@ -681,75 +817,37 @@ const styles = StyleSheet.create({
   },
   analysisRow: {
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
   },
   labelColumn: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingRight: 8,
   },
   verticalLine: {
     borderLeftWidth: 1,
     borderColor: '#aaa',
-    marginHorizontal: 10,
+    marginHorizontal: 1,
     alignSelf: 'stretch',
   },
+  
   valueColumn: {
-    flex: 3,
-    justifyContent: 'space-between',
+    flex: 2,
+    justifyContent: 'center',
+    paddingLeft: 8,
   },
-  labelText1: {
+  labelText: {
     color: '#fff',
-    fontSize: 14,
-    marginBottom: 14,
-    marginTop: 4
-  },
-  labelText2: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 14,
-    marginTop: 4
-  },
-  labelText3: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 14,
-    marginTop: 4
-  },
-  labelText4: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 14,
-    marginTop: 40
-  },
-  labelText5: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 10,
-    marginTop: 4
-  },
-  labelText6: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 30,
-    marginTop: 4
-  },
-  labelText7: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 14,
-    marginTop: 40, // 그래프 높이 맞춰 조절
-  },
-  labelText8: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 14,
-    marginTop: 4,
+    fontSize: 16,
+    marginBottom: 16,
   },
   valueText: {
     color: '#fff',
     fontSize: 16,
-    marginBottom: 12,
-    marginLeft: 10,
+    marginBottom: 16,
   },
   barWrapper: {
     marginBottom: 20,
@@ -763,14 +861,19 @@ const styles = StyleSheet.create({
     color: '#aaa',
     fontSize: 12,
     flex: 1,
-    textAlign: 'center',
+    textAlign: 'left',
+  },
+  rangeLabel3: {
+    color: '#aaa',
+    fontSize: 12,
+    flex: 1,
+    textAlign: 'right',
   },
   rangeLabel2: {
     color: '#FFFFFF',
     fontSize: 12,
     flex: 1,
     textAlign: 'center',
-    marginRight: 77,
   },
   
   rangeNumberRow: {
@@ -781,14 +884,6 @@ const styles = StyleSheet.create({
   rangeNumber: {
     color: '#fff',
     fontSize: 11,
-  },
-  
-  barBackground: {
-    backgroundColor: '#D9D9D9',
-    height: 14,
-    borderRadius: 7,
-    overflow: 'hidden',
-    position: 'relative',
   },
   barFill: {
     backgroundColor: '#DDFB21',
@@ -813,8 +908,8 @@ const styles = StyleSheet.create({
   
   
   bodyImage: {
-    width: '120%',
-    height: '120%',
+    width: '100%',
+    height: '100%',
     resizeMode: 'contain',
     opacity: 0.85,
   },
@@ -859,15 +954,16 @@ const styles = StyleSheet.create({
   },
   barBackground: { 
     backgroundColor: '#D9D9D9', 
-    height: 14, 
-    borderRadius: 7, 
+    height: 20, 
+    borderRadius: 15, 
     overflow: 'hidden', 
-    position: 'relative' 
+    position: 'relative', 
+    width: '100%',  
   },
   barFill: { 
     backgroundColor: '#DDFB21', 
-    height: '70%', 
-    marginTop: '1%', 
+    height: '100%', 
+    marginTop: '0%', 
     justifyContent: 'center', 
     alignItems: 'flex-end', 
     paddingRight: 4, 
@@ -905,12 +1001,12 @@ const styles = StyleSheet.create({
   graphRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   graphLabel: {
     width: 100,
     color: '#fff',
-    fontSize: 14,
+    fontSize: 18,
     marginRight: 12,
   },
   
