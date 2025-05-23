@@ -1,11 +1,12 @@
-import { useNavigation } from "@react-navigation/native";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const FoodItem = ({ recipe }) => {
-  const navigation = useNavigation();
+const FoodItem = ({ recipe, navigation }) => {
+  // const navigation = useNavigation();
+  // console.log(navigation)
 
   return (
     <TouchableOpacity
+      // key={recipe.recipeData.recipeId}
       style={styles.container}
       onPress={() => navigation.navigate("DietRecipe", { recipe })}
     >
@@ -19,7 +20,7 @@ const FoodItem = ({ recipe }) => {
       />
       <View style={styles.textContainer}>
         <Text style={styles.name}>{recipe.recipeName}</Text>
-        <Text style={styles.calories}>{recipe.recipeCalories}</Text>
+        <Text style={styles.calories}>{recipe.calories}</Text>
       </View>
     </TouchableOpacity>
   );

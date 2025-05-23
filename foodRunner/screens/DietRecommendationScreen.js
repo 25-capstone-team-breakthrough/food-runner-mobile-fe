@@ -8,6 +8,7 @@ import FoodItem from "../components/FoodItem";
 import RefreshButton from "../components/RefreshButton";
 import SearchBar from "../components/SearchBar";
 
+
 const DietRecommendationScreen = () => {
     const navigation = useNavigation();
     const [search, setSearch] = useState("");
@@ -44,8 +45,7 @@ const DietRecommendationScreen = () => {
     }, []);
 
     // 식단 추천 생성 rec/set
-    useEffect(() => {
-      const fetchRecommendDietSet = async () => {
+    const fetchRecommendDietSet = async () => {
         try {
           const token = await AsyncStorage.getItem("token"); // 🔐 인증 필요 시 토큰 추가
           // console.log("🔐 저장된 토큰:", token);
@@ -73,13 +73,10 @@ const DietRecommendationScreen = () => {
           console.error("❌ 추천 식단 생성 에러:", err);
         }
       };
-
-      fetchRecommendDietSet();
-    }, []);
+  
 
     // 식단 추천 불러오기 rec/load
-    useEffect(() => {
-      const fetchRecipes = async () => {
+    const fetchRecipes = async () => {
         try {
           const token = await AsyncStorage.getItem("token"); // 🔐 인증 필요 시 토큰 추가
           const res = await fetch("http://13.209.199.97:8080/diet/recipe/rec/load", {
@@ -90,7 +87,7 @@ const DietRecommendationScreen = () => {
           if (!res.ok) throw new Error("레시피 불러오기 실패");
 
           const data = await res.json();
-          console.log("✅ 추천 식단 데이터:", data); // 콘솔 출력
+          // console.log("✅ 추천 식단 데이터:", data); // 콘솔 출력
 
           setRecommendedRecipes(data);
         } catch (err) {
@@ -98,28 +95,30 @@ const DietRecommendationScreen = () => {
         }
       };
 
+    useEffect(() => {
+      fetchRecommendDietSet();
       fetchRecipes();
     }, []);
 
     
     // 레시피 불러오기
-    useEffect(() => {
-      const fetchRecipes = async () => {
-        try {
-          const res = await fetch("http://13.209.199.97:8080/diet/recipe/data/load");
-          if (!res.ok) throw new Error("레시피 불러오기 실패");
-          const data = await res.json();
-          // console.log("🍽 전체 레시피 데이터:", data);
+    // useEffect(() => {
+    //   const fetchRecipes = async () => {
+    //     try {
+    //       const res = await fetch("http://13.209.199.97:8080/diet/recipe/data/load");
+    //       if (!res.ok) throw new Error("레시피 불러오기 실패");
+    //       const data = await res.json();
+    //       // console.log("🍽 전체 레시피 데이터:", data);
 
-          // 👉 필드 변환 없이 통째로 저장
-          setRecommendedRecipes(data);
-        } catch (err) {
-          console.error("❌ 레시피 불러오기 에러:", err);
-        }
-      };
+    //       // 👉 필드 변환 없이 통째로 저장
+    //       setRecommendedRecipes(data);
+    //     } catch (err) {
+    //       console.error("❌ 레시피 불러오기 에러:", err);
+    //     }
+    //   };
 
-      fetchRecipes();
-    }, []);
+    //   fetchRecipes();
+    // }, []);
 
 
     // 타입별로 추천 식단 분류
@@ -129,22 +128,43 @@ const DietRecommendationScreen = () => {
   //   Dinner: recommendedRecipes.filter(r => r.recipeType === "DINNER"),
   // };
 
+    // const groupedByDietType = recommendedRecipes.reduce((acc, item) => {
+    //   const dietType = item.dietType;
+    //   const recipe = item.recipeData;
+
+    //   if (recipe) { // null 체크도 포함
+    //     if (!acc[dietType]) acc[dietType] = [];
+    //     acc[dietType].push(recipe);
+    //   }
+    //   console.log("추천식단 추출 객체",acc);
+    //   return acc;
+    // }, {});
+
+    const breakFastRecipe = recommendedRecipes.filter(item => item.dietType === "breakfast");
+    const lunchRecipe = recommendedRecipes.filter(item => item.dietType === "lunch");
+    const dinnerRecipe = recommendedRecipes.filter(item => item.dietType === "dinner");
+    // console.log("전체 추천 식단 객체: ", recommendedRecipes);
+    // console.log("아침 추천 식단 객체: ", breakFastRecipe);
+    // console.log("점심 추천 식단 객체: ", lunchRecipe);
+    // console.log("저녁 추천 식단 객체: ", dinnerRecipe);
 
 
-    const recommendedMeals = {
-        Breakfast: [
-            { id: "1", name: "바나나 한 조각", calories: "31kcal 당 100g", image: require("../assets/banana.png") },
-            { id: "2", name: "프로틴 쉐이크", calories: "102kcal 당 100ml", image: require("../assets/logo.png") },
-        ],
-        Lunch: [
-            { id: "3", name: "닭 가슴살", calories: "239kcal 당 100g", image: require("../assets/logo.png") },
-            { id: "4", name: "삶은 계란", calories: "155kcal 당 100ml", image: require("../assets/logo.png") },
-        ],
-        Dinner: [
-            { id: "5", name: "고구마", calories: "86kcal 당 100g", image: require("../assets/logo.png") },
-            { id: "6", name: "연어 스테이크", calories: "208kcal 당 100g", image: require("../assets/logo.png") },
-        ],
-    };
+
+
+    // const recommendedMeals = {
+    //     Breakfast: [
+    //         { id: "1", name: "바나나 한 조각", calories: "31kcal 당 100g", image: require("../assets/banana.png") },
+    //         { id: "2", name: "프로틴 쉐이크", calories: "102kcal 당 100ml", image: require("../assets/logo.png") },
+    //     ],
+    //     Lunch: [
+    //         { id: "3", name: "닭 가슴살", calories: "239kcal 당 100g", image: require("../assets/logo.png") },
+    //         { id: "4", name: "삶은 계란", calories: "155kcal 당 100ml", image: require("../assets/logo.png") },
+    //     ],
+    //     Dinner: [
+    //         { id: "5", name: "고구마", calories: "86kcal 당 100g", image: require("../assets/logo.png") },
+    //         { id: "6", name: "연어 스테이크", calories: "208kcal 당 100g", image: require("../assets/logo.png") },
+    //     ],
+    // };
 
     // console.log("📄 groupedRecipes:", groupedRecipes);
 
@@ -212,7 +232,10 @@ const DietRecommendationScreen = () => {
           </ScrollView>
 
 
-          <RefreshButton onPress={() => console.log("새로고침 버튼 클릭됨!")} />
+          <RefreshButton onPress={() => {
+            fetchRecommendDietSet();
+            fetchRecipes();
+          }} />
 
           {/* {filteredIngredients.length > 0 && (
             <View style={{ width: "90%", marginTop: 10 }}>
@@ -239,24 +262,48 @@ const DietRecommendationScreen = () => {
 
           {/* 추천 식사 항목 */}
           <View style={styles.dietContainer}>
-            {Object.entries(recommendedMeals).map(([mealType, foods]) => (
+            <View style={styles.headerContents}>
+
+              <View style={styles.mealHeader}>
+                <Text style={styles.mealTitle}>Breakfast</Text>
+              </View>
+              {/* {console.log("아침 객체: ", breakFastRecipe)} */}
+              {breakFastRecipe.map((food) => (
+                <TouchableOpacity style={styles.mealContainer}
+                  key={food.recommendedRecipeId}
+                  onPress={() => navigation.navigate("DietRecipe", { recipe: food.recipeData })}
+                >
+                  <FoodItem recipe={food.recipeData} navigation={navigation}/>
+                  {/* {console.log("전달한 객체: ", food.recipeData.recipeImage)} */}
+                </TouchableOpacity>
+              ))}
+
+            </View>
+          </View>
+          
+          {/* 마지막 수정 */}
+          {/* <View style={styles.dietContainer}> */}
+            {/* {Object.entries(groupedByDietType).map(([mealType, foods]) => (
               <View key={mealType}>
                 <View style={styles.headerContents}>
-                <View style={styles.mealHeader}>
-                  <Text style={styles.mealTitle}>{mealType}</Text>
+                  <View style={styles.mealHeader}>
+                    <Text style={styles.mealTitle}>{mealType}</Text>
+                  </View>
+                  {foods.map((food) =>
+                    food ? (
+                      <TouchableOpacity
+                        key={food.recipeId}
+                        style={styles.mealContainer}
+                        onPress={() => navigation.navigate("DietRecipe", { recipe: food })}
+                      >
+                        <FoodItem recipe={food} />
+                      </TouchableOpacity>
+                    ) : null
+                  )}
                 </View>
-                {foods.map((food) => (
-                  <TouchableOpacity style={styles.mealContainer}
-                    key={food.recipeId}
-                    onPress={() => navigation.navigate("DietRecipe", { recipe: food })}
-                  >
-                    <FoodItem recipe={food} />
-                  </TouchableOpacity>
-                ))}
-                </View>
-            </View>
-          ))}
-          </View>
+              </View>
+            ))} */}
+          {/* </View> */}
         </ScrollView>
 
         <BottomNavigation />

@@ -255,7 +255,7 @@ const NutritionMainScreen = () => {
 
     const logs = await res.json();
     console.log("식사 기록 가져오기 성공");
-    console.log("식사 섭취 기록:", logs);
+    // console.log("식사 섭취 기록:", logs);
 
     const formattedSelectedDate = moment(selectedDate).format("YYYY-MM-DD");
 
@@ -570,7 +570,7 @@ const NutritionMainScreen = () => {
                       //   prev.filter((img) => img.searchMealLogId !== item.searchMealLogId && img.id !== item.id)
                       // );
 
-                      console.log("✅ 식사기록 삭제 성공:", item.mealLog.mealId);
+                      // console.log("✅ 식사기록 삭제 성공:", item.mealLog.mealId);
                       fetchMealLogs();
                       fetchNutritionData();
                     } catch (err) {
@@ -600,8 +600,8 @@ const NutritionMainScreen = () => {
             <View style={styles.mealList}>
               <TouchableOpacity
                   onPress={async () => {
-                    console.log("🧪 삭제 요청 영양제 객체:", item);
-                    console.log("🧪 삭제 요청 영양제 supplementLogId:", item.supplementLogId);
+                    // console.log("🧪 삭제 요청 영양제 객체:", item);
+                    // console.log("🧪 삭제 요청 영양제 supplementLogId:", item.supplementLogId);
                     
                     try {
                       const token = await AsyncStorage.getItem("token");
@@ -623,7 +623,7 @@ const NutritionMainScreen = () => {
                       //   favoriteIngredients.filter(i => i.id !== item.id)
                       // );
 
-                      console.log("✅ 영양제 기록 삭제 성공:", item.supplementLogId);
+                      // console.log("✅ 영양제 기록 삭제 성공:", item.supplementLogId);
                       fetchSupplementLogs();
                       fetchNutritionData();
                     } catch (err) {

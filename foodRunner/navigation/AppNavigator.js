@@ -1,5 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { CardStyleInterpolators, createStackNavigator, TransitionSpecs } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import DietRecipeScreen from '../screens/DietRecipeScreen';
 import DietRecommendationScreen from '../screens/DietRecommendationScreen';
 import DietRegistrationScreen from '../screens/DietRegistrationScreen';
@@ -27,16 +27,16 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator 
         initialRouteName="Login"
-        screenOptions={{
-          animationEnabled: false, // ✅ 모든 화면 애니메이션 제거
-          headerShown: false,      // ✅ 전역 header 제거도 가능 (선택)
-          lazy: false,
-          transitionSpec: {
-            open: TransitionSpecs.FadeInFromBottomAndroidSpec,
-            close: TransitionSpecs.FadeOutToBottomAndroidSpec,
-          },
-          cardStyleInterpolator: CardStyleInterpolators.forNoAnimation,
-        }}
+        // screenOptions={{
+        //   animationEnabled: false, // ✅ 모든 화면 애니메이션 제거
+        //   headerShown: false,      // ✅ 전역 header 제거도 가능 (선택)
+        //   lazy: false,
+        //   transitionSpec: {
+        //     open: TransitionSpecs.FadeInFromBottomAndroidSpec,
+        //     close: TransitionSpecs.FadeOutToBottomAndroidSpec,
+        //   },
+        //   cardStyleInterpolator: CardStyleInterpolators.forNoAnimation,
+        // }}
       >
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }}/> 
