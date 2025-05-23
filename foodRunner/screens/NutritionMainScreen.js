@@ -58,7 +58,20 @@ const NutritionMainScreen = () => {
 
   // selectedDate 변경 시마다 최신 날짜 문자열 계산
   const dateToDisplay = useMemo(() => moment(selectedDate).format("YYYY.MM.DD"), [selectedDate]);
-  console.log('선택한 날짜: ', selectedDate);
+
+  useEffect(() => {
+    (async () => {
+      const savedDate = await AsyncStorage.getItem("selectedDate");
+      if (savedDate) {
+        setSelectedDate(savedDate);
+      } else {
+        const today = moment().format("YYYY-MM-DD");
+        setSelectedDate(today);
+        await AsyncStorage.setItem("selectedDate", today);
+      }
+    })();
+  }, []);
+
 
   // 영양소 로드
   const fetchNutritionData = async () => {
@@ -633,9 +646,10 @@ const NutritionMainScreen = () => {
         >
           {/* <NutritionCalendarScreen onSelectDate={handleDateSelect} /> */}
           <NutritionCalendarScreen
-            onSelectDate={(date) => {
+            onSelectDate={async (date) => {
               console.log("선택된 날짜:", date);
               setSelectedDate(date);
+              await AsyncStorage.setItem("selectedDate", date);
               bottomSheetRef.current?.close();
             }}
           />
