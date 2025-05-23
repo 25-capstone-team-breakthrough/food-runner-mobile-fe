@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
   FlatList,
@@ -23,9 +23,13 @@ const FoodSearchScreen = () => {
   const [foodItems, setFoodItems] = useState([]);
   const [favoriteItems, setFavoriteItems] = useState([]); 
   const [favoriteFoodData, setFavoriteFoodData] = useState([]);
+  const route = useRoute();
+  const selectedDate = route.params?.selectedDate;
+  console.log("받은 날짜:", selectedDate);
 
   // 즐겨찾기 등록 api
   const toggleFavorite = async (item) => {
+    
     const token = await AsyncStorage.getItem("token");
     const isFavorited = favoriteItems.includes(item.foodId);
     try {
@@ -97,6 +101,7 @@ const FoodSearchScreen = () => {
   }, []);
 
 
+  // 음식 데이터 검색시 로드
   const fetchFoods = async () => {
     try {
       const token = await AsyncStorage.getItem("token"); // 저장된 토큰 가져오기
@@ -229,11 +234,12 @@ const FoodSearchScreen = () => {
                 foodId: selectedItem.foodId,
                 // mealImage: "http://image-url-from-s3",
                 mealImage: "",
-                dateTime: new Date().toISOString(),
+                dateTime: `${selectedDate}T12:00:00`,
               }),
             });
             console.log("선택된 아이템:", selectedItem);
             console.log("보내는 foodId:", selectedItem?.foodId);
+            console.log("식사 등록 시간: ", selectedDate);
 
             if (!response.ok) {
               throw new Error(`서버 오류: ${response.status}`);

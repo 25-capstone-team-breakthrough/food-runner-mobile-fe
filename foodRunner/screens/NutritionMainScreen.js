@@ -35,35 +35,10 @@ const NutritionMainScreen = () => {
   const navigation = useNavigation();
   const selectedItemFromRoute = route.params?.selectedItem;
   const selectedSupplementFromRoute = route.params?.selectedsupplementItem;
-  // const selectedDate  = route.params?.selectedDate;
-
-  
-
-
   const [currentPage, setCurrentPage] = useState(0);
   const dailyCalories = 2000;
   const consumedCalories = 1800;
   const progress = consumedCalories / dailyCalories;
-
-  // const nutrients = [
-  //   { name: "탄수화물", status: "충분", amount: "100g", color: "#26C51E" },
-  //   { name: "단백질", status: "부족", amount: "10g", color: "#FF4646"  },
-  //   { name: "지방", status: "부족", amount: "0g", color: "#FF4646" },
-  // ];
-  
-  // const etcNutrients = [
-  //   { name: "당류", status: "충분", amount: "15g", color: "#26C51E" },
-  //   { name: "나트륨", status: "부족", amount: "800mg", color: "#FF4646" },
-  //   { name: "식이섬유", status: "충분", amount: "6g", color: "#26C51E" },
-  //   { name: "칼슘", status: "충분", amount: "200mg", color: "#26C51E" },
-  // ];
-
-  // const smallNutrients = [
-  //   { name: "포화지방", amount: "5g", status: "부족", color: "#FF4646" },
-  //   { name: "트랜스지방", amount: "0g", status: "부족", color: "#FF4646" },
-  //   { name: "콜레스테롤", amount: "80mg", status: "충분", color: "#26C51E" },
-  // ];
-
   const [dietImages, setDietImages] = useState([]);
   const [supplementImages, setSupplementImages] = useState([]);
   const [latestLog, setLatestLog] = useState(null);
@@ -72,8 +47,10 @@ const NutritionMainScreen = () => {
   const [etcNutrients, setEtcNutrients] = useState([]);
   const [smallNutrients, setSmallNutrients] = useState([]);
   const calendarRef = useRef(null);
+  // 캘린더에서 받아온 날짜 -> selectedDate
   const selectedDateFromRoute = route.params?.selectedDate;
   const [selectedDate, setSelectedDate] = useState(selectedDateFromRoute || moment().format("YYYY-MM-DD"));
+
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['90%'], []);
 
@@ -81,28 +58,31 @@ const NutritionMainScreen = () => {
 
   // selectedDate 변경 시마다 최신 날짜 문자열 계산
   const dateToDisplay = useMemo(() => moment(selectedDate).format("YYYY.MM.DD"), [selectedDate]);
+  console.log('선택한 날짜: ', selectedDate);
 
-  useEffect(() => {
-    const fetchNutritionData = async () => {
+  // 영양소 로드
+  const fetchNutritionData = async () => {
+
       const token = await AsyncStorage.getItem("token");
 
       // logRes 여기 data 2025-05-10 이런식으로 들어가 잇음...!!
-      const logRes = await fetch(`http://13.209.199.97:8080/diet/nutrition/log/load?date=${selectedDate}`, {
+      const logRes = await fetch(`http://13.209.199.97:8080/diet/nutrition/log/load`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const logData = await logRes.json();
-      const lastLog = logData.at(-1); // 👈 이거 추가
-      setLatestLog(lastLog);
-      console.log(logData)
-      
+      console.log("영양소 객체 : ",logData)
 
+      const lastLog = logData.find(log => log.date === selectedDate);
+      setLatestLog(lastLog);
+      console.log("해당날짜 영양소 객체: ", lastLog);
+      
       const recRes = await fetch("http://13.209.199.97:8080/diet/nutrition/rec/load", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const recData = await recRes.json();
       const minRec = recData.find((r) => r.type === "MIN"); // 최소 권장량
       setRecommended(minRec);
-      console.log(recData)
+      console.log("추천영양소 객체: ",recData)
       // 데이터 변환
       if (lastLog && minRec) {
         const major = ["carbohydrate", "protein", "fat"];
@@ -141,9 +121,6 @@ const NutritionMainScreen = () => {
         setSmallNutrients(buildData(small));
       }
     };
-    fetchNutritionData();
-  }, [selectedDate]);
-
 
 
   const uploadAndSaveMealLog = async (localUri) => {
@@ -239,18 +216,19 @@ const NutritionMainScreen = () => {
     })();
   }, [selectedItemFromRoute, selectedSupplementFromRoute]);
 
-  // 섭취한 음식 띄우기
+  // 날짜별로 새로 로드 
   useEffect(() => {
-    // fetchNutritionData();
-    // fetchNutritionData
+    fetchNutritionData();
+    fetchSupplementLogs();
     fetchMealLogs(); // 앱 시작 시 또는 필요한 시점에 불러오기
   }, [selectedDate]);
 
+  //섭취한 음식 띄우기
   const fetchMealLogs = async () => {
   try {
     const token = await AsyncStorage.getItem("token");
 
-    const res = await fetch(`http://13.209.199.97:8080/diet/meal/log/load?date=${selectedDate}`, {
+    const res = await fetch(`http://13.209.199.97:8080/diet/meal/log/load`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -265,21 +243,64 @@ const NutritionMainScreen = () => {
     console.log("식사 기록 가져오기 성공");
     console.log("식사 섭취 기록:", logs);
 
+    const formattedSelectedDate = moment(selectedDate).format("YYYY-MM-DD");
+
     const imageLogs = logs?.imageMealLogs
-      ?.map((log) => log.mealImage)
-      ?.filter(Boolean)
-      ?.map((url) => ({ uri: url }));
+      ?.filter((log) => {
+        const date = log.mealLog?.date;
+        return date && moment(date).format("YYYY-MM-DD") === formattedSelectedDate;
+      })
+      ?.map((log) => ({
+        ...log,
+        uri: log.mealImage,
+        id: log.imageMealLogId,
+      }));
 
-
-    // mealImage 속성을 가진 배열로 변환
     const searchLogs = logs?.searchMealLogs
-      ?.map((log) => log.foodImage)
-      ?.filter(Boolean)
-      ?.map((url) => ({ uri: url }));
+      ?.filter((log) => {
+        const date = log.mealLog?.date;
+        return date && moment(date).format("YYYY-MM-DD") === formattedSelectedDate;
+      })
+      ?.map((log) => ({
+        ...log,
+        uri: log.foodImage,
+      }));
 
     const combinedImages = [...(imageLogs || []), ...(searchLogs || [])];
-
     setDietImages(combinedImages);
+
+    // 원래꺼
+    // logs.imageMealLogs.forEach((log) => {
+    //   console.log("이미지 식사 날짜:", log.mealLog?.date);
+    // });
+
+    // logs.searchMealLogs.forEach((log) => {
+    //   console.log("검색 식사 날짜:", log.mealLog?.date);
+    // });
+    
+
+
+    // const imageLogs = logs?.imageMealLogs
+    //   ?.filter((log) => log.mealImage)
+    //   ?.map((log) => ({
+    //     ...log,
+    //     uri: log.mealImage,
+    //     id: log.imageMealLogId, // ✅ 이게 꼭 있어야 삭제됨
+    //   }));
+
+    //   setDietImages(imageLogs);
+
+    // const searchLogs = logs?.searchMealLogs
+    //   ?.filter((log) => log.foodImage) // 이미지 있는 항목만 필터링
+    //   ?.map((log) => ({
+    //     ...log,              // log 전체 복사
+    //     uri: log.foodImage,  // 이미지 URI 별도 키로 추가
+    //   }));
+
+
+    // const combinedImages = [...(imageLogs || []), ...(searchLogs || [])];
+
+    // setDietImages(combinedImages);
 
 
   } catch (err) {
@@ -289,38 +310,56 @@ const NutritionMainScreen = () => {
 
   
   // 섭취한 영양제 띄우기
-  useEffect(() => {
-    const fetchSupplementLogs = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
+  const fetchSupplementLogs = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
 
-        const res = await fetch("http://13.209.199.97:8080/diet/sup/log/load", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const res = await fetch("http://13.209.199.97:8080/diet/sup/log/load", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (!res.ok) {
-          throw new Error("섭취 기록 불러오기 실패: " + res.status);
-        }
-
-        const logs = await res.json();
-        console.log("영양제 섭취 기록 가져오기 성공")
-        // console.log("✔️ 영양제 섭취 기록:", logs);
-
-        // 이미지 리스트 구성
-        const images = logs
-          .map((log) => log.supplementData?.supplementImage) 
-          .filter(Boolean) // null, undefined 제거
-          .map((url) => ({ uri: url })); // FlatList에 쓸 형태로 가공
-
-        setSupplementImages(images);
-      } catch (err) {
-        console.error("❌ 영양제 섭취 기록 불러오기 실패:", err);
+      if (!res.ok) {
+        throw new Error("섭취 기록 불러오기 실패: " + res.status);
       }
-    };
 
+      const logs = await res.json();
+      console.log("영양제 섭취 기록 가져오기 성공",logs);
+
+      const formattedSelectedDate = moment(selectedDate).format("YYYY-MM-DD");
+
+      const filtered = logs
+      .filter((log) => {
+        const logDate = moment(log.date).format("YYYY-MM-DD");
+        return logDate === formattedSelectedDate;
+      })
+      .filter((log) => log.supplementData?.supplementImage)
+      .map((log) => ({
+        ...log,
+        uri: log.supplementData.supplementImage,
+      }));
+
+    setSupplementImages(filtered);
+
+      // const images = logs
+      //   .filter((log) => log.supplementData?.supplementImage)
+      //   .map((log) => ({
+      //     ...log,
+      //     uri: log.supplementData.supplementImage,
+      //   }));
+
+      // setSupplementImages(images);
+    } catch (err) {
+      console.error("❌ 영양제 섭취 기록 불러오기 실패:", err);
+    }
+  };
+
+  // 🔹 2. useEffect에서 최초 1번 실행
+  useEffect(() => {
+    fetchNutritionData();
+    fetchMealLogs();
     fetchSupplementLogs();
   }, []);
 
@@ -381,8 +420,6 @@ const NutritionMainScreen = () => {
               }
             />
 
-
-
           <View style={styles.separator} />
 
           <ScrollView
@@ -397,9 +434,6 @@ const NutritionMainScreen = () => {
               <Text style={styles.threeMacroNutrientsText}>3대 주요 영양소</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
                 {macroNutrients.map((item, index) => {
-                  // let percent = 0;
-                  // if (item.status === "충분") percent = 80;
-                  // if (item.status === "부족") percent = 20;
                   return (
                     <NutrientRing
                       key={index}
@@ -418,9 +452,6 @@ const NutritionMainScreen = () => {
               <Text style={styles.threeMacroNutrientsText}>미량 영양소</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
               {etcNutrients.map((item, index) => {
-                  // let percent = 0;
-                  // if (item.status === "충분") percent = 80;
-                  // if (item.status === "부족") percent = 20;
                   return (
                     <NutrientRing
                       key={index}
@@ -439,9 +470,6 @@ const NutritionMainScreen = () => {
               <Text style={styles.threeMacroNutrientsText}>미량 영양소</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
               {smallNutrients.map((item, index) => {
-                  // let percent = 0;
-                  // if (item.status === "충분") percent = 80;
-                  // if (item.status === "부족") percent = 20;
                   return (
                     <NutrientRing
                       key={index}
@@ -477,17 +505,24 @@ const NutritionMainScreen = () => {
             <Ionicons name="image-outline" size={30} color="#000" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={() => navigation.navigate("DietRegistration")}>
+          <TouchableOpacity style={styles.roundButton} 
+            onPress={() => navigation.navigate("DietRegistration", {
+              selectedDate: selectedDate,
+            })}>
             <Ionicons name="fast-food-outline" size={30} color="#000" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={() => navigation.navigate("VitaminRegistion")}>
+          <TouchableOpacity style={styles.roundButton} 
+            onPress={() => navigation.navigate("VitaminRegistion", {
+              selectedDate: selectedDate,
+            })}>
             <MaterialCommunityIcons name="pill" size={30} color="#000" />
           </TouchableOpacity>
         </View>
 
         <Text style={styles.photoText}>식사</Text>
         {/* 나중에 식단사진 넣을때 id로 넣어야 됨.  */}
+        
         <FlatList
           data={dietImages}
           style={styles.mealList}
@@ -497,6 +532,41 @@ const NutritionMainScreen = () => {
           contentContainerStyle={{ justifyContent: 'center', alignItems: 'center' }}
           renderItem={({ item }) => (
             <View style={styles.mealList}>
+              {/* 백과 조율이 필요 */}
+              <TouchableOpacity
+                  onPress={async () => {
+                    console.log("🧪 삭제 대상 객체:", item);         // ← 전체 객체 확인
+                    console.log("🔑 삭제 대상 logId:", item.mealLog.mealId);
+                    try {
+                      const token = await AsyncStorage.getItem("token");
+                      // 수정 필요 api 코드
+                      const res = await fetch(`http://13.209.199.97:8080/diet/meal/log/delete?log_id=${item.mealLog.mealId}`, {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      });
+
+                      const resultText = await res.text();
+                      console.log("📡 서버 응답:", res.status, resultText);
+
+                      if (!res.ok) throw new Error("삭제 실패");
+
+                      // setDietImages((prev) =>
+                      //   prev.filter((img) => img.searchMealLogId !== item.searchMealLogId && img.id !== item.id)
+                      // );
+
+                      console.log("✅ 식사기록 삭제 성공:", item.mealLog.mealId);
+                      fetchMealLogs();
+                      fetchNutritionData();
+                    } catch (err) {
+                      console.error("❌ 식사기록 삭제 실패:", err);
+                    }
+                  }}
+                  style={styles.deleteButton}
+                >
+                  <Ionicons name="remove-circle" size={30} color="red" />
+                </TouchableOpacity>
               <Image source={item} style={styles.mealPhoto}/>
             </View>
           )}
@@ -514,6 +584,42 @@ const NutritionMainScreen = () => {
           contentContainerStyle={{ justifyContent: 'center', alignItems: 'center' }}
           renderItem={({ item }) => (
             <View style={styles.mealList}>
+              <TouchableOpacity
+                  onPress={async () => {
+                    console.log("🧪 삭제 요청 영양제 객체:", item);
+                    console.log("🧪 삭제 요청 영양제 supplementLogId:", item.supplementLogId);
+                    
+                    try {
+                      const token = await AsyncStorage.getItem("token");
+                      // 수정 필요 api 코드
+                      const res = await fetch(`http://13.209.199.97:8080/diet/sup/log/delete?log_id=${item.supplementLogId}`, {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      });
+
+                      const resultText = await res.text();
+                      console.log("📡 서버 응답:", res.status, resultText);
+
+                      if (!res.ok) throw new Error("삭제 실패");
+
+                      // 성공 시 프론트에서 삭제 반영
+                      // setFavoriteIngredients(
+                      //   favoriteIngredients.filter(i => i.id !== item.id)
+                      // );
+
+                      console.log("✅ 영양제 기록 삭제 성공:", item.supplementLogId);
+                      fetchSupplementLogs();
+                      fetchNutritionData();
+                    } catch (err) {
+                      console.error("❌ 영양제 기록 삭제 실패:", err);
+                    }
+                  }}
+                  style={styles.deleteButton}
+                >
+                  <Ionicons name="remove-circle" size={30} color="red" />
+                </TouchableOpacity>
               <Image source={item} style={styles.mealPhoto} />
             </View>
           )}
@@ -638,6 +744,14 @@ const styles = {
     marginTop: 5,
     marginLeft: 18,
     marginRight: 8,
+  },
+  deleteButton: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    borderRadius: 25,
+    zIndex: 1,
+    transform: [{ scale: 0.5 }], 
   },
   mealPhoto: {
     width: 60,

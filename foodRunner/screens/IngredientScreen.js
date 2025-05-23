@@ -103,7 +103,7 @@ export default function IngredientScreen({ navigation }) {
       /> */}
       <View style={styles.searchBar}>
         <SearchBar value={search} onChangeText={setSearch} 
-          placeholder="제품명/추가해주세요" 
+          placeholder="식재료를 추가해주세요" 
         />
       </View>
 

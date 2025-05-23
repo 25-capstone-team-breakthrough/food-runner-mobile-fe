@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
   FlatList,
@@ -20,6 +20,9 @@ const FoodSearchScreen = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedsupplementItem, setSelectedsupplementItem] = useState(null);
   const [supplementItems, setSupplementItems] = useState([]);
+  const route = useRoute();
+  const selectedDate = route.params?.selectedDate;
+  console.log("영양제 등록 페이지 받은 날짜:", selectedDate);
 
   const toggleFavorite = async(item) => {
     
@@ -147,7 +150,7 @@ const FoodSearchScreen = () => {
               },
               body: JSON.stringify({
                 id: selectedsupplementItem.supplementId,
-                dateTime: new Date().toISOString(),
+                dateTime: `${selectedDate}T12:00:00`,
               }),
             });
 
@@ -155,7 +158,7 @@ const FoodSearchScreen = () => {
               throw new Error(`서버 오류: ${response.status}`);
             }
 
-            alert("✅ 영양제 섭취 기록이 저장되었습니다.");
+            alert("✅ 영양제 섭취 기록이 저장되었습니다.", selectedDate);
 
             navigation.navigate("NutritionMain", 
           );
