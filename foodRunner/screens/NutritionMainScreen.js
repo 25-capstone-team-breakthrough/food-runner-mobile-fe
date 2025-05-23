@@ -52,6 +52,7 @@ const NutritionMainScreen = () => {
   const [selectedDate, setSelectedDate] = useState(selectedDateFromRoute || moment().format("YYYY-MM-DD"));
 
   const bottomSheetRef = useRef(null);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const snapPoints = useMemo(() => ['90%'], []);
 
   // const dateToDisplay = moment(selectedDate).format("YYYY.MM.DD");
@@ -642,6 +643,10 @@ const NutritionMainScreen = () => {
           index={-1}
           snapPoints={snapPoints}
           enablePanDownToClose
+          onChange={(index) => {
+            // index가 -1이면 닫힘 상태
+            setIsBottomSheetOpen(index !== -1);
+          }}
           backgroundStyle={{ borderTopLeftRadius: 25, borderTopRightRadius: 25, backgroundColor: "#fff" }}
         >
           {/* <NutritionCalendarScreen onSelectDate={handleDateSelect} /> */}
@@ -655,7 +660,7 @@ const NutritionMainScreen = () => {
           />
         </BottomSheet>
       </ScrollView>
-      <BottomNavigation />
+      {!isBottomSheetOpen && <BottomNavigation />}
     </SafeAreaView>
   );
 };
