@@ -20,7 +20,7 @@ const FoodItem = ({ recipe, navigation }) => {
       />
       <View style={styles.textContainer}>
         <Text style={styles.name}>{recipe.recipeName}</Text>
-        <Text style={styles.calories}>{recipe.calories}</Text>
+        <Text style={styles.calories}>{recipe.calories} kcal</Text>
       </View>
     </TouchableOpacity>
   );
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 30,
-    marginLeft: 20,
+    marginLeft: 25,
   },
   textContainer: {
     marginLeft: 30,
@@ -59,6 +59,7 @@ const styles = StyleSheet.create({
   },
   calories: {
     fontSize: 14,
+    marginTop: 3,
     fontWeight: "300",
     color: "#000",
   },
