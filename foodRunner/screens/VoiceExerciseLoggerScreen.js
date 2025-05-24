@@ -1,7 +1,8 @@
 import { AntDesign, Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Audio } from "expo-av";
 import { BlurView } from 'expo-blur';
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Image,
     StyleSheet,
@@ -13,15 +14,41 @@ import backgroundImage from '../assets/body.png';
 import BackButton from "../components/BackButton";
 
 const VoiceExerciseLoggerScreen = ({ navigation }) => {
-    const [isRecording, setIsRecording] = useState(false);
-    const [recording, setRecording] = useState(null);
-    const [recordedURI, setRecordedURI] = useState(null);
-    const [dots, setDots] = useState("");
-    const [recognizedText, setRecognizedText] = useState("");
-    const [isCompleted, setIsCompleted] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
+    const [isRecording, setIsRecording] = useState(false); // 현재 녹음 중인지?
+    const [recording, setRecording] = useState(null); // Audio.Recording 객체 저장
+    const [recordedURI, setRecordedURI] = useState(null); // 녹음된 오디오 파일의 url
+    const [dots, setDots] = useState(""); // ... 문자열
+    const [recognizedText, setRecognizedText] = useState(""); // 백엔드에서 받은 텍스트 결과
+    const [isCompleted, setIsCompleted] = useState(false); // 운동 기록이 완료됐는지 여부
+    const [showConfirm, setShowConfirm] = useState(false); // 확인 화면 보여줄지 여부
     const soundRef = useRef(null);
     const intervalRef = useRef(null);
+
+    // 녹음 시작
+    const startRecording = async () => {
+        // 마이크 권한
+        const { granted } = await Audio.requestPermissionsAsync();
+        if (!granted) {
+            alert("마이크 권한이 필요합니다.");
+            return;
+        }
+        
+        await Audio.setAudioModeAsync({
+            allowsRecordingIOS: true,
+            playsInSilentModeIOS: true,
+        });
+        // 녹음 세팅
+        const { recording } = await Audio.Recording.createAsync(
+            Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+        );
+
+        setRecording(recording);
+        setIsRecording(true);
+        setRecognizedText("");
+        setRecordedURI(null);
+        setIsCompleted(false);
+        setShowConfirm(false);
+    };
 
     // 점 애니메이션
     useEffect(() => {
@@ -36,78 +63,58 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
         return () => clearInterval(intervalRef.current);
     }, [isRecording]);
 
-    // 녹음 시작
-    const startRecording = async () => {
-        const { granted } = await Audio.requestPermissionsAsync();
-        if (!granted) {
-            alert("마이크 권한이 필요합니다.");
-            return;
+    
+
+    // 녹음 중지 -> 여기서 음성 백으로 전달해야 함
+    const stopRecording = async () => {
+        if (!recording) return;
+
+        await recording.stopAndUnloadAsync();
+        const uri = recording.getURI();
+        setRecording(null);
+        setIsRecording(false);
+        setRecordedURI(uri);
+
+        // 🎯 백엔드 전송, 
+        // { 백에서 이렇게 받아야 됨
+        //     "text": "벤치프레스 3세트 체스트 프레스 머신 3세트 했어"
+        // }
+        try {
+            const formData = new FormData();
+            formData.append("audioFile", {
+                uri,
+                name: "recording.m4a",
+                type: "audio/m4a"
+            });
+
+            const token = await AsyncStorage.getItem("token");
+
+            const response = await fetch("http://13.209.199.97:8080/stt/audio", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    // "Content-Type": "multipart/form-data",
+                    "Authorization": `Bearer ${token}`, 
+                }
+            });
+
+            const data = await response.text();
+            setRecognizedText(data); // 예: data.text = "벤치프레스 3세트 체스트 프레스 머신 3세트 했어"
+            console.log("백에서 온 음성 텍스트",data);
+        } catch (error) {
+            console.error("음성 전송 실패:", error);
+            setRecognizedText("⚠️ 음성 인식 실패! 다시 시도해주세요.");
         }
 
-        await Audio.setAudioModeAsync({
-            allowsRecordingIOS: true,
-            playsInSilentModeIOS: true,
-        });
+        setShowConfirm(true);
 
-        const { recording } = await Audio.Recording.createAsync(
-            Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-        );
-
-        setRecording(recording);
-        setIsRecording(true);
-        setRecognizedText("");
-        setRecordedURI(null);
-        setIsCompleted(false);
-        setShowConfirm(false);
+        // 자동 재생 메이비 녹음한거 재생
+        const { sound } = await Audio.Sound.createAsync({ uri });
+        soundRef.current = sound;
+        await sound.playAsync();
     };
 
-    // 녹음 중지
-    // 녹음 중지
-const stopRecording = async () => {
-    if (!recording) return;
-
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
-    setRecording(null);
-    setIsRecording(false);
-    setRecordedURI(uri);
-
-    // 🎯 백엔드 전송, 
-    // { 백에서 이렇게 받아야 됨
-    //     "text": "벤치프레스 3세트 체스트 프레스 머신 3세트 했어"
-    // }
-    try {
-        const formData = new FormData();
-        formData.append("file", {
-            uri,
-            name: "recording.m4a",
-            type: "audio/m4a"
-        });
-
-        const response = await fetch("https://your-backend-api.com/upload", {
-            method: "POST",
-            body: formData,
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
-
-        const data = await response.json();
-        setRecognizedText(data.text); // 예: data.text = "벤치프레스 3세트 체스트 프레스 머신 3세트 했어"
-    } catch (error) {
-        console.error("음성 전송 실패:", error);
-        setRecognizedText("⚠️ 음성 인식 실패! 다시 시도해주세요.");
-    }
-
-    setShowConfirm(true);
-
-    // 자동 재생
-    const { sound } = await Audio.Sound.createAsync({ uri });
-    soundRef.current = sound;
-    await sound.playAsync();
-};
-
-
+    // 하단 녹음 버튼 
     const toggleRecording = async () => {
         if (isRecording) {
             await stopRecording();
@@ -116,6 +123,7 @@ const stopRecording = async () => {
         }
     };
 
+    // 백에서 음성 텍스트 받고 확인 버튼
     const handleConfirm = async () => {
         setIsCompleted(true);
         setShowConfirm(true);
@@ -159,18 +167,19 @@ const stopRecording = async () => {
                         <Text style={styles.question}>오늘은 무슨{"\n"}운동을 하셨나요?</Text>
                         </>
                     )}
-                    {/* </View> */}
 
-
+                
                 {!showConfirm && (
                     <>
                         <Text style={styles.example}>"런지 10회 5세트 했어"</Text>
                         <Text style={styles.example}>"러닝 30분 뛰었어"</Text>
                     </>
-                    )}
+                )}
 
+                {/* 녹음 중일때는 점점점 */}
                 {isRecording && <Text style={styles.dots}>{dots}</Text>}
-
+                
+                {/* 녹음 끝나구  */}
                 {!isRecording && showConfirm && !isCompleted && (
                 <>
                     {recognizedText && (
@@ -187,6 +196,7 @@ const stopRecording = async () => {
                 )}
             </View>
 
+            {/* 하단 녹음 버튼 */}
             <TouchableOpacity
                 style={[styles.voiceButton, isRecording && styles.voiceButtonActive]}
                 onPress={toggleRecording}

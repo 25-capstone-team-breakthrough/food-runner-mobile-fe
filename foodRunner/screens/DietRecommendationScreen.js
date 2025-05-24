@@ -81,7 +81,7 @@ const DietRecommendationScreen = () => {
           if (!res.ok) throw new Error("레시피 불러오기 실패");
 
           const data = await res.json();
-          console.log("✅ 추천 식단 데이터:", data); // 콘솔 출력
+          // console.log("✅ 추천 식단 데이터:", data); // 콘솔 출력
 
           setRecommendedRecipes(data);
         } catch (err) {
