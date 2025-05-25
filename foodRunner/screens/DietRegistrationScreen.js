@@ -17,14 +17,14 @@ import SearchBar from "../components/SearchBar";
 
 const FoodSearchScreen = () => {
   const navigation = useNavigation();
-  const [searchText, setSearchText] = useState("");
-  const [filteredItems, setFilteredItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [foodItems, setFoodItems] = useState([]);
-  const [favoriteItems, setFavoriteItems] = useState([]); 
-  const [favoriteFoodData, setFavoriteFoodData] = useState([]);
+  const [searchText, setSearchText] = useState(""); // 사용자가 입력한 검색 텍스트
+  const [filteredItems, setFilteredItems] = useState([]); // 검색 결과 음식 리스트
+  const [selectedItem, setSelectedItem] = useState(null); // 사용자가 선택한 음식 객체
+  const [foodItems, setFoodItems] = useState([]); // 전체 음식 데이터
+  const [favoriteItems, setFavoriteItems] = useState([]); // 즐겨찾기된 음식들의 foodId 리스트
+  const [favoriteFoodData, setFavoriteFoodData] = useState([]); //즐겨찾기된 음식의 전체 데이터 배열
   const route = useRoute();
-  const selectedDate = route.params?.selectedDate;
+  const selectedDate = route.params?.selectedDate; 
   console.log("받은 날짜:", selectedDate);
 
   // 즐겨찾기 등록 api
@@ -79,13 +79,15 @@ const FoodSearchScreen = () => {
       });
 
       const data = await res.json();
-      setFavoriteItems(data.map((item) => item.foodId));
+      setFavoriteItems(data.map((item) => item.food.foodId));
       setFavoriteFoodData(data.map((item) => ({
         ...item.food,
         prefId: item.id,
       })));
 
+
       console.log("[📦 즐겨찾기 데이터]", data);
+
     } catch (err) {
       console.error("❌ 즐겨찾기 로드 실패:", err);
     }
@@ -183,9 +185,9 @@ const FoodSearchScreen = () => {
                     style={styles.favoriteButton}
                   >
                     <Ionicons
-                      name={favoriteItems.includes(Number(item.foodId)) ? "star" : "star-outline"}
+                      name={favoriteItems.includes(item.foodId) ? "star" : "star-outline"}
                       size={24}
-                      color={favoriteItems.includes(Number(item.foodId)) ? "#E1FF01" : "#C0C0C0"}
+                      color={favoriteItems.includes(item.foodId) ? "#E1FF01" : "#C0C0C0"}
                     />
                   </TouchableOpacity>
                   <Image source={{ uri: item.foodImage }} style={styles.itemImage} />

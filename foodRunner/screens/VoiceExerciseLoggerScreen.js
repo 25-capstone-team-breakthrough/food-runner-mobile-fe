@@ -82,10 +82,11 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
         try {
             const formData = new FormData();
             formData.append("audioFile", {
-                uri,
+                uri: uri,
                 name: "recording.m4a",
-                type: "audio/m4a"
+                type: "audio/x-m4a"
             });
+            // console.log("프론트 전달 uri: ", uri);
 
             const token = await AsyncStorage.getItem("token");
 
@@ -93,14 +94,14 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                 method: "POST",
                 body: formData,
                 headers: {
-                    // "Content-Type": "multipart/form-data",
                     "Authorization": `Bearer ${token}`, 
                 }
             });
 
             const data = await response.text();
             setRecognizedText(data); // 예: data.text = "벤치프레스 3세트 체스트 프레스 머신 3세트 했어"
-            console.log("백에서 온 음성 텍스트",data);
+            console.log("백에서 온 음성 텍스트 :",data);
+            console.log("서버 응답 상태: ", response.status)
         } catch (error) {
             console.error("음성 전송 실패:", error);
             setRecognizedText("⚠️ 음성 인식 실패! 다시 시도해주세요.");
@@ -109,9 +110,17 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
         setShowConfirm(true);
 
         // 자동 재생 메이비 녹음한거 재생
-        const { sound } = await Audio.Sound.createAsync({ uri });
-        soundRef.current = sound;
-        await sound.playAsync();
+        // const { sound } = await Audio.Sound.createAsync({ uri });
+        // soundRef.current = sound;
+        // await sound.playAsync();
+
+        useEffect(() => {
+            return () => {
+                if (soundRef.current) {
+                    soundRef.current.unloadAsync();
+                }
+            };
+        }, []);
     };
 
     // 하단 녹음 버튼 
@@ -123,7 +132,7 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
         }
     };
 
-    // 백에서 음성 텍스트 받고 확인 버튼
+    // 백에서 음성 텍스트 받고 확인 버튼 -> 운동일지에 추가되는 버튼 , api호출해서 나중에 추가해야 함
     const handleConfirm = async () => {
         setIsCompleted(true);
         setShowConfirm(true);
@@ -189,6 +198,7 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                         </Text>
                     </View>
                     )}
+                    {/* 운동 일지에 추가 버튼 */}
                     <TouchableOpacity style={styles.checkButton} onPress={handleConfirm}>
                         <AntDesign name="check" size={32} color="black" />
                     </TouchableOpacity>

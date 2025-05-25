@@ -11,10 +11,8 @@ import CalorieBar from '../components/CalorieBar';
 const screenWidth = Dimensions.get('window').width;
 
 const HomeScreen = ({ navigation }) => {
-
-  // const name = await AsyncStorage.getItem("name");
+  
   const [name, setName] = useState("");
-  // const name = "이민주";
   const dateToDisplay = moment().format("YYYY.MM.DD")
   const [consumedCalories, setConsumedCalories] = useState(0);
 
@@ -22,7 +20,6 @@ const HomeScreen = ({ navigation }) => {
     const fetchCalories = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
-        // console.log("토큰:", token);
         const storedName = await AsyncStorage.getItem("name"); // 이름 가져오기
         setName(storedName || "");
         const today = new Date().toISOString();

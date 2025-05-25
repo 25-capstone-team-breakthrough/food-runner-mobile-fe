@@ -5,8 +5,9 @@ import BottomNavigation from "../components/BottomNavigation";
 
 import { useEffect, useRef } from "react";
 import { TouchableOpacity } from "react-native";
+import BackButton from "../components/BackButton";
 
-const DietRecipeScreen = () => {
+const DietRecipeScreen = ({ navigation }) => {
     
     const route = useRoute();
     const initialRecipe = route.params.recipe;
@@ -29,60 +30,12 @@ const DietRecipeScreen = () => {
         scrollRef.current?.scrollTo({ y: 0, animated: true });
     }, [recipe]);
   
-    // const recipe = route.params?.recipe || {
-    //     name: "아보카도 닭가슴살 샐러드",
-    //     description: "단백질 듬뿍! 건강한 지방까지 챙긴 다이어트 샐러드!",
-    //     image: require("../assets/salad.png"),
-    //     ingredients: [
-    //         "닭가슴살 100g",
-    //         "고구마 1개",
-    //         "브로콜리 1줌",
-    //         "마늘 2쪽",
-    //         "간장 1작은술",
-    //         "올리브오일 1큰술",
-    //         "소금, 후추 약간",
-    //     ],
-    //     steps: [
-    //         "닭가슴살을 삶거나 에어프라이어로 구운 뒤 한입 크기로 썰어둔다.",
-    //         "아보카도는 깍둑썰기, 방울토마토는 반으로 자른다.",
-    //         "양상추를 씻어 적당히 찢고 그릇에 담는다.",
-    //         "모든 재료를 넣고 올리브오일, 레몬즙, 소금, 후추로 간을 해서 섞어준다.",
-    //     ],
-    //     tip: "드레싱은 올리브오일, 레몬즙, 발사믹 식초로 가볍게. 아몬드, 호두를 추가하여 더 고소하고 영양이 있게. 블랙페퍼, 파프리카 가루로 나트를 섞어주고 풍미있게.",
-    //     recommendedRecipes: [
-    //         { id: "1", name: "연어 샐러드", image: require("../assets/salmonSalad.png") },
-    //         { id: "2", name: "연어 아보카도 샐러드", image: require("../assets/salmonAvocado.png") },
-    //         { id: "3", name: "두부 스크램블", image: require("../assets/dobuScb.png") },
-    //         { id: "4", name: "연어 샐러드", image: require("../assets/salmonSalad.png") },
-    //         { id: "5", name: "연어 아보카도 샐러드", image: require("../assets/salmonAvocado.png") },
-    //         { id: "6", name: "두부 스크램블", image: require("../assets/dobuScb.png") },
-    //     ],
-    // };
-
-    // useLayoutEffect(() => {
-    //     navigation.setOptions({
-    //       headerTransparent: true,
-    //       headerTitle: "",
-    //       headerBackTitleVisible: false,
-    //       headerLeft: () => (
-    //         <TouchableOpacity
-    //           onPress={() => navigation.goBack()}
-    //           style={{
-    //             position: "absolute",
-    //             left: 20,
-    //             top: 0,
-    //             zIndex: 10,
-    //           }}
-    //         >
-    //             <Text style={{fontSize: 24, color: "#fff"}}>←</Text>
-    //         </TouchableOpacity>
-    //       ),
-    //     });
-    //   }, [navigation]);
-
 
     return (
-        <View style={styles.container}>           
+        <View style={styles.container}>  
+        <View style={styles.backButtonWrapper}>
+            <BackButton onPress={() => navigation.goBack()} color="black" /> 
+        </View>         
             <ScrollView
                 ref={scrollRef}
                 contentContainerStyle={styles.scrollViewContent} 
@@ -157,6 +110,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#FFF",
+    },
+     backButtonWrapper: {
+        position: 'absolute',
+        top: 50,      
+        left: 20,     
+        zIndex: 100,  
     },
     scrollViewContent: {
         flexGrow: 1,
@@ -252,7 +211,7 @@ const styles = StyleSheet.create({
         resizeMode: "cover",
     },
     recipeRecommendTitle: {
-        fontSize: 10,
+        fontSize: 14,
         fontWeight: "490",
         marginTop: 8,
         color: "#000000",

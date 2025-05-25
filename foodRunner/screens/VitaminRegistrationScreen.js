@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useState } from "react";
@@ -14,19 +15,102 @@ import RegisterButton from "../components/RegisterButton";
 import SearchBar from "../components/SearchBar";
 
 
+
 const FoodSearchScreen = () => {
   const navigation = useNavigation();
-  const [searchText, setSearchText] = useState("");
-  const [filteredItems, setFilteredItems] = useState([]);
-  const [selectedsupplementItem, setSelectedsupplementItem] = useState(null);
-  const [supplementItems, setSupplementItems] = useState([]);
+  const [searchText, setSearchText] = useState(""); // 검색어 
+  const [filteredItems, setFilteredItems] = useState([]); // 필터링 된 결과
+  const [selectedsupplementItem, setSelectedsupplementItem] = useState(null); // 선택된 영양제
+  const [supplementItems, setSupplementItems] = useState([]); // 전체 영양제 목록
+  const [favoriteSupplementItems, setFavoriteSupplementItems] = useState([]); // 즐겨찾기된 supplementId 목록
+  const [favoriteSupplementData, setFavoriteSupplementData] = useState([]);   // 즐겨찾기된 전체 supplement 객체 목록
+
   const route = useRoute();
   const selectedDate = route.params?.selectedDate;
   console.log("영양제 등록 페이지 받은 날짜:", selectedDate);
 
-  const toggleFavorite = async(item) => {
-    
+  // 즐겨찾기 불러오기
+  const fetchFavorites = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch("http://13.209.199.97:8080/diet/sup/pref/load", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      setFavoriteSupplementItems(data.map((item) => item.supplement.supplementId));
+      setFavoriteSupplementData(
+        data.map((item) => ({
+          ...item.supplement,
+          prefId: item.id, // 즐겨찾기 삭제용
+        }))
+      );
+
+      console.log("[📦 영양제 즐겨찾기 데이터]", data);
+    } catch (err) {
+      console.error("❌ 영양제 즐겨찾기 로드 실패:", err);
+    }
   };
+
+  // 즐겨찾기 등록, 삭제
+  const toggleFavorite = async (item) => {
+    const token = await AsyncStorage.getItem("token");
+    const isFavorited = favoriteSupplementItems.includes(item.supplementId);
+    try {
+      if (isFavorited) {
+        if (!item.prefId) {
+          console.warn("❗️ prefId가 없어 즐겨찾기 삭제 불가");
+          return;
+        }
+        // 즐겨찾기 삭제
+        const res = await fetch(
+          `http://13.209.199.97:8080/diet/sup/pref/delete?pref_id=${item.prefId}`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!res.ok) throw new Error("삭제 실패");
+
+        console.log("⭐️ 즐겨찾기 삭제 성공:", item.supplementName);
+      } else {
+        // 즐겨찾기 등록
+        const res = await fetch(
+          `http://13.209.199.97:8080/diet/sup/pref/save?sup_id=${item.supplementId}`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!res.ok) throw new Error("등록 실패");
+        const resText = await res.text();
+        console.log("응답 내용: ", resText);
+
+        console.log("⭐️ 즐겨찾기 등록 성공:", item.supplementName);
+        console.log("💊 등록 대상:", item.supplementId);
+
+      }
+      const resText = await res.text();
+      
+
+      await fetchFavorites(); // 갱신
+    } catch (err) {
+      console.error("❌ 즐겨찾기 처리 오류:", err);
+      console.log("💊 등록 대상:", item.supplementId);
+    }
+    console.log("응답 내용: ", resText);
+  };
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      await fetchSupplements();
+      await fetchFavorites();
+    };
+
+    fetchAll();
+  }, []);
+
+
 
   // 🔹 백엔드에서 전체 영양제 목록 가져오기
   useEffect(() => {
@@ -74,22 +158,24 @@ const FoodSearchScreen = () => {
         />
       </View>
 
-      {filteredItems.length > 0 ? (
-        <>
+      <View style={{ flex: 1 }}>
+        {searchText.length > 0 && (
           <Text style={styles.searchMountText}>
             검색결과 {filteredItems.length}개
           </Text>
+        )}
           <FlatList
-            data={filteredItems}
+            data={searchText.length > 0 ? filteredItems : favoriteSupplementData}
             keyExtractor={(item) => item.supplementId.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => {
-                  if (selectedsupplementItem?.supplementId === item.supplementId) {
-                    setSelectedsupplementItem(null);
-                  } else {
-                    setSelectedsupplementItem(item);
-                  }
+                  setSelectedsupplementItem(selectedsupplementItem?.supplementId === item.supplementId ? null : item)
+                  // if (selectedsupplementItem?.supplementId === item.supplementId) {
+                  //   setSelectedsupplementItem(null);
+                  // } else {
+                  //   setSelectedsupplementItem(item);
+                  // }
                 }}
                 style={[
                   styles.resultItem,
@@ -98,16 +184,16 @@ const FoodSearchScreen = () => {
                 ]}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                {/* <TouchableOpacity
+                <TouchableOpacity
                     onPress={() => toggleFavorite(item)}
                     style={styles.favoriteButton}
                   >
                     <Ionicons
-                      name={favoriteItems.includes(Number(item.supplementId)) ? "star" : "star-outline"}
+                      name={favoriteSupplementItems.includes(item.supplementId) ? "star" : "star-outline"}
                       size={24}
-                      color={favoriteItems.includes(Number(item.supplementId)) ? "#E1FF01" : "#C0C0C0"}
+                      color={favoriteSupplementItems.includes(item.supplementId) ? "#E1FF01" : "#C0C0C0"}
                     />
-                  </TouchableOpacity> */}
+                  </TouchableOpacity>
                   <Image
                     source={{ uri: item.supplementImage }}
                     style={styles.itemImage}
@@ -124,13 +210,13 @@ const FoodSearchScreen = () => {
               paddingHorizontal: 30,
               paddingBottom: 105,
             }}
+            ListEmptyComponent={
+              <Text style={styles.searchMountText}>
+                {searchText.length > 0 ? "검색 결과가 없습니다" : "즐겨찾기된 음식이 없습니다"}
+              </Text>
+            }
           />
-        </>
-      ) : (
-        searchText.length > 0 && (
-          <Text style={styles.searchMountText}>검색 결과가 없습니다</Text>
-        )
-      )}
+      </View>
 
       {/* 🔹 등록하기 버튼 */}
       <RegisterButton
@@ -159,6 +245,7 @@ const FoodSearchScreen = () => {
             }
 
             alert("✅ 영양제 섭취 기록이 저장되었습니다.", selectedDate);
+            // console.log("저장된 ㅕㅇ")
 
             navigation.navigate("NutritionMain", 
           );

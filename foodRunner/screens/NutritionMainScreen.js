@@ -96,7 +96,7 @@ const NutritionMainScreen = () => {
       const recData = await recRes.json();
       const minRec = recData.find((r) => r.type === "MIN"); // 최소 권장량
       setRecommended(minRec);
-      console.log("추천영양소 객체: ",recData)
+      // console.log("추천영양소 객체: ",recData)
       // 데이터 변환
       if (lastLog && minRec) {
         const major = ["carbohydrate", "protein", "fat"];
