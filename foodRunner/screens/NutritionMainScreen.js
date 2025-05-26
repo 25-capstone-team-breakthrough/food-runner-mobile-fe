@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import BottomNavigation from "../components/BottomNavigation";
+import FoodLoading from "../components/FoodLoading";
 import HalfCircleSkiaChart from "../components/HalfCircleSkiaChart";
 import NutrientRing from "../components/NutrientRing";
 import NutritionCalendarScreen from "./NutritionCalendarScreen";
@@ -50,6 +51,10 @@ const NutritionMainScreen = () => {
   // 캘린더에서 받아온 날짜 -> selectedDate
   const selectedDateFromRoute = route.params?.selectedDate;
   const [selectedDate, setSelectedDate] = useState(selectedDateFromRoute || moment().format("YYYY-MM-DD"));
+
+  // 사진분석할때 로딩창
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
 
   const bottomSheetRef = useRef(null);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
@@ -179,7 +184,7 @@ const NutritionMainScreen = () => {
           const max = maxRec?.[key] ?? min * 1.5;
 
           let status = "부족";
-          let color = "#FFD700"; // 노란색 (부족)
+          let color = "#FFB546"; // 노란색 (부족)
 
           if (intake >= min && intake <= max) {
             status = "충분";
@@ -230,6 +235,7 @@ const NutritionMainScreen = () => {
 
   const uploadAndSaveMealLog = async (localUri) => {
     try {
+      setIsAnalyzing(true); 
       const token = await AsyncStorage.getItem("token");
       console.log(token)
 
@@ -284,15 +290,21 @@ const NutritionMainScreen = () => {
         setDietImages((prev) => [...prev, { uri: s3ImageUrl }]);
         console.log("✅ 식사 기록 저장 완료");
 
+        await fetchMealLogs();
+        await fetchNutritionData();
+
       } catch (logErr) {
         console.error("❌ 식사 기록 저장 실패:", logErr);
         Alert.alert("실패", "식사 기록 저장 중 오류가 발생했습니다.");
+      } finally {
+        setIsAnalyzing(false); // 로딩 종료
       }
     }, 1500); // ✅ 1.5초 대기
 
   } catch (err) {
     console.error("❌ 이미지 업로드 실패:", err);
     Alert.alert("실패", "이미지 업로드 중 오류가 발생했습니다.");
+    setIsAnalyzing(false);
   }
 };
 
@@ -710,6 +722,11 @@ const NutritionMainScreen = () => {
         </BottomSheet>
       </ScrollView>
       {!isBottomSheetOpen && <BottomNavigation />}
+      {/* 로딩 */}
+      {isAnalyzing && <FoodLoading/>}
+
+
+
     </SafeAreaView>
   );
 };
