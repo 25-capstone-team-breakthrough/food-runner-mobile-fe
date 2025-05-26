@@ -45,23 +45,6 @@ const HalfCircleSkiaChart = ({
     180
   );
 
-  // // ✅ Inner Shadow 느낌을 주는 그라디언트 Paint (hex or rgba array)
-  // const innerShadowPaint = Skia.Paint();
-  // innerShadowPaint.setShader(
-  //   Skia.Shader.MakeLinearGradient(
-  //     { x: centerX, y: centerY - radius },
-  //     { x: centerX, y: centerY + radius },
-  //     [
-  //       Skia.Color([255, 255, 255, 38]), // 밝은 위쪽 (15% 불투명)
-  //       Skia.Color([0, 0, 0, 64])        // 어두운 아래쪽 (25% 불투명)
-  //     ],
-  //     [0, 1],
-  //     "clamp"
-  //   )
-  // );
-  // innerShadowPaint.setStyle("stroke");
-  // innerShadowPaint.setStrokeWidth(progressStrokeWidth);
-  // innerShadowPaint.setStrokeCap("round");
 
   return (
     <View style={{ alignItems: "center", marginTop: 10 }}>
@@ -93,7 +76,8 @@ const HalfCircleSkiaChart = ({
       {/* 텍스트 */}
       <View style={{ position: "absolute", top: size * 0.28, alignItems: "center" }}>
         <Text style={{ fontSize: 35, fontWeight: "600", marginBottom: 5 }}>
-          {Math.round(progress * 2000)}
+          {/* {Math.round(progress * 2000)} */}
+          {Math.round(progress * targetCalories)}
         </Text>
         <Text style={{ fontSize: 17, fontWeight: "400", color: "#000" }}>
           권장 {targetCalories}kcal

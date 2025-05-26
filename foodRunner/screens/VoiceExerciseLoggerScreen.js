@@ -13,6 +13,11 @@ import {
 import backgroundImage from '../assets/body.png';
 import BackButton from "../components/BackButton";
 
+// 아 그러면 /stt/audio 이걸로 내가 백한테 음성파일 wav로 주면
+// /stt/audio에서 백이 나한테 텍스트 주고, 
+// 프론트가 저장버튼 누르면 stt/log 호출해서
+//  transcript에 담아서 주면 너네가 내부적으로 저장하는거지?
+
 const VoiceExerciseLoggerScreen = ({ navigation }) => {
     const [isRecording, setIsRecording] = useState(false); // 현재 녹음 중인지?
     const [recording, setRecording] = useState(null); // Audio.Recording 객체 저장
@@ -133,6 +138,8 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
     };
 
     // 백에서 음성 텍스트 받고 확인 버튼 -> 운동일지에 추가되는 버튼 , api호출해서 나중에 추가해야 함
+    // 프론트가 저장버튼 누르면 stt/log 호출해서
+    // transcript에 담아서 주면 너네가 내부적으로 저장하는거지? 
     const handleConfirm = async () => {
         setIsCompleted(true);
         setShowConfirm(true);

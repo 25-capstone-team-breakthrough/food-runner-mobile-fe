@@ -88,8 +88,8 @@ const FoodSearchScreen = () => {
           }
         );
         if (!res.ok) throw new Error("등록 실패");
-        const resText = await res.text();
-        console.log("응답 내용: ", resText);
+        // const resText = await res.text();
+        // console.log("응답 내용: ", resText);
 
         console.log("⭐️ 즐겨찾기 등록 성공:", item.supplementName);
         // console.log("💊 등록 대상:", item.supplementId);
@@ -106,6 +106,26 @@ const FoodSearchScreen = () => {
     console.log("응답 내용: ", resText);
   };
 
+
+  // 🔹 백엔드에서 전체 영양제 목록 가져오기
+  const fetchSupplements = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch("http://13.209.199.97:8080/diet/sup/data/load", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
+      const data = await res.json();
+      console.log(data)
+      setSupplementItems(data);
+    } catch (err) {
+      console.error("❌ 영양제 데이터 로딩 실패:", err);
+    }
+  };
+
   useEffect(() => {
     const fetchAll = async () => {
       await fetchSupplements();
@@ -115,30 +135,10 @@ const FoodSearchScreen = () => {
     fetchAll();
   }, []);
 
+  // useEffect(() => {
 
-
-  // 🔹 백엔드에서 전체 영양제 목록 가져오기
-  useEffect(() => {
-    const fetchSupplements = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        const res = await fetch("http://13.209.199.97:8080/diet/sup/data/load", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
-        const data = await res.json();
-        console.log(data)
-        setSupplementItems(data);
-      } catch (err) {
-        console.error("❌ 영양제 데이터 로딩 실패:", err);
-      }
-    };
-
-    fetchSupplements();
-  }, []);
+  //   fetchSupplements();
+  // }, []);
 
   // 🔹 검색어 변경 시 필터링
   const handleSearch = (text) => {
@@ -152,8 +152,6 @@ const FoodSearchScreen = () => {
       setFilteredItems([]);
     }
   };
-
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -219,7 +217,7 @@ const FoodSearchScreen = () => {
             }}
             ListEmptyComponent={
               <Text style={styles.searchMountText}>
-                {searchText.length > 0 ? "검색 결과가 없습니다" : "즐겨찾기된 음식이 없습니다"}
+                {searchText.length > 0 ? "검색 결과가 없습니다" : "즐겨찾기된 영양제가 없습니다"}
               </Text>
             }
           />

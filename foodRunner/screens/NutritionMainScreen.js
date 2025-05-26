@@ -423,6 +423,7 @@ const NutritionMainScreen = () => {
           style={styles.processContainer}
         >
            <HalfCircleSkiaChart
+              latestLog={latestLog}
               progress={
                 latestLog && recommended?.calories
                   ? latestLog.calories / recommended.calories
