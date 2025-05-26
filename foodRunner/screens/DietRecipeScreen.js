@@ -53,9 +53,17 @@ const DietRecipeScreen = ({ navigation }) => {
 
                     {/* 재료 */}
                     <Text style={styles.sectionTitle}>재료</Text>
-                    <Text style={styles.ingredients}>
+                    {/* <Text style={styles.ingredientItem}>
                         {recipe.ingredients}
+                    </Text> */}
+                    <Text style={styles.ingredientItem}>
+                    {recipe.ingredients
+                        ?.replace(/\|/g, ", ")             
+                        .replace("[양념]", "\n[양념]")     
+                        .trim()}
                     </Text>
+                    
+
 
                     <View style={styles.separator}></View>
 
@@ -150,7 +158,7 @@ const styles = StyleSheet.create({
     },
     ingredientItem: {
         fontSize: 14,
-        color: "#333",
+        color: "#000",
         marginBottom: 10,
         lineHeight: 22,
     },
@@ -160,10 +168,10 @@ const styles = StyleSheet.create({
         marginVertical: 15,
     },
     stepItem: {
-        fontSize: 14,
-        color: "#333",
+        fontSize: 15,
+        color: "#000",
         marginBottom: 10,
-        lineHeight: 22,
+        lineHeight: 25,
     },
     tipSection: {
         marginTop: 40,

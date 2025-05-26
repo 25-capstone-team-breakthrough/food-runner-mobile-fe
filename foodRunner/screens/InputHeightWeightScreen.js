@@ -26,6 +26,8 @@ const InputHeightWeightScreen = ({ navigation }) => {
       Alert.alert('입력 오류', '올바른 몸무게(20~300kg)를 입력해주세요.');
       return;
     }
+    await AsyncStorage.setItem('height', height);
+    await AsyncStorage.setItem('weight', weight);
     navigation.navigate('Ingredient');
     // 유효성 검사를 통과
     try {

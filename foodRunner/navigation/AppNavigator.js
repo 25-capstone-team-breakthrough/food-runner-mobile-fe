@@ -13,6 +13,7 @@ import IngredientScreen from '../screens/IngredientScreen';
 import InputGenderAgeScreen from '../screens/InputGenderAgeScreen';
 import InputHeightWeightScreen from '../screens/InputHeightWeightScreen';
 import LoginScreen from '../screens/LoginScreen';
+import MyPageEditScreen from '../screens/MyPageEditScreen';
 import NutritionCalendarScreen from '../screens/NutritionCalendarScreen';
 import NutritionMainScreen from '../screens/NutritionMainScreen';
 import SignUpScreen from '../screens/SignUpScreen';
@@ -57,6 +58,7 @@ const AppNavigator = () => {
         <Stack.Screen name="InputHeightWeight" component={InputHeightWeightScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="VoiceExerciseLogger" component={VoiceExerciseLoggerScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="MyPageEdit" component={MyPageEditScreen} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

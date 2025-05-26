@@ -40,19 +40,26 @@ export default function SignUpScreen({ navigation }) {
     const responseText = await response.text(); // JSON이 아닐 수도 있으니까 먼저 텍스트로 받음
     console.log("서버 응답 원문:", responseText);
   
-    if (response.ok) {
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        Alert.alert("서버 응답 오류", "서버가 올바른 JSON을 반환하지 않았습니다.");
-        return;
-      }
+    // if (response.ok) {
+    //   let data;
+    //   try {
+    //     data = JSON.parse(responseText);
+    //   } catch (e) {
+    //     Alert.alert("서버 응답 오류", "서버가 올바른 JSON을 반환하지 않았습니다.");
+    //     return;
+    //   }
   
+    //   await AsyncStorage.setItem("isNewUser", "true");
+    //   Alert.alert("회원가입 완료", `${data.name}님 가입을 환영합니다!`);
+    //   navigation.navigate("Login");
+    // } 
+    if (response.ok) {
       await AsyncStorage.setItem("isNewUser", "true");
-      Alert.alert("회원가입 완료", `${data.name}님 가입을 환영합니다!`);
+      Alert.alert("회원가입 완료", responseText); // 그냥 응답 문자열 출력
       navigation.navigate("Login");
-    } else {
+    }
+
+    else {
       let error;
       try {
         error = JSON.parse(responseText);

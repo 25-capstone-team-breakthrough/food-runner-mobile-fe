@@ -12,7 +12,7 @@ const BottomNavigation = () => {
     { name: "DietRecommendation", icon: "restaurant" },
     { name: "Home", icon: "home-outline" },
     { name: "ExerciseHome", icon: "barbell-outline" },
-    { name: "", icon: "person-circle-outline" },
+    { name: "MyPageEdit", icon: "person-circle-outline" },
   ];
 
   const isExerciseHome = route.name === "ExerciseHome"; // ExerciseHome 화면인지 확인

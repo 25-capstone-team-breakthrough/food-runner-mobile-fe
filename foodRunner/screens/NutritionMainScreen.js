@@ -77,6 +77,7 @@ const NutritionMainScreen = () => {
   // 영양소 로드
   const fetchNutritionData = async () => {
 
+
       const token = await AsyncStorage.getItem("token");
 
       // logRes 여기 data 2025-05-10 이런식으로 들어가 잇음...!!
@@ -84,7 +85,7 @@ const NutritionMainScreen = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const logData = await logRes.json();
-      console.log("영양소 객체 : ",logData)
+      // console.log("영양소 객체 : ",logData)
 
       const lastLog = logData.find(log => log.date === selectedDate);
       setLatestLog(lastLog);
@@ -133,6 +134,19 @@ const NutritionMainScreen = () => {
         setMacroNutrients(buildData(major));
         setEtcNutrients(buildData(etc));
         setSmallNutrients(buildData(small));
+
+        // ✅ 오늘 날짜 칼로리만 저장
+        const today = moment().format("YYYY-MM-DD");
+        if (lastLog?.date === today && minRec?.calories) {
+          try {
+            await AsyncStorage.setItem("todayCalories", String(lastLog.calories)); // 오늘섭취칼로리
+            await AsyncStorage.setItem("todayRecommendedCalories", String(minRec.calories)); // 권장칼로리
+            console.log("✅ 오늘 섭취 칼로리 저장 완료:", lastLog.calories, "권장칼로리", minRec.calories);
+          } catch (err) {
+            console.error("❌ 오늘 칼로리 AsyncStorage 저장 실패:", err);
+          }
+        }
+
       }
     };
 
@@ -283,40 +297,6 @@ const NutritionMainScreen = () => {
     const combinedImages = [...(imageLogs || []), ...(searchLogs || [])];
     setDietImages(combinedImages);
 
-    // 원래꺼
-    // logs.imageMealLogs.forEach((log) => {
-    //   console.log("이미지 식사 날짜:", log.mealLog?.date);
-    // });
-
-    // logs.searchMealLogs.forEach((log) => {
-    //   console.log("검색 식사 날짜:", log.mealLog?.date);
-    // });
-    
-
-
-    // const imageLogs = logs?.imageMealLogs
-    //   ?.filter((log) => log.mealImage)
-    //   ?.map((log) => ({
-    //     ...log,
-    //     uri: log.mealImage,
-    //     id: log.imageMealLogId, // ✅ 이게 꼭 있어야 삭제됨
-    //   }));
-
-    //   setDietImages(imageLogs);
-
-    // const searchLogs = logs?.searchMealLogs
-    //   ?.filter((log) => log.foodImage) // 이미지 있는 항목만 필터링
-    //   ?.map((log) => ({
-    //     ...log,              // log 전체 복사
-    //     uri: log.foodImage,  // 이미지 URI 별도 키로 추가
-    //   }));
-
-
-    // const combinedImages = [...(imageLogs || []), ...(searchLogs || [])];
-
-    // setDietImages(combinedImages);
-
-
   } catch (err) {
     console.error("❌ 식사 기록 불러오기 실패:", err);
   }
@@ -357,14 +337,6 @@ const NutritionMainScreen = () => {
 
     setSupplementImages(filtered);
 
-      // const images = logs
-      //   .filter((log) => log.supplementData?.supplementImage)
-      //   .map((log) => ({
-      //     ...log,
-      //     uri: log.supplementData.supplementImage,
-      //   }));
-
-      // setSupplementImages(images);
     } catch (err) {
       console.error("❌ 영양제 섭취 기록 불러오기 실패:", err);
     }
@@ -413,7 +385,6 @@ const NutritionMainScreen = () => {
               <AntDesign style={styles.calendarIcon} name="calendar" size={24} color="black" />
             </TouchableOpacity>
           <Text style={styles.dateText}>{dateToDisplay}</Text>
-
         </View>
 
         <View style={styles.processContainerShadow}>
