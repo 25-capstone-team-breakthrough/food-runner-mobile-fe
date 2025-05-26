@@ -75,80 +75,157 @@ const NutritionMainScreen = () => {
 
 
   // 영양소 로드
-  const fetchNutritionData = async () => {
+  // const fetchNutritionData = async () => {
 
 
-      const token = await AsyncStorage.getItem("token");
+  //     const token = await AsyncStorage.getItem("token");
 
-      // logRes 여기 data 2025-05-10 이런식으로 들어가 잇음...!!
-      const logRes = await fetch(`http://13.209.199.97:8080/diet/nutrition/log/load`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const logData = await logRes.json();
-      // console.log("영양소 객체 : ",logData)
+  //     // logRes 여기 data 2025-05-10 이런식으로 들어가 잇음...!!
+  //     const logRes = await fetch(`http://13.209.199.97:8080/diet/nutrition/log/load`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     const logData = await logRes.json();
+  //     // console.log("영양소 객체 : ",logData)
 
-      const lastLog = logData.find(log => log.date === selectedDate);
-      setLatestLog(lastLog);
-      console.log("해당날짜 영양소 객체: ", lastLog);
+  //     const lastLog = logData.find(log => log.date === selectedDate);
+  //     setLatestLog(lastLog);
+  //     console.log("해당날짜 영양소 객체: ", lastLog);
       
-      const recRes = await fetch("http://13.209.199.97:8080/diet/nutrition/rec/load", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const recData = await recRes.json();
-      const minRec = recData.find((r) => r.type === "MIN"); // 최소 권장량
-      setRecommended(minRec);
-      // console.log("추천영양소 객체: ",recData)
-      // 데이터 변환
-      if (lastLog && minRec) {
-        const major = ["carbohydrate", "protein", "fat"];
-        const etc = ["sugar", "sodium", "dietaryFiber", "calcium"];
-        const small = ["saturatedFat", "transFat", "cholesterol"];
+  //     const recRes = await fetch("http://13.209.199.97:8080/diet/nutrition/rec/load", {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     const recData = await recRes.json();
+  //     const minRec = recData.find((r) => r.type === "MIN"); // 최소 권장량
+  //     setRecommended(minRec);
+  //     // console.log("추천영양소 객체: ",recData)
+  //     // 데이터 변환
+  //     if (lastLog && minRec) {
+  //       const major = ["carbohydrate", "protein", "fat"];
+  //       const etc = ["sugar", "sodium", "dietaryFiber", "calcium"];
+  //       const small = ["saturatedFat", "transFat", "cholesterol"];
 
-        const buildData = (keys) =>
-          keys.map((key) => {
-            const intake = lastLog[key];
-            const base = minRec[key];
-            const percent = Math.min(Math.round((intake / base) * 100), 100);
-            const status = intake >= base ? "충분" : "부족";
-            const color = intake >= base ? "#26C51E" : "#FF4646";
-            const unit = key === "sodium" || key === "calcium" || key === "cholesterol" ? "mg" : "g";
-            return {
-              name:
-                key === "carbohydrate" ? "탄수화물" :
-                key === "protein" ? "단백질" :
-                key === "fat" ? "지방" :
-                key === "sugar" ? "당류" :
-                key === "sodium" ? "나트륨" :
-                key === "dietaryFiber" ? "식이섬유" :
-                key === "calcium" ? "칼슘" :
-                key === "saturatedFat" ? "포화지방" :
-                key === "transFat" ? "트랜스지방" :
-                key === "cholesterol" ? "콜레스테롤" : key,
-              amount: `${Math.round(intake)}${unit}`,
-              status,
-              color,
-              percent,
-            };
-          });
+  //       const buildData = (keys) =>
+  //         keys.map((key) => {
+  //           const intake = lastLog[key];
+  //           const base = minRec[key];
+  //           const percent = Math.min(Math.round((intake / base) * 100), 100);
+  //           const status = intake >= base ? "충분" : "부족";
+  //           const color = intake >= base ? "#26C51E" : "#FF4646";
+  //           const unit = key === "sodium" || key === "calcium" || key === "cholesterol" ? "mg" : "g";
+  //           return {
+  //             name:
+  //               key === "carbohydrate" ? "탄수화물" :
+  //               key === "protein" ? "단백질" :
+  //               key === "fat" ? "지방" :
+  //               key === "sugar" ? "당류" :
+  //               key === "sodium" ? "나트륨" :
+  //               key === "dietaryFiber" ? "식이섬유" :
+  //               key === "calcium" ? "칼슘" :
+  //               key === "saturatedFat" ? "포화지방" :
+  //               key === "transFat" ? "트랜스지방" :
+  //               key === "cholesterol" ? "콜레스테롤" : key,
+  //             amount: `${Math.round(intake)}${unit}`,
+  //             status,
+  //             color,
+  //             percent,
+  //           };
+  //         });
 
-        setMacroNutrients(buildData(major));
-        setEtcNutrients(buildData(etc));
-        setSmallNutrients(buildData(small));
+  //       setMacroNutrients(buildData(major));
+  //       setEtcNutrients(buildData(etc));
+  //       setSmallNutrients(buildData(small));
 
-        // ✅ 오늘 날짜 칼로리만 저장
-        const today = moment().format("YYYY-MM-DD");
-        if (lastLog?.date === today && minRec?.calories) {
-          try {
-            await AsyncStorage.setItem("todayCalories", String(lastLog.calories)); // 오늘섭취칼로리
-            await AsyncStorage.setItem("todayRecommendedCalories", String(minRec.calories)); // 권장칼로리
-            console.log("✅ 오늘 섭취 칼로리 저장 완료:", lastLog.calories, "권장칼로리", minRec.calories);
-          } catch (err) {
-            console.error("❌ 오늘 칼로리 AsyncStorage 저장 실패:", err);
+  //       // ✅ 오늘 날짜 칼로리만 저장
+  //       const today = moment().format("YYYY-MM-DD");
+  //       if (lastLog?.date === today && minRec?.calories) {
+  //         try {
+  //           await AsyncStorage.setItem("todayCalories", String(lastLog.calories)); // 오늘섭취칼로리
+  //           await AsyncStorage.setItem("todayRecommendedCalories", String(minRec.calories)); // 권장칼로리
+  //           console.log("✅ 오늘 섭취 칼로리 저장 완료:", lastLog.calories, "권장칼로리", minRec.calories);
+  //         } catch (err) {
+  //           console.error("❌ 오늘 칼로리 AsyncStorage 저장 실패:", err);
+  //         }
+  //       }
+
+  //     }
+  //   };
+
+  const fetchNutritionData = async () => {
+    const token = await AsyncStorage.getItem("token");
+    const logRes = await fetch(`http://13.209.199.97:8080/diet/nutrition/log/load`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const logData = await logRes.json();
+    const lastLog = logData.find(log => log.date === selectedDate);
+    setLatestLog(lastLog);
+
+    const recRes = await fetch("http://13.209.199.97:8080/diet/nutrition/rec/load", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const recData = await recRes.json();
+    const minRec = recData.find((r) => r.type === "MIN"); // 최소 권장량
+    const maxRec = recData.find((r) => r.type === "MAX"); // 최대 권장량
+    setRecommended(minRec);
+
+    if (lastLog && minRec) {
+      const major = ["carbohydrate", "protein", "fat"];
+      const etc = ["sugar", "sodium", "dietaryFiber", "calcium"];
+      const small = ["saturatedFat", "transFat", "cholesterol"];
+
+      const buildData = (keys) =>
+        keys.map((key) => {
+          const intake = lastLog[key];
+          const min = minRec[key];
+          const max = maxRec?.[key] ?? min * 1.5;
+
+          let status = "부족";
+          let color = "#FFD700"; // 노란색 (부족)
+
+          if (intake >= min && intake <= max) {
+            status = "충분";
+            color = "#26C51E"; // 초록 (충분)
+          } else if (intake > max) {
+            status = "과다";
+            color = "#FF4646"; // 빨강 (과다)
           }
-        }
 
+          const unit = key === "sodium" || key === "calcium" || key === "cholesterol" ? "mg" : "g";
+
+          return {
+            name:
+              key === "carbohydrate" ? "탄수화물" :
+              key === "protein" ? "단백질" :
+              key === "fat" ? "지방" :
+              key === "sugar" ? "당류" :
+              key === "sodium" ? "나트륨" :
+              key === "dietaryFiber" ? "식이섬유" :
+              key === "calcium" ? "칼슘" :
+              key === "saturatedFat" ? "포화지방" :
+              key === "transFat" ? "트랜스지방" :
+              key === "cholesterol" ? "콜레스테롤" : key,
+            amount: `${Math.round(intake)}${unit}`,
+            status,
+            color,
+            percent: Math.min(Math.round((intake / min) * 100), 100),
+          };
+        });
+
+      setMacroNutrients(buildData(major));
+      setEtcNutrients(buildData(etc));
+      setSmallNutrients(buildData(small));
+
+      const today = moment().format("YYYY-MM-DD");
+      if (lastLog?.date === today && minRec?.calories) {
+        try {
+          await AsyncStorage.setItem("todayCalories", String(lastLog.calories));
+          await AsyncStorage.setItem("todayRecommendedCalories", String(minRec.calories));
+          console.log("✅ 오늘 섭취 칼로리 저장 완료:", lastLog.calories, "권장칼로리", minRec.calories);
+        } catch (err) {
+          console.error("❌ 오늘 칼로리 AsyncStorage 저장 실패:", err);
+        }
       }
-    };
+    }
+  };
 
 
   const uploadAndSaveMealLog = async (localUri) => {
