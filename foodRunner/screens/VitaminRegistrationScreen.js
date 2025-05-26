@@ -38,11 +38,16 @@ const FoodSearchScreen = () => {
       });
 
       const data = await res.json();
-      setFavoriteSupplementItems(data.map((item) => item.supplement.supplementId));
+      console.log("즐겨찾기 영양제 로드: ", data);
+
+      setFavoriteSupplementItems(data.map(
+        (item) => item.supplementData.supplementId)
+      );
       setFavoriteSupplementData(
         data.map((item) => ({
-          ...item.supplement,
-          prefId: item.id, // 즐겨찾기 삭제용
+          ...item.supplementData,
+          // prefId: item.id,
+          presupplementId: item.presupplementId,
         }))
       );
 
@@ -58,13 +63,13 @@ const FoodSearchScreen = () => {
     const isFavorited = favoriteSupplementItems.includes(item.supplementId);
     try {
       if (isFavorited) {
-        if (!item.prefId) {
-          console.warn("❗️ prefId가 없어 즐겨찾기 삭제 불가");
-          return;
-        }
+        // if (!item.presupplementId) {
+        //   console.warn("❗️ prefId가 없어 즐겨찾기 삭제 불가" ,item.presupplementId);
+        //   return;
+        // }
         // 즐겨찾기 삭제
         const res = await fetch(
-          `http://13.209.199.97:8080/diet/sup/pref/delete?pref_id=${item.prefId}`,
+          `http://13.209.199.97:8080/diet/sup/pref/delete?pref_id=${item.presupplementId}`,
           {
             method: "POST",
             headers: { Authorization: `Bearer ${token}` },
@@ -87,16 +92,16 @@ const FoodSearchScreen = () => {
         console.log("응답 내용: ", resText);
 
         console.log("⭐️ 즐겨찾기 등록 성공:", item.supplementName);
-        console.log("💊 등록 대상:", item.supplementId);
+        // console.log("💊 등록 대상:", item.supplementId);
 
       }
-      const resText = await res.text();
+      // const resText = await res.text();
       
 
       await fetchFavorites(); // 갱신
     } catch (err) {
       console.error("❌ 즐겨찾기 처리 오류:", err);
-      console.log("💊 등록 대상:", item.supplementId);
+      // console.log("💊 등록 대상:", item.supplementId);
     }
     console.log("응답 내용: ", resText);
   };
@@ -147,6 +152,8 @@ const FoodSearchScreen = () => {
       setFilteredItems([]);
     }
   };
+
+
 
   return (
     <SafeAreaView style={styles.container}>
