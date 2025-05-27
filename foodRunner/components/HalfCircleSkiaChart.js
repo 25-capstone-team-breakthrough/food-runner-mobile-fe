@@ -1,4 +1,5 @@
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
+import { useMemo } from "react";
 import { Text, View } from "react-native";
 
 const HalfCircleSkiaChart = ({
@@ -19,31 +20,63 @@ const HalfCircleSkiaChart = ({
   const startAngle = Math.PI;
   const sweepAngle = progress * Math.PI;
 
-  // 진행 Arc Path
-  const arc = Skia.Path.Make();
-  arc.addArc(
-    {
-      x: centerX - radius,
-      y: centerY - radius,
-      width: radius * 2,
-      height: radius * 2,
-    },
-    (startAngle * 180) / Math.PI,
-    (sweepAngle * 180) / Math.PI
-  );
+  const arc = useMemo(() => {
+    const sweepAngle = progress * Math.PI;
+    const path = Skia.Path.Make();
+    path.addArc(
+      {
+        x: centerX - radius,
+        y: centerY - radius,
+        width: radius * 2,
+        height: radius * 2,
+      },
+      180,
+      (sweepAngle * 180) / Math.PI
+    );
+    return path;
+  }, [progress, centerX, centerY, radius]);
 
-  // 배경 Arc Path
-  const bgArc = Skia.Path.Make();
-  bgArc.addArc(
-    {
-      x: centerX - radius,
-      y: centerY - radius,
-      width: radius * 2,
-      height: radius * 2,
-    },
-    180,
-    180
-  );
+  // 배경 Arc Path (고정)
+  const bgArc = useMemo(() => {
+    const path = Skia.Path.Make();
+    path.addArc(
+      {
+        x: centerX - radius,
+        y: centerY - radius,
+        width: radius * 2,
+        height: radius * 2,
+      },
+      180,
+      180
+    );
+    return path;
+  }, [centerX, centerY, radius]);
+
+  // // 진행 Arc Path
+  // const arc = Skia.Path.Make();
+  // arc.addArc(
+  //   {
+  //     x: centerX - radius,
+  //     y: centerY - radius,
+  //     width: radius * 2,
+  //     height: radius * 2,
+  //   },
+  //   (startAngle * 180) / Math.PI,
+  //   (sweepAngle * 180) / Math.PI
+  // );
+
+  // // 배경 Arc Path
+  // const bgArc = Skia.Path.Make();
+  // bgArc.addArc(
+  //   {
+  //     x: centerX - radius,
+  //     y: centerY - radius,
+  //     width: radius * 2,
+  //     height: radius * 2,
+  //   },
+  //   180,
+  //   180
+  // );
 
 
   return (
@@ -66,11 +99,6 @@ const HalfCircleSkiaChart = ({
           strokeCap="butt"
         />
 
-        {/* Inner Shadow 느낌 그라디언트 오버레이 */}
-        {/* <Path
-          path={arc}
-          paint={innerShadowPaint}
-        /> */}
       </Canvas>
 
       {/* 텍스트 */}

@@ -88,8 +88,10 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
             const formData = new FormData();
             formData.append("audioFile", {
                 uri: uri,
-                name: "recording.m4a",
-                type: "audio/x-m4a"
+                // name: "recording.m4a",
+                // type: "audio/x-m4a"
+                name: "recording.wav",
+                type: "audio/wav" 
             });
             // console.log("프론트 전달 uri: ", uri);
 
@@ -141,10 +143,38 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
     // 프론트가 저장버튼 누르면 stt/log 호출해서
     // transcript에 담아서 주면 너네가 내부적으로 저장하는거지? 
     const handleConfirm = async () => {
-        setIsCompleted(true);
+        if (!recognizedText) return;
+
+        try {
+            const token = await AsyncStorage.getItem("token");
+            const response = await fetch("http://13.209.199.97:8080/stt/log", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    transcript: recognizedText
+                })
+            });
+
+            if (response.ok) {
+                const resultText = await response.text();
+                console.log("✅ 운동 기록 저장 완료:", resultText);
+                setIsCompleted(true);
+            } else {
+                const errText = await response.text();
+                console.error("❌ 저장 실패:", errText);
+                setRecognizedText("⚠️ 운동 기록 저장 실패! 다시 시도해주세요.");
+            }
+        } catch (err) {
+            console.error("❌ 저장 요청 오류:", err);
+            setRecognizedText("⚠️ 저장 중 오류 발생!");
+        }
+
         setShowConfirm(true);
-        setRecognizedText("백에서 받은 텍스트!");
     };
+
 
     return (
         
