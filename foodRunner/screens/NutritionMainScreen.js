@@ -20,6 +20,7 @@ import {
 import BottomNavigation from "../components/BottomNavigation";
 import FoodLoading from "../components/FoodLoading";
 import HalfCircleSkiaChart from "../components/HalfCircleSkiaChart";
+import Loading from "../components/Loading";
 import NutrientRing from "../components/NutrientRing";
 import NutritionCalendarScreen from "./NutritionCalendarScreen";
 
@@ -51,6 +52,8 @@ const NutritionMainScreen = () => {
   // 캘린더에서 받아온 날짜 -> selectedDate
   const selectedDateFromRoute = route.params?.selectedDate;
   const [selectedDate, setSelectedDate] = useState(selectedDateFromRoute || moment().format("YYYY-MM-DD"));
+  // 전체 로딩창
+  const [isLoading, setIsLoading] = useState(true);
 
   // 사진분석할때 로딩창
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -267,11 +270,31 @@ const NutritionMainScreen = () => {
   }, [selectedItemFromRoute, selectedSupplementFromRoute]);
 
   // 날짜별로 새로 로드 
+  // useEffect(() => {
+  //   fetchNutritionData();
+  //   fetchSupplementLogs();
+  //   fetchMealLogs(); // 앱 시작 시 또는 필요한 시점에 불러오기
+  // }, [selectedDate]);
+
   useEffect(() => {
-    fetchNutritionData();
-    fetchSupplementLogs();
-    fetchMealLogs(); // 앱 시작 시 또는 필요한 시점에 불러오기
+    const loadDataOnDateChange = async () => {
+      setIsLoading(true); // ✅ 날짜 바뀌면 로딩 시작
+      try {
+        await Promise.all([
+          fetchNutritionData(),
+          fetchSupplementLogs(),
+          fetchMealLogs()
+        ]);
+      } catch (err) {
+        console.error("❌ 날짜 변경 시 데이터 로드 실패:", err);
+      } finally {
+        setIsLoading(false); // ✅ 완료되면 로딩 종료
+      }
+    };
+
+    loadDataOnDateChange();
   }, [selectedDate]);
+
 
   //섭취한 음식 띄우기
   const fetchMealLogs = async () => {
@@ -365,11 +388,30 @@ const NutritionMainScreen = () => {
   };
 
   // 🔹 2. useEffect에서 최초 1번 실행
+  // useEffect(() => {
+  //   fetchNutritionData();
+  //   fetchMealLogs();
+  //   fetchSupplementLogs();
+  // }, []);
+
   useEffect(() => {
-    fetchNutritionData();
-    fetchMealLogs();
-    fetchSupplementLogs();
+    const loadInitialData = async () => {
+      try {
+        await Promise.all([
+          fetchNutritionData(),
+          fetchMealLogs(),
+          fetchSupplementLogs()
+        ]);
+      } catch (error) {
+        console.error("초기 데이터 로딩 실패:", error);
+      } finally {
+        setIsLoading(false); // 세 가지 모두 로드 완료되면 로딩 종료
+      }
+    };
+
+    loadInitialData();
   }, []);
+
 
   
   const openCamera = async () => {
@@ -396,6 +438,8 @@ const NutritionMainScreen = () => {
       setSelectedDate(date);
       bottomSheetRef.current?.close();
   };
+
+  
 
 
   return (
@@ -658,12 +702,14 @@ const NutritionMainScreen = () => {
       {!isBottomSheetOpen && <BottomNavigation />}
       {/* 로딩 */}
       {isAnalyzing && <FoodLoading/>}
-
-
-
+      {isLoading && <Loading />}
     </SafeAreaView>
   );
 };
+
+// if (isLoading) {
+//     return <Loading />; // 모든 데이터 로드 전까지 로딩 화면
+//   }
 
 const styles = {
   dateContainer: {

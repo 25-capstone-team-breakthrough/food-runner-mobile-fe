@@ -88,10 +88,10 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
             const formData = new FormData();
             formData.append("audioFile", {
                 uri: uri,
-                // name: "recording.m4a",
-                // type: "audio/x-m4a"
-                name: "recording.wav",
-                type: "audio/wav" 
+                name: "recording.m4a",
+                type: "audio/x-m4a"
+                // name: "recording.wav",
+                // type: "audio/wav" 
             });
             // console.log("프론트 전달 uri: ", uri);
 
@@ -165,7 +165,7 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
             } else {
                 const errText = await response.text();
                 console.error("❌ 저장 실패:", errText);
-                setRecognizedText("⚠️ 운동 기록 저장 실패! 다시 시도해주세요.");
+                setRecognizedText("⚠️ 음성인식이 실패했습니다 다시 정확하게 말해주세요!");
             }
         } catch (err) {
             console.error("❌ 저장 요청 오류:", err);
@@ -194,7 +194,12 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                     {showConfirm ? (
                         isCompleted ? (
                         <>
-                            <Text style={styles.question}>✅ 운동추가 완료!</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={styles.checkButton2}>
+                                <AntDesign name="check" size={28} color="black" />
+                            </View>
+                            <Text style={styles.question2}>운동추가 완료!</Text>
+                        </View>
                             {recognizedText && (
                             <View style={styles.resultContainer}>
                                 <Text style={styles.result}>
@@ -202,6 +207,7 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                                 </Text>
                             </View>
                             )}
+
                         </>
                         ) : (
                         <>
@@ -217,8 +223,8 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                 
                 {!showConfirm && (
                     <>
-                        <Text style={styles.example}>"런지 10회 5세트 했어"</Text>
-                        <Text style={styles.example}>"러닝 30분 뛰었어"</Text>
+                        <Text style={styles.example}>"데드리프트 2세트 10회 20kg 했어"</Text>
+                        <Text style={styles.example}>"런닝머신 30분 5km 뛰었어"</Text>
                     </>
                 )}
 
@@ -300,6 +306,12 @@ const styles = StyleSheet.create({
         color: "white",
         marginBottom: 10,
     },
+    question2: {
+        fontSize: 30,
+        fontWeight: "700",
+        color: "white",
+        marginLeft: 15,
+    },
     example: {
         fontSize: 16,
         color: "#B3B3B3",
@@ -343,6 +355,14 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         bottom: 60,
         alignItems: "center",
+    },
+    checkButton2: {
+        backgroundColor: "#E1FF01",
+        width: 40,
+        height: 40,
+        borderRadius: 25,
+        alignItems: "center",
+        justifyContent: "center",
     },
     checkButton: {
         position: 'absolute',
