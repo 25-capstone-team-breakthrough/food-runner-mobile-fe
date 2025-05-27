@@ -1,39 +1,150 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { SafeAreaView, Text, Image, TouchableOpacity, View, StyleSheet, Dimensions} from "react-native";
+import {
+  SafeAreaView,
+  Text,
+  Image,
+  TouchableOpacity,
+  View,
+  StyleSheet
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import BottomNavigation from "../components/BottomNavigation";
 import { Calendar } from "react-native-calendars";
-import ExerciseRegister from "../screens/exercise_register";
 import BottomSheet from "@gorhom/bottom-sheet";
-import ExerciseHistory from "../screens/exercise_history";
 import { BlurView } from "expo-blur";
-import Svg, { Polyline, Circle, Text as SvgText, Line } from 'react-native-svg';
+import Svg, { Polyline, Circle, Text as SvgText, Line } from "react-native-svg";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming
+} from "react-native-reanimated";
+
+// Components
+import BottomNavigation from "../components/BottomNavigation";
+import ExerciseRegister from "../screens/exercise_register";
+import ExerciseHistory from "../screens/exercise_history";
+
 
 export default function ExerciseHome() {
   const navigation = useNavigation();
+
   const [isFrontView, setIsFrontView] = useState(true);
-  const [selectedDate, setSelectedDate] = useState("2025.01.21");
-  const [selectedDay, setSelectedDay] = useState("화");
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const [isHistorySheetVisible, setIsHistorySheetVisible] = useState(false);
   const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
   const [isCalendarSheetVisible, setIsCalendarSheetVisible] = useState(false);
+
   const sheetRef = useRef(null);
   const historySheetRef = useRef(null);
   const calendarSheetRef = useRef(null);
 
+  const [totalCalories, setTotalCalories] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [weeklyCalories, setWeeklyCalories] = useState([]);
+  const [weekLabels, setWeekLabels] = useState([]);
+
+  const today = new Date();
+  const formattedToday = useMemo(() => new Date().toISOString().split("T")[0].split("-").join("."), []);
+  const [selectedDate, setSelectedDate] = useState(formattedToday);
+  const [selectedDay, setSelectedDay] = useState(today.toLocaleDateString("ko-KR", { weekday: "short" }));
+
+  const [inbodyList, setInbodyList] = useState([]);
+  const latestInbody = inbodyList[0] || {};
+  const muscleParts = (latestInbody.segmentalLeanAnalysis || '').split(',');
+
+  const [exercisedDays, setExercisedDays] = useState([]);
+  
+
+
+  const muscleStatus = {
+    leftArm: muscleParts[0],
+    rightArm: muscleParts[1],
+    trunk: muscleParts[2],
+    leftLeg: muscleParts[3],
+    rightLeg: muscleParts[4],
+  };
+
+  useEffect(() => {
+    const fetchInbody = async () => {
+      const token = await AsyncStorage.getItem("token");
+      try {
+        const res = await axios.get("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/inbody-info", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setInbodyList(res.data || []);
+      } catch (err) {
+        console.error('❌ 인바디 불러오기 실패', err);
+      }
+    };
+    fetchInbody();
+  }, []);
+
+  const getButtonColor = (name) => {
+    const { leftArm, rightArm, trunk, leftLeg, rightLeg } = muscleStatus;
+  
+    switch (name) {
+      case "어깨":
+        return (leftArm === "표준이하" && rightArm === "표준이하") ? "#FF3B30" : "#DDFB21";
+  
+      case "팔":
+        return (leftArm === "표준이하" || rightArm === "표준이하") ? "#FF3B30" : "#DDFB21";
+  
+      case "가슴":
+      case "복근":
+      case "등":
+        return trunk === "표준이하" ? "#FF3B30" : "#DDFB21";
+  
+      case "하체":
+      case "둔근":
+      case "종아리":
+        return (leftLeg === "표준이하" || rightLeg === "표준이하") ? "#FF3B30" : "#DDFB21";
+  
+      default:
+        return "#DDFB21";
+    }
+  };
+  
+  
+
+
+
+  const rotation = useSharedValue(0); // 0deg or 180deg
+  const animatedIconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }]
+  }));
+
+  const toggleFrontView = () => {
+    setIsFrontView((prev) => !prev);
+    rotation.value = withTiming(rotation.value === 0 ? 180 : 0, { duration: 400 });
+  };
   const historySnapPoints = useMemo(() => ["80%"], []);
   const calendarSnapPoints = useMemo(() => ["80%"], []);
 
-  const SimpleLineChart = ({ data, weekDates }) => {
+  const BODY_PART_POSITIONS = {
+    front: [
+      { name: "어깨", top: "25%", left: "37%" },
+      { name: "가슴", top: "29%", left: "51%" },
+      { name: "복근", top: "38%", left: "51%" },
+      { name: "팔",   top: "36%", left: "68%" },
+      { name: "하체", top: "58%", left: "59%" },
+    ],
+    back: [
+      { name: "등",     top: "30%", left: "51%" },
+      { name: "둔근",   top: "51%", left: "58%" },
+      { name: "종아리", top: "70%", left: "43%" },
+    ],
+  };
+  
+  const SimpleLineChart = ({ data, weekDates, todayLabel }) => {
     const graphWidth = 330;
     const graphHeight = 160;
     const paddingLeft = 30;
     const paddingRight = 10;
     const paddingTop = 20;
     const paddingBottom = 30;
-    const yMax = 1500;
+    const yMax = 1000;
   
     const spacing = (graphWidth - paddingLeft - paddingRight) / (weekDates.length + 1);
   
@@ -55,7 +166,7 @@ export default function ExerciseHome() {
           <Line x1={paddingLeft} y1={graphHeight - paddingBottom} x2={graphWidth - paddingRight} y2={graphHeight - paddingBottom} stroke="#888" strokeWidth="1" />
   
           {/* 🔥 가로선 (Grid Lines) */}
-          {[0, 500, 1000, 1500].map((yValue, idx) => {
+          {[0, 250, 500, 750, 1000].map((yValue, idx) => {
             const y = paddingTop + (1 - yValue / yMax) * (graphHeight - paddingTop - paddingBottom);
             const isZeroLine = yValue === 0;
             return (
@@ -65,15 +176,14 @@ export default function ExerciseHome() {
                 y1={y}
                 x2={graphWidth - paddingRight}
                 y2={y}
-                stroke="#555555"     // grid 선 색 (#333 추천, 너무 튀지 않게)
-                strokeDasharray={isZeroLine ? undefined : "4 2"} // ✅ 0이면 실선, 나머지는 점선
+                stroke="#555555"
+                strokeDasharray={isZeroLine ? undefined : "4 2"}
                 strokeWidth="0.7"
               />
             );
           })}
-  
           {/* Y축 레이블 */}
-          {[0, 500, 1000, 1500].map((yValue, idx) => {
+          {[0, 250, 500, 750, 1000].map((yValue, idx) => {
             const y = paddingTop + (1 - yValue / yMax) * (graphHeight - paddingTop - paddingBottom);
             return (
               <SvgText
@@ -88,7 +198,6 @@ export default function ExerciseHome() {
               </SvgText>
             );
           })}
-  
           {/* X축 레이블 */}
           {weekDates.map((label, idx) => {
             const x = paddingLeft + spacing * (idx + 1);
@@ -115,21 +224,25 @@ export default function ExerciseHome() {
           />
   
           {/* 점 */}
-          {pointCoordinates.map((point, idx) => (
-            <Circle
-              key={`point-${idx}`}
-              cx={point.x}
-              cy={point.y}
-              r="3"
-              fill="#DDFB21"
-            />
-          ))}
+          {pointCoordinates.map((point, idx) => {
+            const isToday = weekDates[idx] === todayLabel; // 오늘이면 강조 스타일 적용
+            return (
+              <Circle
+                key={`point-${idx}`}
+                cx={point.x}
+                cy={point.y}
+                r={isToday ? 5 : 3}
+                fill={isToday ? "#E1FF01" : "#DDFB21"}
+                stroke={isToday ? "#FFFFFF" : "none"}
+                strokeWidth={isToday ? 1.5 : 0}
+              />
+            );
+          })}
         </Svg>
       </View>
     );
   };
-  
-    useEffect(() => {
+  useEffect(() => {
     if (isBottomSheetVisible && sheetRef.current) {
       sheetRef.current.expand();
       setIsBottomNavVisible(false);
@@ -139,15 +252,68 @@ export default function ExerciseHome() {
     }
   }, [isBottomSheetVisible]);
 
-  useEffect(() => {
-    const today = new Date();
-    const formatted = today.toISOString().split("T")[0];
-    const pretty = formatted.split("-").join(".");
-    const dayName = today.toLocaleDateString("ko-KR", { weekday: "short" });
-    setSelectedDate(pretty);
-    setSelectedDay(dayName);
-  }, []);
 
+  useEffect(() => {
+    const fetchCalories = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const res = await axios.get(
+          "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/calories",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+  
+        // 📆 선택된 날짜 객체
+        const selected = new Date(selectedDate.replace(/\./g, '-'));
+        const formattedToday = selected.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+        const allExercisedDates = new Set();
+
+        // ✅ 모든 날짜에서 운동한 날 추출
+        res.data.forEach(log => {
+          const isoDate = log.createdAt.slice(0, 10);
+          if ((log.caloriesBurned || 0) > 0) {
+            allExercisedDates.add(isoDate);
+          }
+        });
+  
+        // 🗓️ 주간 시작일 (일요일)
+        const startOfWeek = new Date(selected);
+        startOfWeek.setDate(selected.getDate() - selected.getDay());
+  
+        const weekLabels = [];
+        const weekTotals = [];
+        
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(startOfWeek);
+          d.setDate(startOfWeek.getDate() + i);
+          const iso = d.toISOString().slice(0, 10);
+          const label = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+          weekLabels.push(label);
+  
+          const dayLogs = res.data.filter(log => log.createdAt.slice(0, 10) === iso);
+          const total = dayLogs.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
+          weekTotals.push(total);
+  
+          if (iso === formattedToday) {
+            setTotalCalories(total);
+          }
+        }
+  
+        setWeeklyCalories(weekTotals);
+        setWeekLabels(weekLabels);
+        setExercisedDays(Array.from(allExercisedDates));
+
+      } catch (err) {
+        console.error("❌ 칼로리 조회 실패:", err.response?.data || err.message);
+      }
+    };
+
+    fetchCalories();
+  }, [selectedDate, refreshKey]);
+      
+  
   const onDateSelect = (date) => {
     // 날짜 선택 후 바로 이동하지 않도록 selectedDate 상태만 업데이트
     const formattedDate = date.dateString.split("-").join(".");
@@ -199,6 +365,68 @@ export default function ExerciseHome() {
       navigation.navigate("ExerciseRecommendVideo", { category: exercise });
     }
   };
+  const getWeekRangeLabels = (dateString) => {
+    const targetDate = new Date(dateString); // '2025-05-13'
+    const dayOfWeek = targetDate.getDay(); // 0 (일) ~ 6 (토)
+    
+    // 일요일 시작일 구하기
+    const startOfWeek = new Date(targetDate);
+    startOfWeek.setDate(targetDate.getDate() - dayOfWeek);
+  
+    const labels = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      labels.push(`${mm}.${dd}`);
+    }
+  
+    return labels;
+  };
+
+  const markedDates = useMemo(() => {
+    const todayDate = new Date().toISOString().split("T")[0];
+    const selected = selectedDate.replace(/\./g, "-");
+  
+    const result = {
+      [selected]: {
+        selected: true,
+        selectedColor: "#DDFB21",
+        selectedTextColor: "#000000",
+      },
+    };
+  
+    if (selected !== todayDate) {
+      result[todayDate] = {
+        customStyles: {
+          container: {
+            borderWidth: 2,
+            borderColor: "#E1FF01",
+            borderRadius: 20,
+            backgroundColor: "transparent",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 1,
+          },
+          text: {
+            color: "#FFFFFF",
+            fontWeight: "normal",
+          },
+        },
+      };
+    }
+    exercisedDays.forEach(date => {
+      if (!result[date]) result[date] = {};
+      result[date].dots = [{ color: "#DDFB21" }];
+      result[date].marked = true;
+    });
+    
+  
+    return result;
+  }, [selectedDate, exercisedDays]);
+    
+  
 
 
   return (
@@ -208,35 +436,35 @@ export default function ExerciseHome() {
         <BlurView
           intensity={100} // 블러 강도 설정 (0에서 100까지)
           tint="dark"
-          style={StyleSheet.absoluteFillObject} // 화면 전체를 덮도록 설정
+          style={[StyleSheet.absoluteFillObject, { zIndex: 10 }]} // zIndex 낮게
         />
     )}
       {/* 셔플 버튼 */}
       {!isBottomSheetVisible && !isHistorySheetVisible && (
         <TouchableOpacity
-          style={{ 
-            position: "absolute",
-            top: 80,
-            right: 30,
-            width: 40,
-            height: 40,
-            borderRadius: 25,
-            backgroundColor: "#292929", // ✅ 어두운 회색 배경 추가
-            justifyContent: "center",
-            alignItems: "center", 
-            zIndex: 10,
-          }}
-          onPress={() => setIsFrontView(!isFrontView)}
-        >
+        style={{
+          position: "absolute",
+          top: 80,
+          right: 30,
+          width: 40,
+          height: 40,
+          borderRadius: 25,
+          backgroundColor: "#292929",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 9,
+        }}
+        onPress={toggleFrontView} 
+      >
+        <Animated.View style={[animatedIconStyle]}>
           <Ionicons name="shuffle" size={30} color="#E1FF01" />
-        </TouchableOpacity>
+        </Animated.View>
+      </TouchableOpacity>
       )}
-
       {/* 신체 이미지 및 버튼 */}
       <View style={{ position: "absolute", bottom: 150, alignItems: "center" }}>
         <Image
-          source={
-            isFrontView
+          source={              isFrontView
               ? require("../assets/body_front.png")
               : require("../assets/body_back.png")
           }
@@ -244,38 +472,20 @@ export default function ExerciseHome() {
           resizeMode="contain"
         />
         {/* 부위별 버튼 */}
-        {isFrontView ? (
-          <>
-            <TouchableOpacity style={buttonStyle("25%", "37%")} onPress={() => handleExerciseClick("어깨")}>
-              <Text style={{ opacity: 0 }}>어깨</Text>
+        {(isFrontView ? BODY_PART_POSITIONS.front : BODY_PART_POSITIONS.back).map(
+          ({ name, top, left }) => (
+            <TouchableOpacity
+              key={name}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={[buttonStyle(top, left), { backgroundColor: getButtonColor(name) }]}
+              onPress={() => handleExerciseClick(name)}
+            >
+              <Text style={{ opacity: 0 }}>{name}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("29%", "51%")} onPress={() => handleExerciseClick("가슴")}>
-              <Text style={{ opacity: 0 }}>가슴</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("38%", "51%")} onPress={() => handleExerciseClick("복근")}>
-              <Text style={{ opacity: 0 }}>복근</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("36%", "68%")} onPress={() => handleExerciseClick("팔")}>
-              <Text style={{ opacity: 0 }}>팔</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("58%", "59%")} onPress={() => handleExerciseClick("하체")}>
-              <Text style={{ opacity: 0 }}>하체</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <TouchableOpacity style={buttonStyle("30%", "51%")} onPress={() => handleExerciseClick("등")}>
-              <Text style={{ opacity: 0 }}>등</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("51%", "58%")} onPress={() => handleExerciseClick("둔근")}>
-              <Text style={{ opacity: 0 }}>둔근</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={buttonStyle("75%", "43%")} onPress={() => handleExerciseClick("종아리")}>
-              <Text style={{ opacity: 0 }}>종아리</Text>
-            </TouchableOpacity>
-          </>
+          )
         )}
       </View>
+
 
       {/* 칼로리 카드 */}
       <View
@@ -303,8 +513,9 @@ export default function ExerciseHome() {
         <View style={{ alignItems: "center", marginBottom: 10 }}>
           <Text style={{ color: "white", fontSize: 16, marginBottom: 5 }}>소모한 칼로리</Text>
           <Text style={{ color: "white", fontSize: 38, fontWeight: "bold" }}>
-            500 <Text style={{ fontSize: 20 }}>kcal</Text>
+            {totalCalories} <Text style={{ fontSize: 20 }}>kcal</Text>
           </Text>
+
         </View>
 
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
@@ -363,6 +574,7 @@ export default function ExerciseHome() {
 
       {/* 달력 바텀시트 */}
       <BottomSheet
+        containerStyle={{ zIndex: 20 }} // BlurView보다 위에 위치
         ref={calendarSheetRef}
         index={-1}
         snapPoints={calendarSnapPoints}
@@ -373,36 +585,27 @@ export default function ExerciseHome() {
         <View style={{ padding: 20 }}>
           <Calendar
             locale="ko"
-            markedDates={{
-              [selectedDate.replace(/\./g, "-")]: {
-                selected: true,
-                selectedColor: "#DDFB21",
-                selectedTextColor: "#000000", // 선택된 날짜 텍스트 색상
-                selectedDayStyle: { // 선택된 날짜의 테두리 스타일
-                  borderWidth: 10,
-                  borderColor: "#DDFB21", // 테두리 색상
-                  borderRadius: 500, // 테두리의 둥글기
-                }
-              },
-            }}
+            markingType="multi-dot"
+            markedDates={markedDates}
             theme={{
-              todayTextColor: "#FFFFFF", // 오늘 날짜 텍스트 색상
-              arrowColor: "#FFFFFF", // 화살표 색상
-              textSectionTitleColor: "#FFFFFF", // 달력 상단 요일 텍스트 색상
-              dayTextColor: "#FFFFFF", // 모든 날짜 텍스트 색상
+              todayTextColor: "#FFFFFF",
+              arrowColor: "#FFFFFF",
+              textSectionTitleColor: "#FFFFFF",
+              dayTextColor: "#FFFFFF",
               disabledDayTextColor: "#DDFB21",
-              monthTextColor: "#FFFFFF", // 월 텍스트 색상
-              calendarBackground: "#2D2D35", // 달력 배경색 (여기에서 배경색을 변경)
+              monthTextColor: "#FFFFFF",
+              calendarBackground: "#2D2D35",
             }}
-            style={{ backgroundColor: "#2D2D35" }}  // 바텀시트 색과 동일하게 설정
-            onDayPress={onDateSelect} // 날짜 선택 시 이동하지 않음
+            style={{ backgroundColor: "#2D2D35" }}
+            onDayPress={onDateSelect}
           />
 
           <View style={{ marginTop: 20 }}>
-          <SimpleLineChart
-            data={[300, 500, 800, 400, 1000, 1200, 700]} // 7개 데이터
-            weekDates={['04.29', '04.30', '05.01', '05.02', '05.03', '05.04', '05.05']} // 선택한 주간 날짜
-          />
+            <SimpleLineChart
+              data={weeklyCalories}
+              weekDates={weekLabels}
+              todayLabel={`${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`}
+            />
           </View>
 
           <TouchableOpacity
@@ -420,16 +623,20 @@ export default function ExerciseHome() {
         </View>
       </BottomSheet>
 
+
       {/* 운동 등록 바텀시트 */}
       <ExerciseRegister
+        containerStyle={{ zIndex: 20 }} // BlurView보다 위에 위치
         sheetRef={sheetRef}
         onClose={handleCloseBottomSheet}
+        setRefreshKey={setRefreshKey} 
         snapPoints={["80%"]}
         index={-1}
       />
 
       {/* 운동 히스토리 바텀시트 */}
       <BottomSheet
+        containerStyle={{ zIndex: 20 }} // BlurView보다 위에 위치
         ref={historySheetRef}
         index={-1}
         snapPoints={historySnapPoints}
@@ -437,10 +644,12 @@ export default function ExerciseHome() {
         backgroundStyle={{ backgroundColor: "#2D2D35" }}
         enablePanDownToClose={true}
       >
-        <ExerciseHistory
-          onClose={handleCloseHistorySheet}
-          selectedDate={selectedDate}
-        />
+      <ExerciseHistory
+        onClose={handleCloseHistorySheet}
+        selectedDate={selectedDate}
+        refreshKey={refreshKey}
+        setRefreshKey={setRefreshKey}
+      />
       </BottomSheet>
 
       {/* 하단 네비게이션 */}
@@ -456,7 +665,6 @@ const buttonStyle = (top, left) => ({
   transform: [{ translateX: -7 }],
   width: 7,
   height: 7,
-  backgroundColor: "#DDFB21",
   borderRadius: 10,
   justifyContent: "center",
   alignItems: "center",

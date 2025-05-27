@@ -1,19 +1,27 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { ExerciseContext } from '../context/ExerciseContext'; // ✅ 정확한 경로 확인
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import exerciseData from "../assets/ExerciseData.json";
+import { Swipeable } from 'react-native-gesture-handler';
 
-export default function ExerciseHistory({ onClose, selectedDate }) {
+
+
+export default function ExerciseHistory({ onClose, selectedDate, refreshKey, setRefreshKey }) {
   const [isDetailVisible, setIsDetailVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
-  const { exercises } = useContext(ExerciseContext);
+  const [exerciseLogs, setExerciseLogs] = useState([]);
 
-  console.log("🟡 전체 운동 기록들:", exercises); // 이 줄 추가
 
-  // 날짜 포맷 통일 (selectedDate: "2025.05.01" → "2025-05-01")
   const formattedDate = selectedDate.replace(/\./g, "-");
-  const filteredExercises = exercises.filter((ex) => ex.date === formattedDate);
+
+  const filteredExercises = exerciseLogs.filter(
+    (ex) => ex.date === formattedDate
+  );
+
   
+
   const handleExerciseClick = (exercise) => {
     setSelectedExercise(exercise);
     setIsDetailVisible(true);
@@ -24,28 +32,112 @@ export default function ExerciseHistory({ onClose, selectedDate }) {
     setSelectedExercise(null);
   };
 
+  const handleDeleteLog = async (logId) => {
+    const token = await AsyncStorage.getItem("token");
+    try {
+      await axios.delete(
+        `http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/removeLog/${logId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setIsDetailVisible(false);
+      setSelectedExercise(null);
+      setRefreshKey((prev) => prev + 1);
+    } catch (err) {
+      console.error("❌ 운동 기록 삭제 실패:", err.response?.data || err.message);
+    }
+  };
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const res = await axios.get(
+          "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/logSearch",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const merged = res.data.map((log) => {
+          const match = exerciseData.find((ex) => ex.ExerciseId === log.exerciseId);
+          return {
+            id: log.logId,
+            date: log.createdAt.slice(0, 10),
+            name: match?.ExerciseName || "이름없음",
+            part: match?.ExerciseTarget?.replace(/#/g, "") || "기타",
+            type: match?.ExerciseType || "기타",
+            records: log.strengthSets
+              ? log.strengthSets.map((s) => ({
+                  set: s.sets,
+                  reps: s.reps,
+                  weight: s.weight,
+                }))
+              : {
+                  distance: log.distance !== null ? String(log.distance) : "-",
+                  duration: log.time !== null ? String(log.time) : "-",
+                  pace: log.pace !== null ? String(log.pace) : "-",
+                },
+          };
+        });
+
+        setExerciseLogs(merged);
+      } catch (err) {
+        console.error("🔴 운동 기록 불러오기 실패:", err.response?.data || err.message);
+      }
+    };
+
+    fetchLogs();
+  }, [refreshKey]);
+
+  const renderRightActions = (item) => (
+    <TouchableOpacity
+      onPress={() => handleDeleteLog(item.id)}
+      style={{
+        backgroundColor: '#FF4C4C',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        paddingHorizontal: 20,
+        height: '100%',
+      }}
+    >
+      <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>삭제</Text>
+    </TouchableOpacity>
+  );
+
+  const renderItem = ({ item }) => (
+    <Swipeable renderRightActions={() => renderRightActions(item)}>
+      <TouchableOpacity
+        onPress={() => handleExerciseClick(item)}
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: 20,
+          backgroundColor: '#2D2D35',
+        }}
+      >
+        <Text style={{ color: 'white', fontSize: 20 }}>{item.name}</Text>
+        <Text style={{ color: 'white', fontSize: 14, opacity: 0.7 }}>{item.part}</Text>
+      </TouchableOpacity>
+    </Swipeable>
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: "#2D2D35", padding: 20 }}>
-      {/* 뒤로가기 버튼 */}
       {isDetailVisible && (
         <TouchableOpacity
           onPress={handleBack}
-          style={{
-            position: "absolute",
-            top: 18,
-            left: 10,
-            zIndex: 99,
-            flexDirection: "row",
-            alignItems: "center",
-            padding: 8,
-          }}
+          style={{ position: "absolute", top: 18, left: 10, zIndex: 99, flexDirection: "row", alignItems: "center", padding: 8 }}
         >
           <Ionicons name="arrow-back" size={22} color="#DDFB21" />
           <Text style={{ color: "white", fontSize: 16, marginLeft: 5 }}>뒤로 가기</Text>
         </TouchableOpacity>
       )}
 
-      {/* 상단 날짜 및 닫기 버튼 */}
       <View style={{ position: "relative", alignItems: "center", marginBottom: 15 }}>
         <Text style={{ fontSize: 25, color: "white" }}>{selectedDate}</Text>
         <TouchableOpacity
@@ -62,119 +154,48 @@ export default function ExerciseHistory({ onClose, selectedDate }) {
 
       <View style={{ height: 1, backgroundColor: "#8A8A8A", marginBottom: 12 }} />
 
-      {/* 상세 기록 화면 */}
       {isDetailVisible ? (
         <>
-          <Text style={{
-            fontSize: 25,
-            color: "white",
-            fontWeight: "bold",
-            marginTop: 15,
-            marginBottom: 20
-          }}>
-            {selectedExercise.name}
-          </Text>
-
-          <Text style={{
-            fontSize: 16,
-            color: "white",
-            fontWeight: "500",
-            marginBottom: 25
-          }}>
-            기록
-          </Text>
+          <Text style={{ fontSize: 25, color: "white", fontWeight: "bold", marginTop: 15, marginBottom: 20 }}>{selectedExercise.name}</Text>
+          <Text style={{ fontSize: 16, color: "white", fontWeight: "500", marginBottom: 25 }}>기록</Text>
 
           {selectedExercise.type === "근력" ? (
             <>
-            {/* 레이블 헤더 */}
-            <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 15 }}>
-              <View style={{ alignItems: "center" }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 15 }}>
                 <Text style={{ color: "#CCCCCC", fontSize: 14 }}>세트</Text>
-              </View>
-              <View style={{ alignItems: "center" }}>
                 <Text style={{ color: "#CCCCCC", fontSize: 14 }}>무게 (KG)</Text>
-              </View>
-              <View style={{ alignItems: "center" }}>
                 <Text style={{ color: "#CCCCCC", fontSize: 14 }}>횟수</Text>
               </View>
-            </View>
-          
-            <View style={{ height: 1, backgroundColor: "#8A8A8A", marginBottom: 10 }} />
-          
-            {/* 기록 값 출력 */}
-            {selectedExercise.records.map((item, index) => (
-              <View
-                key={index}
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-around",
-                  marginBottom: 15,
-                }}
-              >
-                <Text style={{ color: "white", fontSize: 20 }}>{item.set}</Text>
-                <Text style={{ color: "white", fontSize: 20 }}>{item.weight}</Text>
-                <Text style={{ color: "white", fontSize: 20 }}>{item.reps}</Text>
-              </View>
-            ))}
-          </>
+              <View style={{ height: 1, backgroundColor: "#8A8A8A", marginBottom: 10 }} />
+              {selectedExercise.records.map((item, index) => (
+                <View key={index} style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 15 }}>
+                  <Text style={{ color: "white", fontSize: 20 }}>{item.set}</Text>
+                  <Text style={{ color: "white", fontSize: 20 }}>{item.weight}</Text>
+                  <Text style={{ color: "white", fontSize: 20 }}>{item.reps}</Text>
+                </View>
+              ))}
+            </>
           ) : (
             <>
               <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 15 }}>
-                <View style={{ alignItems: "center" }}>
-                  <Text style={{ color: "#CCCCCC", fontSize: 14 }}>거리(Km)</Text>
-                </View>
-                <View style={{ alignItems: "center" }}>
-                  <Text style={{ color: "#CCCCCC", fontSize: 14 }}>시간(m)</Text>
-                </View>
-                <View style={{ alignItems: "center" }}>
-                  <Text style={{ color: "#CCCCCC", fontSize: 14 }}>평균 페이스(/Km)</Text>
-                </View>
+                <Text style={{ color: "#CCCCCC", fontSize: 14 }}>거리(Km)</Text>
+                <Text style={{ color: "#CCCCCC", fontSize: 14 }}>시간(m)</Text>
+                <Text style={{ color: "#CCCCCC", fontSize: 14 }}>평균 페이스(/Km)</Text>
               </View>
-
-              <View style={{ height: 1, backgroundColor: "#888", marginBottom: 10,  }} />
-
-              <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 30,  }}>
-                <Text style={{ color: "white", fontSize: 20 }}>
-                  {selectedExercise.records.distance}
-                </Text>
-                <Text style={{ color: "white", fontSize: 20 }}>
-                  {selectedExercise.records.duration}
-                </Text>
-                <Text style={{ color: "white", fontSize: 20 }}>
-                  {selectedExercise.records.pace}
-                </Text>
+              <View style={{ height: 1, backgroundColor: "#888", marginBottom: 10 }} />
+              <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 30 }}>
+                <Text style={{ color: "white", fontSize: 20 }}>{selectedExercise.records.distance}</Text>
+                <Text style={{ color: "white", fontSize: 20 }}>{selectedExercise.records.duration}</Text>
+                <Text style={{ color: "white", fontSize: 20 }}>{selectedExercise.records.pace}</Text>
               </View>
             </>
           )}
         </>
       ) : (
-        // 리스트 화면
         <FlatList
           data={filteredExercises}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => handleExerciseClick(item)}
-              style={{
-                flexDirection: "row", // 👉 수평 정렬
-                justifyContent: "space-between", // 👉 좌우 정렬
-                alignItems: "center",
-                marginVertical: 12,
-                paddingHorizontal: 4
-              }}
-            >
-              <View>
-                <Text style={{ color: "white", fontSize: 22, fontWeight: "500" }}>
-                  {item.name}
-                </Text>
-              </View>
-              <View>
-                <Text style={{ color: "white", fontSize: 14, opacity: 0.7 }}>
-                  {item.part}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
         />
       )}
     </View>

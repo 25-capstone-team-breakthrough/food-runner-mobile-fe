@@ -52,7 +52,7 @@ export default function LoginScreen({ navigation }) {
       
       if (response.ok) {
         await AsyncStorage.setItem("token", data.token);
-        await AsyncStorage.setItem("name", data.name);
+        await AsyncStorage.setItem("userName", data.name);
         await AsyncStorage.setItem("role", data.role);
       
         const isNewUser = await AsyncStorage.getItem("isNewUser");

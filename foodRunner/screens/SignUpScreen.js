@@ -9,6 +9,7 @@ export default function SignUpScreen({ navigation }) {
   const [password, setPassword] = useState("");
 
 
+
   // 유효성 검사 및 회원가입 처리
   const handleSignUp = async() => {
     if (name.trim() === "") {
@@ -66,6 +67,7 @@ export default function SignUpScreen({ navigation }) {
       } catch {
         error = { message: responseText };
       }
+      Alert.alert("회원가입 실패", error.message || "이미 사용중인 아이디입니다.");
       Alert.alert("회원가입 실패", error.message || "이미 사용중인 아이디입니다.");
     }
   } catch (error) {
