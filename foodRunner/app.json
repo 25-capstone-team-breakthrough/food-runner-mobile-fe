@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
@@ -16,16 +16,20 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-      "NSAppTransportSecurity": {
-        "NSAllowsArbitraryLoads": true
-    }
-  }
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        },
+        "NSPhotoLibraryUsageDescription": "이 앱은 사진을 선택하기 위해 사진 접근 권한이 필요합니다.",
+        "NSCameraUsageDescription": "이 앱은 사진을 촬영하기 위해 카메라 권한이 필요합니다."
+      }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
-        "backgroundColor": "#000000"
-      }
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/logo.png",
@@ -34,7 +38,6 @@
           "include": ["screens"] 
         }
       }
-    },
-    "entryPoint": "./screens"
+    }
   }
 }

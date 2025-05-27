@@ -9,70 +9,123 @@ import { Dimensions } from 'react-native';
 import Svg, { Polyline, Circle, Text as SvgText } from 'react-native-svg';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
-import * as ImagePicker from 'expo-image-picker'; // 이미지 선택용 (예: Expo 사용 시)
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 상단 import 필요import * as ImagePicker from 'expo-image-picker';
-const { MediaType } = ImagePicker;
+import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+
 
 
 const screenWidth = Dimensions.get('window').width;
 
 
-const CardChart = ({ title, data = [], unit = 'kg' }) => {
-  const chartWidth = screenWidth - 40;
-  const chartHeight = 140;
-  const paddingTop = 16;
-  const paddingBottom = 24;
-  const paddingLeft = 20;
+const CardChart = ({ title, data = [], unit = 'kg', showXAxis = false }) => {
+  const chartPadding = 40;
+  const titleWidth = 80;
+  const chartWidth = screenWidth - chartPadding;
+  const svgWidth = chartWidth - titleWidth;
+  const chartHeight = 100;
+  const paddingTop = 26;
+  const paddingLeft = 15;
   const paddingRight = 20;
+  const paddingBottom = 24;
   const pointRadius = 4;
   const fontSize = 11;
 
-  if (!data.length) return null;
+  
 
-  const values = data.map(d => d.value);
+  const cleanedData = data
+  .map(d => ({
+    ...d,
+    value: typeof d.value === 'number' && !isNaN(d.value)
+      ? d.value
+      : Number(d.value) || 0  // 숫자 변환 실패시 0
+  }))
+  .filter(d => !isNaN(d.value));
+
+  const values = cleanedData.map(d => typeof d.value === 'number' ? d.value : 0);
+
+
+  if (!data.length || data.some(d => typeof d.value !== 'number' || isNaN(d.value))) {
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ width: titleWidth, paddingLeft: 8 }}>
+          <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{title}</Text>
+        </View>
+        <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+          <Text style={{ color: '#888' }}>데이터 없음</Text>
+        </View>
+      </View>
+    );
+  }
+  
   const max = Math.max(...values);
   const min = Math.min(...values);
   const valueRange = max - min || 1;
 
-  const xSpacing = (chartWidth - paddingLeft - paddingRight) / (data.length - 1);
+  const xSpacing =
+  data.length > 1
+    ? (svgWidth - paddingLeft - paddingRight) / (data.length - 1)
+    : 0;
+
+  const getX = i => paddingLeft + i * xSpacing;
   const getY = val =>
     paddingTop + (1 - (val - min) / valueRange) * (chartHeight - paddingTop - paddingBottom);
-  
+  const route = useRoute(); // 👈 route 객체 가져오기
+
   return (
-    <View style={styles.chartCard}>
-      <Text style={styles.chartTitle}>{title}</Text>
-      <Svg width={chartWidth} height={chartHeight} >
-        <Polyline
-          points={data.map((d, i) => `${paddingLeft + i * xSpacing},${getY(d.value)}`).join(' ')}
-          stroke="#bbb"
-          strokeWidth={2}
-          fill="none"
-        />
-        {data.map((d, i) => {
-          const x = paddingLeft + i * xSpacing;
+    <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+      <View style={{ width: titleWidth, paddingLeft: 8 }}>
+        <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>{title}</Text>
+      </View>
+
+      <Svg width={svgWidth} height={chartHeight + 24}>
+        {cleanedData.length > 1 && (
+          <Polyline
+            points={cleanedData.map((d, i) => `${getX(i)},${getY(d.value)}`).join(' ')}
+            stroke="#555555"
+            strokeWidth={4}
+            fill="none"
+          />
+        )}
+        {cleanedData.map((d, i) => {
+          const x = getX(i);
           const y = getY(d.value);
-          const isLatest = i === data.length - 1;
+          const [yyyy, mm, dd] = d.date.split('.');
           return (
             <React.Fragment key={i}>
-              <Circle cx={x} cy={y} r={pointRadius} fill={isLatest ? '#E40000' : '#fff'} />
+              <Circle cx={x} cy={y} r={pointRadius} fill="#DDFB21" />
               <SvgText
                 x={x}
                 y={y - 8}
                 fontSize={fontSize}
-                fill={isLatest ? '#E40000' : '#fff'}
+                fill="#fff"
                 textAnchor="middle"
               >
                 {d.value.toFixed(1)}
               </SvgText>
-              <SvgText
-                x={x}
-                y={chartHeight + 2} // 두 번째 줄: 월.일
-                fontSize={10}
-                fill="#aaa"
-                textAnchor="middle"
-              >
-                {`${d.date.split('.')[1]}.${d.date.split('.')[2]}`} {/* '05.21' */}
-              </SvgText>
+              {showXAxis && (
+                <>
+                  <SvgText
+                    x={x}
+                    y={chartHeight + 10}
+                    fontSize={10}
+                    fill="#aaa"
+                    textAnchor="middle"
+                  >
+                    {yyyy}
+                  </SvgText>
+                  <SvgText
+                    x={x}
+                    y={chartHeight + 22}
+                    fontSize={10}
+                    fill="#aaa"
+                    textAnchor="middle"
+                  >
+                    {`${mm}.${dd}`}
+                  </SvgText>
+                </>
+              )}
             </React.Fragment>
           );
         })}
@@ -80,6 +133,9 @@ const CardChart = ({ title, data = [], unit = 'kg' }) => {
     </View>
   );
 };
+
+
+
 
 const PartAnalysisBox = ({ labels }) => (
   <View style={styles.bodyBox}>
@@ -108,6 +164,21 @@ export default function InbodyDetail() {
   const [modalVisible, setModalVisible] = useState(false);
   const [inbodyPartData, setInbodyPartData] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
+  const [photoModalVisible, setPhotoModalVisible] = useState(false);
+  const [customSheetVisible, setCustomSheetVisible] = useState(false);
+  const [plusButtonLayout, setPlusButtonLayout] = useState(null);
+
+
+  const navigation = useNavigation();
+  const route = useRoute(); // ✅ 여기에 위치
+
+  useEffect(() => {
+    if (route.params?.openUploadModal) {
+      setTimeout(() => {
+        setCustomSheetVisible(true); // ✅ 자동으로 업로드 모달 열기
+      }, 300);
+    }
+  }, [route.params]);
 
   const calculateStandards = (userInfo) => {
     if (!userInfo || !userInfo.height || !userInfo.gender) {
@@ -374,81 +445,98 @@ export default function InbodyDetail() {
   };
   const muscleFatStandards = useMemo(() => {
     const standards = calculateStandards(userInfo);
-    console.log('📌 재계산된 muscleFatStandards:', standards); // ✅ 추가
     return standards;
   }, [userInfo]);
   
-  console.log('📌 muscleFatStandards:', muscleFatStandards);
   
   
   
 
   const BASE_URL = 'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080'; // ✅ 추가
 
-  const handleImageUpload = async () => {
-    console.log("📌 버튼 클릭됨");
-  
+  const uploadImage = async (localUri) => {
     const token = await AsyncStorage.getItem("token");
-    console.log("📦 저장된 accessToken:", token);
+    const formData = new FormData();
+    formData.append("file", {
+      uri: localUri,
+      type: "image/jpeg",
+      name: "upload.jpg",
+    });
   
-    if (!token) {
-      alert("❗ 로그인 후 사용 가능합니다.");
+    try {
+      const response = await fetch(`${BASE_URL}/inbody/imageUpload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+  
+      if (!response.ok) throw new Error("업로드 실패");
+      alert("✅ 이미지 업로드 완료!");
+      fetchInbodyData();
+    } catch (err) {
+      console.error("❌ 이미지 업로드 실패:", err);
+      alert("❌ 이미지 업로드 실패");
+    }
+  };
+
+  const handlePickImage = async () => {
+    console.log("🟡 handlePickImage 실행됨");
+  
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+    if (permissionResult.status !== 'granted') {
+      alert("📷 사진 접근 권한이 필요합니다.");
       return;
     }
+    console.log(ImagePicker); // 여기서 MediaType이 undefined이면 모듈 문제
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        quality: 1,
+        mediaTypes: [ImagePicker.MediaType.IMAGE]
+        
+      });
+      
   
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    console.log("✅ 권한 granted?:", permission.granted);
+      console.log("📦 선택 결과:", result);
   
+      if (result.canceled) {
+        console.log("🚫 이미지 선택 취소됨");
+        return;
+      }
+  
+      if (result.assets && result.assets.length > 0) {
+        const uri = result.assets[0].uri;
+        console.log("✅ 선택된 이미지:", uri);
+        await uploadImage(uri);
+      } else {
+        alert("❌ 이미지가 선택되지 않았습니다.");
+      }
+    } catch (err) {
+      console.error("❌ launchImageLibraryAsync 에러:", err);
+      alert("갤러리 실행 중 오류가 발생했습니다.");
+    }
+  };
+  
+  
+  
+  
+  const handleTakePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      alert("사진 접근 권한이 필요합니다.");
+      alert("카메라 권한이 필요합니다.");
       return;
     }
   
-    console.log("📸 이미지 선택 창 실행 전");
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       quality: 1,
     });
   
-    if (result.canceled || !result.assets?.length) {
-      alert("이미지를 선택하지 않았습니다.");
-      return;
+    if (!result.canceled && result.assets?.length) {
+      await uploadImage(result.assets[0].uri);
     }
-  
-    try {
-      const localUri = result.assets[0].uri;
-      console.log("✅ 이미지 URI:", localUri);
-  
-      const formData = new FormData();
-        formData.append("file", {
-          uri: localUri,
-          type: "image/jpeg",
-          name: "test.jpg",
-        });
-
-        const token = await AsyncStorage.getItem("token");
-
-        const response = await fetch("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/imageUpload", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`, // ✅ Content-Type은 절대 쓰지 마세요
-          },
-          body: formData,
-        });
-        console.log("✅ 업로드 응답 상태:", response.status);
-
-  
-      if (!response.ok) throw new Error("서버 응답 오류: " + response.status);
-  
-      const resultText = await response.text();
-      console.log("✅ 업로드 성공:", resultText);
-      alert("✅ 이미지 업로드 완료!");
-    } catch (err) {
-      console.error("❌ 업로드 실패:", err);
-      alert("이미지 업로드 중 오류 발생");
-    }
-    await fetchInbodyData(); // 여기 추가! 업로드 후 그래프에 바로 반영
   };
 
   const GraphBar = ({ value, min, midStart, midEnd, max }) => {
@@ -520,8 +608,10 @@ export default function InbodyDetail() {
 
   return (
     <SafeAreaView style={styles.safeArea}> {/* ✅ 상단만 감싸기 */}
-      <View style={styles.page}>
-        <ScrollView style={styles.container}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 20, marginBottom: 10 }}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={28} color="#fff" />
+        </TouchableOpacity>
         <View style={styles.dateRow}>
           <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.dateButton}>
             <Text style={styles.dateText}>{selectedDate}</Text>
@@ -534,6 +624,85 @@ export default function InbodyDetail() {
               </View>
           </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          onLayout={event => {
+            const layout = event.nativeEvent.layout;
+            setPlusButtonLayout(layout);
+          }}
+          onPress={() => setCustomSheetVisible(true)}
+        >
+          <MaterialIcons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+
+      </View>
+      <View style={styles.page}>
+        <ScrollView style={styles.container}>
+        
+        {customSheetVisible && plusButtonLayout && (
+          <Modal transparent animationType="fade" visible>
+            <TouchableOpacity
+              activeOpacity={1}
+              onPressOut={() => setCustomSheetVisible(false)}
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0,0,0,0.4)',
+              }}
+            >
+              <View
+                style={{
+                  position: 'absolute',
+                  top: plusButtonLayout.y + plusButtonLayout.height + 70,
+                  right: 20,
+                  backgroundColor: '#222',
+                  borderRadius: 16,
+                  paddingVertical: 0,
+                  width: 150,
+                  elevation: 20,
+                }}
+              >
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    paddingVertical: 12,
+                    paddingHorizontal: 18,
+                    borderBottomWidth: 1,
+                    borderColor: '#444',
+                  }}
+                  onPress={() => {
+                    console.log("➕ 사진 선택 버튼 클릭됨");
+                    setCustomSheetVisible(false);
+                    setTimeout(() => {
+                      handlePickImage();
+                    }, 500); // 300보다 넉넉하게
+                  }}                  
+                >
+                  <Text style={{ color: '#fff', fontSize: 16 }}>사진 선택</Text>
+                  <MaterialIcons name="photo-library" size={22} color="#fff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    paddingVertical: 12,
+                    paddingHorizontal: 18,
+                  }}
+                  onPress={() => {
+                    setCustomSheetVisible(false);
+                    handleTakePhoto(); // ✅ 여기로 교체
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 16 }}>사진 찍기</Text>
+                  <MaterialIcons name="photo-camera" size={22} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        )}
+
+
+
 
         {/* 날짜 모달 */}
         <Modal transparent visible={modalVisible} animationType="fade">
@@ -564,17 +733,6 @@ export default function InbodyDetail() {
             </View>
           </Modal>
           <View style={{ alignItems: 'center', marginBottom: 20 }}>
-          <TouchableOpacity
-            onPress={handleImageUpload}
-            style={{
-              backgroundColor: '#DDFB21',
-              paddingVertical: 10,
-              paddingHorizontal: 20,
-              borderRadius: 8,
-            }}
-          >
-            <Text style={{ color: '#000', fontWeight: 'bold' }}>인바디 이미지 업로드</Text>
-          </TouchableOpacity>
 
       </View>
 
@@ -591,7 +749,6 @@ export default function InbodyDetail() {
           { key: 'fatMass', label: '체지방량(kg)', value: currentInbody.bodyFatAmount },
         ].map(({ key, label, value }) => {
           const ranges = muscleFatStandards?.[key];
-          console.log('📊 데이터 확인:', { key, label, value, ranges });
           if (!ranges) return null;
 
           const { min, midStart, midEnd, max, standard } = ranges;
@@ -681,14 +838,13 @@ export default function InbodyDetail() {
       </View>
 
       <View style={{ marginTop: 20, backgroundColor: '#000', paddingHorizontal: 8 }}>
-        <Text style={styles.sectionTitle}>신체변화</Text>
-        <View style={{ gap: 18 }}>
+      <Text style={[styles.sectionTitle, { marginBottom: 30 }]}>신체변화</Text>
+        <View>
         <CardChart title="체중 (kg)" unit="kg" data={weightData} />
         <CardChart title="골격근량 (kg)" unit="kg" data={muscleData} />
-        <CardChart title="체지방량 (kg)" unit="kg" data={fatData} />
+        <CardChart title="체지방량 (kg)" unit="kg" data={fatData} showXAxis={true} />
         </View>
       </View>
-
       <View style={{ height: 200 }} />
     </ScrollView>
     </View>
@@ -884,16 +1040,6 @@ const styles = StyleSheet.create({
   rangeNumber: {
     color: '#fff',
     fontSize: 11,
-  },
-  barFill: {
-    backgroundColor: '#DDFB21',
-    height: '70%',
-    marginTop: '1%',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    paddingRight: 4,
-    borderTopRightRadius: 7,      // ✅ 둥글게
-    borderBottomRightRadius: 7,  
   },
   bodyBox: { 
     flex: 1, 

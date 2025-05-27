@@ -107,56 +107,69 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
   const handleSave = async () => {
     const token = await AsyncStorage.getItem("token");
   
-    const distance = parseFloat(cardioData.distance);
-    const duration = parseFloat(cardioData.duration);
+    if (currentExercise.type === "근력") {
+      const payload = {
+        exerciseId: currentExercise.ExerciseId,
+        strengthSets: setData.map((set) => ({
+          sets: set.set,
+          reps: Number(set.reps),
+          weight: Number(set.weight),
+        })),
+      };
   
-    if (isNaN(distance) || isNaN(duration)) {
-      Alert.alert("입력 오류", "거리와 시간을 숫자로 입력해주세요.");
-      return;
-    }
+      try {
+        const res = await axios.post(
+          "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/log",
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        Alert.alert("등록 완료", "운동 기록이 저장되었습니다.");
+        setRefreshKey((prev) => prev + 1);
+        setCurrentPage("exerciseList");
+        setCurrentExercise(null);
+        setSetData([]);
+        setCardioData({ distance: "", duration: "", pace: "" });
+      } catch (err) {
+        console.error("❌ 근력 운동 저장 실패:", err.response?.data || err.message);
+        Alert.alert("등록 실패", "운동 기록 저장에 실패했습니다.");
+      }
   
-    const payload = currentExercise.type === "근력"
-      ? {
-          exerciseId: currentExercise.ExerciseId,
-          strengthSets: setData.map((set) => ({
-            sets: set.set,
-            reps: Number(set.reps),
-            weight: Number(set.weight),
-          })),
-        }
-      : {
-          exerciseId: currentExercise.ExerciseId,
-          distance: parseFloat(cardioData.distance),
-          time: parseInt(cardioData.duration),
-          pace: cardioData.paceValue, // ← Double 형식만 허용됨!
-        };
+    } else {
+      // 유산소일 경우에만 거리/시간 확인
+      const distance = parseFloat(cardioData.distance);
+      const duration = parseFloat(cardioData.duration);
   
-    console.log("🟢 payload:", payload);
+      if (isNaN(distance) || isNaN(duration)) {
+        Alert.alert("입력 오류", "거리와 시간을 숫자로 입력해주세요.");
+        return;
+      }
   
-    try {
-      const res = await axios.post(
-        "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/log",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      Alert.alert("등록 완료", "운동 기록이 저장되었습니다.");
-      setRefreshKey((prev) => prev + 1);
-      setCurrentPage("exerciseList");
-      setCurrentExercise(null);
-      setSetData([]);
-      setCardioData({ distance: "", duration: "", pace: "" });
-
-        
-    } catch (err) {
-      console.error("❌ 운동 기록 저장 실패:", err.response?.data || err.message);
-      Alert.alert("등록 실패", "운동 기록 저장에 실패했습니다.");
-
+      const payload = {
+        exerciseId: currentExercise.ExerciseId,
+        distance,
+        time: parseInt(duration),
+        pace: cardioData.paceValue,
+      };
+  
+      try {
+        const res = await axios.post(
+          "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/log",
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        Alert.alert("등록 완료", "운동 기록이 저장되었습니다.");
+        setRefreshKey((prev) => prev + 1);
+        setCurrentPage("exerciseList");
+        setCurrentExercise(null);
+        setSetData([]);
+        setCardioData({ distance: "", duration: "", pace: "" });
+      } catch (err) {
+        console.error("❌ 유산소 운동 저장 실패:", err.response?.data || err.message);
+        Alert.alert("등록 실패", "운동 기록 저장에 실패했습니다.");
+      }
     }
   };
+  
 
   useEffect(() => {
     const fetchFavorites = async () => {
