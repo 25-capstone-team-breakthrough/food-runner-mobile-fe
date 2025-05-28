@@ -69,7 +69,7 @@ export default function LoginScreen({ navigation }) {
       }
     } catch (error) {
       console.error("로그인 요청 오류:", error);
-      setErrorMessage("서버에 연결할 수 없습니다.");
+      setErrorMessage("회원정보가 올바르지 않습니다");
     }
   };
 

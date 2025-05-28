@@ -1,13 +1,15 @@
-import { LinearGradient } from "expo-linear-gradient";
-import moment from 'moment';
-import { Dimensions, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import BottomNavigation from "../components/BottomNavigation";
-import CircularProgress from 'react-native-circular-progress-indicator';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import 'moment/locale/ko';
-import React, { useEffect, useState } from 'react';
+import { faFire } from '@fortawesome/pro-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from "expo-linear-gradient";
+import moment from 'moment';
+import 'moment/locale/ko';
+import { useEffect, useState } from 'react';
+import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import CircularProgress from 'react-native-circular-progress-indicator';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import BottomNavigation from "../components/BottomNavigation";
 
 
 
@@ -100,6 +102,7 @@ const handlePickImage = async () => {
           .reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
 
         setBurnedCalories(total);
+        console.log("소모칼로리",total)
       } catch (err) {
         console.error('소모 칼로리 가져오기 실패:', err);
       }
@@ -142,7 +145,6 @@ const handlePickImage = async () => {
     };
     
     
-
     fetchUserName();
     fetchCalories();
     fetchInbody();
@@ -218,7 +220,7 @@ const handlePickImage = async () => {
             <Text style={styles.label}>섭취한 칼로리</Text>
             <Text style={styles.value}>
               <Text style={styles.bold}>{consumedCalories}</Text>
-              <Text style={styles.unit}> / {recommendedCalories}kcal</Text>
+              <Text style={styles.unit}> / {parseInt(recommendedCalories)}kcal</Text>
             </Text>
           </View>
         </View>
@@ -227,6 +229,7 @@ const handlePickImage = async () => {
       <TouchableOpacity onPress={() => navigation.navigate('ExerciseHome')} style={styles.Card}>
         <Icon name="chevron-right" size={26} color="#F91250" style={styles.arrowTopRight} />
         <View style={styles.burnRow}>
+          <FontAwesomeIcon icon={faFire} size={55} style={{color: "#f9134f",}}/>
           <View style={styles.burnTextBox}>
             <Text style={styles.burnLabel}>소모한 열량</Text>
             <Text style={styles.burnValue}>{burnedCalories}kcal</Text>
@@ -377,6 +380,7 @@ const styles = StyleSheet.create({
   },
   inBodyContainer: {
     flexDirection: 'row',
+    marginTop: -7,
   },
   inBodyBox: {
     backgroundColor: 'transparent',
@@ -450,24 +454,22 @@ const styles = StyleSheet.create({
   },
   graphRow: {
     flexDirection: 'row',
-    justifyContent: 'center',   // ✅ 가로 중앙
-    alignItems: 'center',       // ✅ 세로 중앙
-    height: '100%',             // ✅ 세로 정렬 위해 높이 지정
+    justifyContent: 'center',   
+    alignItems: 'center',      
+    height: '100%',            
   },
   graphWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 20,            // ✅ 텍스트와 간격 조정
+    marginRight: 20,           
   },
   textBox: {
-    alignItems: 'center',
+    // alignItems: 'center',
   },
-  
   label: {
     color: '#E1FF01',
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
   },
   
   value: {
@@ -495,14 +497,15 @@ const styles = StyleSheet.create({
   },
   burnRow: {
     flexDirection: 'row',
-    justifyContent: 'center',   // ✅ 가로 중앙
-    alignItems: 'center',       // ✅ 세로 중앙
-    height: '100%',             // ✅ 세로 중앙 정렬을 위해 높이 지정
+    justifyContent: 'center',   
+    alignItems: 'center',       
+    height: '100%',    
+    marginLeft: -20,       
   },
-  
   burnTextBox: {
-    alignItems: 'center',
-    marginRight: 20,        // 텍스트 내부 가운데 정렬
+    // alignItems: 'center',
+    marginLeft: 10,
+    marginRight: 20,     
   },
   burnGraphWrapper: {
     alignItems: 'center',
@@ -510,12 +513,12 @@ const styles = StyleSheet.create({
   },
   burnLabel: {
     color: '#F91250',
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
     fontWeight: 'bold',
+    marginBottom: -3,
   },
-  
   burnValue: {
     color: '#F91250',
     fontSize: 30,

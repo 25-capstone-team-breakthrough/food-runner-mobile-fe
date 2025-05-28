@@ -209,11 +209,16 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                                 </Text>
                                 </View>
                     
-                            <TouchableOpacity onPress={() => navigation.navigate("ExerciseHistory")}>
+                            {/* <TouchableOpacity onPress={() => navigation.navigate("ExerciseHistory")}>
                                 <Text style={styles.goHistory}>
                                     운동 기록 보러가기 →
                                 </Text>
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
+
+                            {/* <TouchableOpacity onPress={() => navigation.navigate("ExerciseHome", { openHistorySheet: true })}>
+                                <Text>운동 기록 보러가기 →</Text>
+                            </TouchableOpacity> */}
+
 
                         </>
                         ) : (

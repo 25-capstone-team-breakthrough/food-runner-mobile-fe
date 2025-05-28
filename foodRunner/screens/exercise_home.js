@@ -1,30 +1,30 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import {
-  SafeAreaView,
-  Text,
-  Image,
-  TouchableOpacity,
-  View,
-  StyleSheet
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { Calendar } from "react-native-calendars";
 import BottomSheet from "@gorhom/bottom-sheet";
-import { BlurView } from "expo-blur";
-import Svg, { Polyline, Circle, Text as SvgText, Line } from "react-native-svg";
-import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import { BlurView } from "expo-blur";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { Calendar } from "react-native-calendars";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming
 } from "react-native-reanimated";
+import Svg, { Circle, Line, Polyline, Text as SvgText } from "react-native-svg";
 
 // Components
 import BottomNavigation from "../components/BottomNavigation";
-import ExerciseRegister from "../screens/exercise_register";
 import ExerciseHistory from "../screens/exercise_history";
+import ExerciseRegister from "../screens/exercise_register";
 
 
 export default function ExerciseHome() {
@@ -65,6 +65,7 @@ export default function ExerciseHome() {
     leftLeg: muscleParts[3],
     rightLeg: muscleParts[4],
   };
+  
 
   useEffect(() => {
     const fetchInbody = async () => {

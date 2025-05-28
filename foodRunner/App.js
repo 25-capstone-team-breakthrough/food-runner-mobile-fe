@@ -4,10 +4,9 @@ import AppNavigator from './navigation/AppNavigator';
 // App.js
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCamera, faCapsules, faImage, faMagnifyingGlass } from "@fortawesome/pro-light-svg-icons";
-import { faCircleUser, faDumbbell, faHeartPulse, faHouse, faUtensils } from "@fortawesome/pro-solid-svg-icons";
+import { faCircleUser, faDumbbell, faFire, faHeartPulse, faHouse, faUtensils } from "@fortawesome/pro-solid-svg-icons";
 import { ExerciseProvider } from './context/ExerciseContext';
-
-library.add(faHeartPulse, faUtensils, faHouse, faDumbbell, faCircleUser, faCamera, faCapsules, faImage, faMagnifyingGlass);
+library.add(faHeartPulse, faUtensils, faHouse, faDumbbell, faCircleUser, faCamera, faCapsules, faImage, faMagnifyingGlass, faFire);
 
 export default function App() {
   return (
