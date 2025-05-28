@@ -56,12 +56,21 @@ const DietRecipeScreen = ({ navigation }) => {
                     {/* <Text style={styles.ingredientItem}>
                         {recipe.ingredients}
                     </Text> */}
-                    <Text style={styles.ingredientItem}>
+                    {/* <Text style={styles.ingredientItem}>
                     {recipe.ingredients
                         ?.replace(/\|/g, ", ")             
                         .replace("[양념]", "\n[양념]")     
                         .trim()}
+                    </Text> */}
+                    <Text style={styles.ingredientItem}>
+                    {recipe.ingredients
+                        ?.replace(/\|/g, ", ")                 // 구분자 | → 쉼표
+                        .replace("[양념]", "\n[양념]")         // 양념 앞 줄바꿈
+                        .replace(/\s{2,}/g, " ")               // ✅ 2개 이상 연속된 공백 → 1개로 줄이기
+                        .replace(/,\s*,/g, ", ")               // ✅ 쉼표 두 번 → 한 번
+                        .trim()}
                     </Text>
+
                     
 
 
@@ -83,7 +92,7 @@ const DietRecipeScreen = ({ navigation }) => {
                     <View style={styles.separator}></View> */}
 
                     {/* 추천 레시피 */}
-                    {console.log("유사한 레시피: ", recommendedRecipes)}
+                    {/* {console.log("유사한 레시피: ", recommendedRecipes)} */}
 
                     <View style={styles.recipeSection}>
                         <Text style={styles.sectionTitle}>
@@ -100,7 +109,9 @@ const DietRecipeScreen = ({ navigation }) => {
                                 style={styles.recipeCard}
                             >
                                 <Image source={{ uri: rec.recipeImage }} style={styles.recipeRecommendImage} />
-                                <Text style={styles.recipeRecommendTitle}>{rec.recipeName}</Text>
+                               <Text style={styles.recipeRecommendTitle}>
+                                {rec.recipeName.length > 8 ? rec.recipeName.slice(0, 8) : rec.recipeName}
+                                </Text>
                             </TouchableOpacity>
                             ))}
                         </View>

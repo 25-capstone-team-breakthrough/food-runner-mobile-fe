@@ -1,4 +1,4 @@
-import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -24,7 +24,8 @@ import Loading from "../components/Loading";
 import NutrientRing from "../components/NutrientRing";
 import NutritionCalendarScreen from "./NutritionCalendarScreen";
 
-// import { Home, User, Settings } from "lucide-react";
+import { faCamera, faCapsules, faImage, faMagnifyingGlass } from "@fortawesome/pro-light-svg-icons";
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 
 const screenWidth = Dimensions.get("window").width;
@@ -91,6 +92,27 @@ const NutritionMainScreen = () => {
     })();
   }, []);
 
+  const getPlaceholderNutrients = (labels) =>
+  labels.map((label) => ({
+    name: label,
+    amount: "0g",
+    status: "부족",
+    color: "#FFB546",
+    percent: 0,
+  }));
+
+  const displayMacro = macroNutrients.length > 0
+    ? macroNutrients
+    : getPlaceholderNutrients(["탄수화물", "단백질", "지방"]);
+
+  const displayEtc = etcNutrients.length > 0
+    ? etcNutrients
+    : getPlaceholderNutrients(["당류", "나트륨", "식이섬유", "칼슘"]);
+
+  const displaySmall = smallNutrients.length > 0
+    ? smallNutrients
+    : getPlaceholderNutrients(["포화지방", "트랜스지방", "콜레스테롤"]);
+
   const fetchNutritionData = async () => {
     const token = await AsyncStorage.getItem("token");
     const logRes = await fetch(`http://13.209.199.97:8080/diet/nutrition/log/load`, {
@@ -98,7 +120,10 @@ const NutritionMainScreen = () => {
     });
     const logData = await logRes.json();
     const lastLog = logData.find(log => log.date === selectedDate);
-    setLatestLog(lastLog);
+    setLatestLog(lastLog || null);
+
+    
+    // console.log(latestLog);
 
     const recRes = await fetch("http://13.209.199.97:8080/diet/nutrition/rec/load", {
       headers: { Authorization: `Bearer ${token}` },
@@ -107,6 +132,14 @@ const NutritionMainScreen = () => {
     const minRec = recData.find((r) => r.type === "MIN"); // 최소 권장량
     const maxRec = recData.find((r) => r.type === "MAX"); // 최대 권장량
     setRecommended(minRec);
+
+    if (!lastLog || !minRec) {
+      setMacroNutrients([]);
+      setEtcNutrients([]);
+      setSmallNutrients([]);
+      setCalorieProgress(0); // ← 이게 안 바뀌면 그래프도 안 바뀜
+      return;
+    }
 
     if (lastLog && minRec) {
       const major = ["carbohydrate", "protein", "fat"];
@@ -160,7 +193,7 @@ const NutritionMainScreen = () => {
         try {
           await AsyncStorage.setItem("todayCalories", String(lastLog.calories));
           await AsyncStorage.setItem("todayRecommendedCalories", String(minRec.calories));
-          console.log("✅ 오늘 섭취 칼로리 저장 완료:", lastLog.calories, "권장칼로리", minRec.calories);
+          // console.log("✅ 오늘 섭취 칼로리 저장 완료:", lastLog.calories, "권장칼로리", minRec.calories);
         } catch (err) {
           console.error("❌ 오늘 칼로리 AsyncStorage 저장 실패:", err);
         }
@@ -173,7 +206,7 @@ const NutritionMainScreen = () => {
     try {
       setIsAnalyzing(true); 
       const token = await AsyncStorage.getItem("token");
-      console.log(token)
+      // console.log(token)
 
       // 1. S3 업로드용 presigned URL 요청
       const fileName = `meal-${Date.now()}.jpg`;
@@ -201,7 +234,7 @@ const NutritionMainScreen = () => {
       });
 
       const s3ImageUrl = presignedUrl.split("?")[0]; // 쿼리 제거 → 실제 이미지 URL
-      console.log("✅ 업로드된 S3 이미지 URL:", s3ImageUrl);
+      // console.log("✅ 업로드된 S3 이미지 URL:", s3ImageUrl);
 
       // 3. 식사 기록 저장
       setTimeout(async () => {
@@ -269,12 +302,6 @@ const NutritionMainScreen = () => {
     })();
   }, [selectedItemFromRoute, selectedSupplementFromRoute]);
 
-  // 날짜별로 새로 로드 
-  // useEffect(() => {
-  //   fetchNutritionData();
-  //   fetchSupplementLogs();
-  //   fetchMealLogs(); // 앱 시작 시 또는 필요한 시점에 불러오기
-  // }, [selectedDate]);
 
   useEffect(() => {
     const loadDataOnDateChange = async () => {
@@ -365,7 +392,7 @@ const NutritionMainScreen = () => {
       }
 
       const logs = await res.json();
-      console.log("영양제 섭취 기록 가져오기 성공",logs);
+      // console.log("영양제 섭취 기록 가져오기 성공",logs);
 
       const formattedSelectedDate = moment(selectedDate).format("YYYY-MM-DD");
 
@@ -387,12 +414,6 @@ const NutritionMainScreen = () => {
     }
   };
 
-  // 🔹 2. useEffect에서 최초 1번 실행
-  // useEffect(() => {
-  //   fetchNutritionData();
-  //   fetchMealLogs();
-  //   fetchSupplementLogs();
-  // }, []);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -461,12 +482,9 @@ const NutritionMainScreen = () => {
         >
            <HalfCircleSkiaChart
               latestLog={latestLog}
-              progress={calorieProgress} 
-              // progress={
-              //   latestLog && recommended?.calories
-              //     ? latestLog.calories / recommended.calories
-              //     : 0
-              // }
+              // progress={calorieProgress} 
+              progress={Math.min(calorieProgress, 1)}
+              actualCalories={latestLog?.calories}
               size={280}
               targetCalories={
                 recommended?.calories ? Math.round(recommended.calories) : 2000
@@ -486,7 +504,7 @@ const NutritionMainScreen = () => {
             <View style={{ width: viewWidth, alignItems: "center" }}>
               <Text style={styles.threeMacroNutrientsText}>3대 주요 영양소</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
-                {macroNutrients.map((item, index) => {
+                {displayMacro.map((item, index) => {
                   return (
                     <NutrientRing
                       key={index}
@@ -504,7 +522,7 @@ const NutritionMainScreen = () => {
             <View style={{ width: viewWidth, alignItems: "center" }}>
               <Text style={styles.threeMacroNutrientsText}>미량 영양소</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
-              {etcNutrients.map((item, index) => {
+              {displayEtc.map((item, index) => {
                   return (
                     <NutrientRing
                       key={index}
@@ -522,7 +540,7 @@ const NutritionMainScreen = () => {
             <View style={{ width: viewWidth, alignItems: "center" }}>
               <Text style={styles.threeMacroNutrientsText}>미량 영양소</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
-              {smallNutrients.map((item, index) => {
+              {displaySmall.map((item, index) => {
                   return (
                     <NutrientRing
                       key={index}
@@ -551,25 +569,31 @@ const NutritionMainScreen = () => {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.roundButton} onPress={openCamera}>
-            <Ionicons name="camera-outline" size={30} color="#000" />
+            {/* <FontAwesomeIcon icon="faCamera" size={30} color="#000"/> */}
+            {/* <FontAwesomeIcon icon={faCamera} size={24} color="#000"/> */}
+            <FontAwesomeIcon icon={faCamera} size={26} color="#000"/>
+            {/* <Ionicons name="camera-outline" size={30} color="#000" /> */}
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.roundButton} onPress={openGallery}>
-            <Ionicons name="image-outline" size={30} color="#000" />
+            {/* <Ionicons name="image-outline" size={30} color="#000" /> */}
+            <FontAwesomeIcon icon={faImage} size={26} color="#000"/>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.roundButton} 
             onPress={() => navigation.navigate("DietRegistration", {
               selectedDate: selectedDate,
             })}>
-            <Ionicons name="fast-food-outline" size={30} color="#000" />
+            {/* <Ionicons name="fast-food-outline" size={30} color="#000" /> */}
+            <FontAwesomeIcon icon={faMagnifyingGlass} size={24} color="#000"/>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.roundButton} 
             onPress={() => navigation.navigate("VitaminRegistion", {
               selectedDate: selectedDate,
             })}>
-            <MaterialCommunityIcons name="pill" size={30} color="#000" />
+            {/* <MaterialCommunityIcons name="pill" size={30} color="#000" /> */}
+            <FontAwesomeIcon icon={faCapsules} size={28} color="#000"/>
           </TouchableOpacity>
         </View>
 
@@ -604,10 +628,6 @@ const NutritionMainScreen = () => {
                       console.log("📡 서버 응답:", res.status, resultText);
 
                       if (!res.ok) throw new Error("삭제 실패");
-
-                      // setDietImages((prev) =>
-                      //   prev.filter((img) => img.searchMealLogId !== item.searchMealLogId && img.id !== item.id)
-                      // );
 
                       // console.log("✅ 식사기록 삭제 성공:", item.mealLog.mealId);
                       fetchMealLogs();
@@ -677,6 +697,8 @@ const NutritionMainScreen = () => {
             </View>
           )}
         />
+        
+      </ScrollView>
         <BottomSheet
           ref={bottomSheetRef}
           index={-1}
@@ -691,14 +713,13 @@ const NutritionMainScreen = () => {
           {/* <NutritionCalendarScreen onSelectDate={handleDateSelect} /> */}
           <NutritionCalendarScreen
             onSelectDate={async (date) => {
-              console.log("선택된 날짜:", date);
+              // console.log("선택된 날짜:", date);
               setSelectedDate(date);
               await AsyncStorage.setItem("selectedDate", date);
               bottomSheetRef.current?.close();
             }}
           />
         </BottomSheet>
-      </ScrollView>
       {!isBottomSheetOpen && <BottomNavigation />}
       {/* 로딩 */}
       {isAnalyzing && <FoodLoading/>}
@@ -707,9 +728,6 @@ const NutritionMainScreen = () => {
   );
 };
 
-// if (isLoading) {
-//     return <Loading />; // 모든 데이터 로드 전까지 로딩 화면
-//   }
 
 const styles = {
   dateContainer: {

@@ -176,11 +176,6 @@ const FoodSearchScreen = () => {
               <TouchableOpacity
                 onPress={() => {
                   setSelectedsupplementItem(selectedsupplementItem?.supplementId === item.supplementId ? null : item)
-                  // if (selectedsupplementItem?.supplementId === item.supplementId) {
-                  //   setSelectedsupplementItem(null);
-                  // } else {
-                  //   setSelectedsupplementItem(item);
-                  // }
                 }}
                 style={[
                   styles.resultItem,
@@ -204,7 +199,12 @@ const FoodSearchScreen = () => {
                     style={styles.itemImage}
                   />
                   <View style={styles.threeText}>
-                    <Text style={styles.itemName}>{item.supplementName}</Text>
+                    {/* <Text style={styles.itemName}>{item.supplementName}</Text> */}
+                    <Text style={styles.itemName}>
+                      {item.supplementName.length > 10
+                        ? `${item.supplementName.substring(0, 10)}...`
+                        : item.supplementName}
+                    </Text>
                     <Text style={styles.itemBrand}>{item.company}</Text>
                     <Text style={styles.itemNutrient}>{item.mainNutrition}</Text>
                   </View>
@@ -225,6 +225,7 @@ const FoodSearchScreen = () => {
 
       {/* 🔹 등록하기 버튼 */}
       <RegisterButton
+        style={styles.registerButton}
         onPress={async () => {
           if (!selectedsupplementItem) {
             alert("영양제를 선택해주세요!");
@@ -316,6 +317,9 @@ const styles = {
     fontSize: 14,
     color: "#898989",
     marginTop: 4,
+  },
+   registerButton: {
+    bottom: 90,
   },
 };
 

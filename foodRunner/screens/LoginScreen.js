@@ -36,7 +36,7 @@ export default function LoginScreen({ navigation }) {
       setErrorMessage("비밀번호를 입력해주세요.");
       return;
     }
-    navigation.navigate("InputGenderAge");
+
     try {
       // 백 서버 연결 해야 함 !
       const response = await fetch("http://13.209.199.97:8080/users/login", {

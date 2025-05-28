@@ -29,8 +29,8 @@ const AppNavigator = () => {
       <Stack.Navigator 
         initialRouteName="Login"
         screenOptions={{
-          animationEnabled: false, // ✅ 모든 화면 애니메이션 제거
-          headerShown: false,      // ✅ 전역 header 제거도 가능 (선택)
+          animationEnabled: false, 
+          headerShown: false,      
           lazy: false,
           transitionSpec: {
             open: TransitionSpecs.FadeInFromBottomAndroidSpec,

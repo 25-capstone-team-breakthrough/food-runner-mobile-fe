@@ -13,6 +13,7 @@ import {
 import backgroundImage from '../assets/body.png';
 import BackButton from "../components/BackButton";
 
+
 // 아 그러면 /stt/audio 이걸로 내가 백한테 음성파일 wav로 주면
 // /stt/audio에서 백이 나한테 텍스트 주고, 
 // 프론트가 저장버튼 누르면 stt/log 호출해서
@@ -199,14 +200,20 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                                 <AntDesign name="check" size={28} color="black" />
                             </View>
                             <Text style={styles.question2}>운동추가 완료!</Text>
+                            {console.log("recognizedText", recognizedText)}
                         </View>
-                            {recognizedText && (
-                            <View style={styles.resultContainer}>
+                            
+                                <View style={styles.resultContainer2}>
                                 <Text style={styles.result}>
                                     {recognizedText}
                                 </Text>
-                            </View>
-                            )}
+                                </View>
+                    
+                            <TouchableOpacity onPress={() => navigation.navigate("ExerciseHistory")}>
+                                <Text style={styles.goHistory}>
+                                    운동 기록 보러가기 →
+                                </Text>
+                            </TouchableOpacity>
 
                         </>
                         ) : (
@@ -311,6 +318,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "white",
         marginLeft: 15,
+        
     },
     example: {
         fontSize: 16,
@@ -325,9 +333,16 @@ const styles = StyleSheet.create({
         letterSpacing: 4,
     },
     resultContainer: {
-        flex: 1,
+        // flex: 1,
         justifyContent: 'center', 
         alignItems: 'center',
+        marginTop: 80,
+
+    },
+    resultContainer2: {
+        justifyContent: 'center', 
+        alignItems: 'center',
+        marginTop: 115,
     },
     result: {
         color: "#fff",
@@ -336,6 +351,15 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontWeight: "600",
         marginBottom: 60,
+    },
+    goHistory: {
+        color: "#E1FF01", 
+        fontSize: 18, 
+        fontWeight: "600",
+        marginTop: 80,
+        marginLeft: 145,
+        textDecorationLine: "underline",
+
     },
     voiceButton: {
         position: "absolute",

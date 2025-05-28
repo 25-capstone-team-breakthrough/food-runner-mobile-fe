@@ -39,7 +39,7 @@ const NutritionCalendarScreen = ({ onSelectDate }) => {
                 }
 
                 const data = await response.json();
-                console.log("일자별 칼로리 가져오기",data)
+                // console.log("일자별 칼로리 가져오기",data)
                 setLogData(data);
             } catch (error) {
                 console.error("영양 로그 불러오기 오류:", error);
@@ -70,16 +70,9 @@ const NutritionCalendarScreen = ({ onSelectDate }) => {
         const entry = logData.find((item) => item.date === date.format("YYYY-MM-DD"));
         return entry ? entry.calories : 0;          
     });
-    // const calorieData = weekDates.map((d) => monthlyCalorieData[d.format("YYYY-MM-DD")] || 0);
+    
     const highlightIndex = weekDates.findIndex((d) => d.format("YYYY-MM-DD") === selectedDate);
 
-    // const labels = weekDates.map((d, i) => {
-    //     if (i === highlightIndex) {
-    //         const day = d.format("DD");
-    //         return `\u25CF${day}`;
-    //     }
-    //     return d.format("DD");
-    // });
 
     const labels = weekDates.map((d, i) => {
       const day = d.format("DD");
@@ -162,15 +155,6 @@ const NutritionCalendarScreen = ({ onSelectDate }) => {
             onDayPress={handleDateChange}
             markedDates={marked}
             markingType="custom"
-          /* <Calendar
-            onDayPress={handleDateChange}
-            markedDates={{
-              [selectedDate]: {
-                  selected: true,
-                  selectedColor: "#E1FF01",
-                  disableTouchEvent: true,
-              },
-            }} */
             theme={{
               selectedDayBackgroundColor: "#E1FF01",
               selectedDayTextColor: "#000",
@@ -199,10 +183,10 @@ const NutritionCalendarScreen = ({ onSelectDate }) => {
           height={160}
           chartConfig={chartConfig(highlightIndex)}
           withShadow={false}
-          withVerticalLines={false}      // ✅ 세로선 제거
-          withHorizontalLines={true}     // ✅ 가로선 유지 (원하는 경우)
-          withInnerLines={true}          // ✅ 내부선은 유지
-          withOuterLines={true}          // ✅ Y축 테두리 포함
+          withVerticalLines={false}      
+          withHorizontalLines={true}     
+          withInnerLines={true}          
+          withOuterLines={true}         
           fromZero
           segments={3}
           yLabelsOffset={10}
@@ -241,7 +225,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     borderRadius: 16,
     marginRight: 15,
-    // marginBottom: 20,
+    marginBottom: 0,
     right: 15,
     // bottom: 15,
   },
@@ -250,7 +234,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 60,
     borderRadius: 30,
-    // marginTop: 0,
+    // marginTop: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
