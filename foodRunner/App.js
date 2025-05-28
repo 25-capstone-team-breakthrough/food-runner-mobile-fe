@@ -6,6 +6,10 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCamera, faCapsules, faImage, faMagnifyingGlass } from "@fortawesome/pro-light-svg-icons";
 import { faCircleUser, faDumbbell, faHeartPulse, faHouse, faUtensils } from "@fortawesome/pro-solid-svg-icons";
 import { ExerciseProvider } from './context/ExerciseContext';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faCoffee } from '@fortawesome/free-solid-svg-icons';
+
+<FontAwesomeIcon icon={faCoffee} />
 
 library.add(faHeartPulse, faUtensils, faHouse, faDumbbell, faCircleUser, faCamera, faCapsules, faImage, faMagnifyingGlass);
 

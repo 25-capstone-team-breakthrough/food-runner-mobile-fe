@@ -218,7 +218,9 @@ const handlePickImage = async () => {
             <Text style={styles.label}>섭취한 칼로리</Text>
             <Text style={styles.value}>
               <Text style={styles.bold}>{consumedCalories}</Text>
-              <Text style={styles.unit}> / {recommendedCalories}kcal</Text>
+              <Text style={styles.unit}>
+                / {Math.floor(Number(recommendedCalories))}kcal
+              </Text>
             </Text>
           </View>
         </View>
