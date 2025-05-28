@@ -187,6 +187,7 @@ const handlePickImage = async () => {
   
 
   return (
+    
     <SafeAreaView style={styles.container}>
       {/* 상단 프로필 */}
       <View style={styles.headerContainer}>
@@ -218,9 +219,7 @@ const handlePickImage = async () => {
             <Text style={styles.label}>섭취한 칼로리</Text>
             <Text style={styles.value}>
               <Text style={styles.bold}>{consumedCalories}</Text>
-              <Text style={styles.unit}>
-                / {Math.floor(Number(recommendedCalories))}kcal
-              </Text>
+              <Text style={styles.unit}> / {recommendedCalories}kcal</Text>
             </Text>
           </View>
         </View>
