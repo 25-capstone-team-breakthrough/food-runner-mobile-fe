@@ -24,7 +24,7 @@ const MyPageEditScreen = ({ navigation }) => {
     const fetchUserInfo = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
-        const storedName = await AsyncStorage.getItem("name"); // 이름 가져오기
+        const storedName = await AsyncStorage.getItem("userName"); // 이름 가져오기
         setName(storedName || "");
         const res = await fetch("http://13.209.199.97:8080/BMI/info", {
           method: "GET",

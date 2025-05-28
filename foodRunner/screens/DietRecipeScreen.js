@@ -48,9 +48,10 @@ const DietRecipeScreen = ({ navigation }) => {
 
                 {/* 제목 및 설명 */}
                 <View style={styles.recipeContent}>
+                    
                     <Text style={styles.recipeTitle}>{recipe.recipeName}</Text>
                     {/* <Text style={styles.recipeDescription}>{recipe.description}</Text> */}
-
+                    <Text>✅ 이 텍스트는 NotoSansKR_400Regular로 나와야 함</Text>
                     {/* 재료 */}
                     <Text style={styles.sectionTitle}>재료</Text>
                     {/* <Text style={styles.ingredientItem}>
