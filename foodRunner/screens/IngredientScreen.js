@@ -70,7 +70,7 @@ export default function IngredientScreen({ navigation }) {
       });
 
       const text = await res.text();
-      console.log("🧾 응답 텍스트:", text);
+      // console.log("🧾 응답 텍스트:", text);
       const data = JSON.parse(text);
       if (!Array.isArray(data)) throw new Error("데이터 형식 오류");
       setIngredients(data);
@@ -83,7 +83,7 @@ export default function IngredientScreen({ navigation }) {
   // ✅ 처음 로딩되거나 검색이 초기화되면 자동 호출
   useEffect(() => {
     if (search.length === 0) {
-      console.log("🔥 useEffect 실행됨, search:", search);
+      // console.log("🔥 useEffect 실행됨, search:", search);
       fetchRecommendedIngredients();
     }
   }, [search, fetchRecommendedIngredients]);
@@ -182,7 +182,7 @@ export default function IngredientScreen({ navigation }) {
           <FlatList
             data={ingredients}
             keyExtractor={(item, index) => {
-              console.log("🔥 item:", item);
+              // console.log("🔥 item:", item);
               return item.ingredientId?.toString() ?? `fallback-${index}`;
             }}
             numColumns={2}
@@ -204,6 +204,7 @@ export default function IngredientScreen({ navigation }) {
 
       {/* 등록하기 버튼 */}
       <RegisterButton
+        style={styles.registerButton}
         onPress={async () => {
           const token = await AsyncStorage.getItem("token");
 
@@ -222,7 +223,7 @@ export default function IngredientScreen({ navigation }) {
           for (const item of allToSave) {
             const ingredientId = item.ingredient?.ingredientId ?? item.ingredientId;
             const ingredientName = item.ingredient?.ingredientName ?? item.ingredientName;
-            console.log("📦 저장하는 ingredientId:", ingredientId);
+            // console.log("📦 저장하는 ingredientId:", ingredientId);
 
             try {
               // 1. 추천 저장
@@ -236,7 +237,7 @@ export default function IngredientScreen({ navigation }) {
                   ingredientId: ingredientId.toString(),
                 }).toString(),
               });
-              console.log("✅ 추천 저장 성공:", ingredientName);
+              // console.log("✅ 추천 저장 성공:", ingredientName);
             } catch (err) {
               console.error("❌ 추천 저장 실패:", ingredientName, err);
             }
@@ -254,17 +255,6 @@ export default function IngredientScreen({ navigation }) {
                 throw new Error(`❌ 저장 실패: ${text}`);
               }
               console.log("⭐️ 즐겨찾기 저장 응답:", text);
-
-              // await fetch(
-              //   `http://13.209.199.97:8080/diet/ingredient/pref/save?id=${ingredientId}`,
-              //   {
-              //     method: "POST",
-              //     headers: {
-              //       Authorization: `Bearer ${token}`,
-              //     },
-              //   }
-              // );
-
               // console.log("⭐️ 즐겨찾기 저장 성공:", ingredientName);
             } catch (err) {
               console.error("❌ 즐겨찾기 저장 실패:", ingredientName, err);
@@ -375,19 +365,7 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   registerButton: {
-    backgroundColor: "#E1FF01",
-    width: 330,
-    height: 60,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 30,
-    position: "absolute",
-    bottom: 80,
-    alignSelf: "center",
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 3,
+    bottom: 90,
   },
   registerText: {
     fontSize: 25,

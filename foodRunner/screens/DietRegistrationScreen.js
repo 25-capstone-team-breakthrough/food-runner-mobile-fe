@@ -192,7 +192,12 @@ const FoodSearchScreen = () => {
                   </TouchableOpacity>
                   <Image source={{ uri: item.foodImage }} style={styles.itemImage} />
                   <View style={styles.threeText}>
-                    <Text style={styles.itemName}>{item.foodName}</Text>
+                    {/* <Text style={styles.itemName}>{item.foodName}</Text> */}
+                    <Text style={styles.itemName}>
+                      {item.foodName.length > 10
+                        ? `${item.foodName.substring(0, 10)}...`
+                        : item.foodName}
+                    </Text>
                     {item.foodCompany !== "해당없음" && (
                       <Text style={styles.itemBrand}>{item.foodCompany}</Text>
                     )}
@@ -213,8 +218,8 @@ const FoodSearchScreen = () => {
           />
         </View>
 
-
       <RegisterButton
+        style={{ bottom: 90 }}
         onPress={async () => {
           if (!selectedItem) {
             alert("음식을 선택해주세요!");

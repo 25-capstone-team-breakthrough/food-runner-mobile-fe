@@ -13,6 +13,7 @@ import {
 import backgroundImage from '../assets/body.png';
 import BackButton from "../components/BackButton";
 
+
 // 아 그러면 /stt/audio 이걸로 내가 백한테 음성파일 wav로 주면
 // /stt/audio에서 백이 나한테 텍스트 주고, 
 // 프론트가 저장버튼 누르면 stt/log 호출해서
@@ -88,10 +89,10 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
             const formData = new FormData();
             formData.append("audioFile", {
                 uri: uri,
-                // name: "recording.m4a",
-                // type: "audio/x-m4a"
-                name: "recording.wav",
-                type: "audio/wav" 
+                name: "recording.m4a",
+                type: "audio/x-m4a"
+                // name: "recording.wav",
+                // type: "audio/wav" 
             });
             // console.log("프론트 전달 uri: ", uri);
 
@@ -165,7 +166,7 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
             } else {
                 const errText = await response.text();
                 console.error("❌ 저장 실패:", errText);
-                setRecognizedText("⚠️ 운동 기록 저장 실패! 다시 시도해주세요.");
+                setRecognizedText("⚠️ 음성인식이 실패했습니다 다시 정확하게 말해주세요!");
             }
         } catch (err) {
             console.error("❌ 저장 요청 오류:", err);
@@ -194,14 +195,26 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                     {showConfirm ? (
                         isCompleted ? (
                         <>
-                            <Text style={styles.question}>✅ 운동추가 완료!</Text>
-                            {recognizedText && (
-                            <View style={styles.resultContainer}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={styles.checkButton2}>
+                                <AntDesign name="check" size={28} color="black" />
+                            </View>
+                            <Text style={styles.question2}>운동추가 완료!</Text>
+                            {console.log("recognizedText", recognizedText)}
+                        </View>
+                            
+                                <View style={styles.resultContainer2}>
                                 <Text style={styles.result}>
                                     {recognizedText}
                                 </Text>
-                            </View>
-                            )}
+                                </View>
+                    
+                            <TouchableOpacity onPress={() => navigation.navigate("ExerciseHistory")}>
+                                <Text style={styles.goHistory}>
+                                    운동 기록 보러가기 →
+                                </Text>
+                            </TouchableOpacity>
+
                         </>
                         ) : (
                         <>
@@ -217,8 +230,8 @@ const VoiceExerciseLoggerScreen = ({ navigation }) => {
                 
                 {!showConfirm && (
                     <>
-                        <Text style={styles.example}>"런지 10회 5세트 했어"</Text>
-                        <Text style={styles.example}>"러닝 30분 뛰었어"</Text>
+                        <Text style={styles.example}>"데드리프트 2세트 10회 20kg 했어"</Text>
+                        <Text style={styles.example}>"런닝머신 30분 5km 뛰었어"</Text>
                     </>
                 )}
 
@@ -300,6 +313,13 @@ const styles = StyleSheet.create({
         color: "white",
         marginBottom: 10,
     },
+    question2: {
+        fontSize: 30,
+        fontWeight: "700",
+        color: "white",
+        marginLeft: 15,
+        
+    },
     example: {
         fontSize: 16,
         color: "#B3B3B3",
@@ -313,9 +333,16 @@ const styles = StyleSheet.create({
         letterSpacing: 4,
     },
     resultContainer: {
-        flex: 1,
+        // flex: 1,
         justifyContent: 'center', 
         alignItems: 'center',
+        marginTop: 80,
+
+    },
+    resultContainer2: {
+        justifyContent: 'center', 
+        alignItems: 'center',
+        marginTop: 115,
     },
     result: {
         color: "#fff",
@@ -324,6 +351,15 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontWeight: "600",
         marginBottom: 60,
+    },
+    goHistory: {
+        color: "#E1FF01", 
+        fontSize: 18, 
+        fontWeight: "600",
+        marginTop: 80,
+        marginLeft: 145,
+        textDecorationLine: "underline",
+
     },
     voiceButton: {
         position: "absolute",
@@ -343,6 +379,14 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         bottom: 60,
         alignItems: "center",
+    },
+    checkButton2: {
+        backgroundColor: "#E1FF01",
+        width: 40,
+        height: 40,
+        borderRadius: 25,
+        alignItems: "center",
+        justifyContent: "center",
     },
     checkButton: {
         position: 'absolute',

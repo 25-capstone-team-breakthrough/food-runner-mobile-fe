@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import BottomNavigation from "../components/BottomNavigation";
 import FoodItem from "../components/FoodItem";
+import Loading from "../components/Loading";
 import RefreshButton from "../components/RefreshButton";
 import SearchBar from "../components/SearchBar";
 
@@ -16,33 +17,35 @@ const DietRecommendationScreen = () => {
     const [filteredIngredients, setFilteredIngredients] = useState([]);
     const [favoriteIngredients, setFavoriteIngredients] = useState([]);
     const [recommendedRecipes, setRecommendedRecipes] = useState([]);
+    const [isLoading, setIsLoading] = useState(true); // 로딩창
+
 
     // 저장한 식재료 불러오기
-    useEffect(() => {
-      const fetchFavorites = async () => {
-        try {
-          const token = await AsyncStorage.getItem("token");
-          const res = await fetch("http://13.209.199.97:8080/diet/ingredient/pref/load", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+    const fetchFavorites = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const res = await fetch("http://13.209.199.97:8080/diet/ingredient/pref/load", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-          if (!res.ok) throw new Error("즐겨찾기 불러오기 실패");
-          const data = await res.json();
-          // console.log("⭐️ 즐겨찾기 식재료:", data);
-          setFavoriteIngredients(data);
-        } catch (err) {
-          console.error("❌ 즐겨찾기 식재료 불러오기 실패:", err);
-        }
-      };
+        if (!res.ok) throw new Error("즐겨찾기 불러오기 실패");
+        const data = await res.json();
+        // console.log("⭐️ 즐겨찾기 식재료:", data);
+        setFavoriteIngredients(data);
+      } catch (err) {
+        console.error("❌ 즐겨찾기 식재료 불러오기 실패:", err);
+      }
+    };
+    // useEffect(() => {
 
-      // useEffect(() => {
-      //   fetchFavorites(); // 🔄 mount 시에도 호출
-      // }, []);
+    //   useEffect(() => {
+    //     fetchFavorites(); // 🔄 mount 시에도 호출
+    //   }, []);
 
-      fetchFavorites();
-    }, []);
+    //   fetchFavorites();
+    // }, []);
 
     // 식단 추천 생성 rec/set
     const fetchRecommendDietSet = async () => {
@@ -89,10 +92,32 @@ const DietRecommendationScreen = () => {
         }
       };
 
+    // useEffect(() => {
+    //   fetchFavorites();
+    //   fetchRecommendDietSet();
+    //   fetchRecipes();
+    // }, []);
+
     useEffect(() => {
-      fetchRecommendDietSet();
-      fetchRecipes();
+      const loadAllData = async () => {
+        setIsLoading(true);
+        try {
+          fetchRecommendDietSet(); // 💡 먼저 비동기 실행 (await 제거)
+          await Promise.all([
+            fetchFavorites(),
+            fetchRecipes(), // 실질적인 렌더 조건만 기다림
+          ]);
+        } catch (err) {
+          console.error("❌ 데이터 로딩 실패:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadAllData();
     }, []);
+
+
 
     const breakFastRecipe = recommendedRecipes.filter(item => item.dietType === "breakfast");
     const lunchRecipe = recommendedRecipes.filter(item => item.dietType === "lunch");
@@ -218,6 +243,7 @@ const DietRecommendationScreen = () => {
         </ScrollView>
 
         <BottomNavigation />
+        {isLoading && <Loading />}
       </SafeAreaView>
     );
 };
