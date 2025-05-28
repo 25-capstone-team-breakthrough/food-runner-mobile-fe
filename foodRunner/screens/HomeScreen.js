@@ -189,6 +189,7 @@ const handlePickImage = async () => {
   
 
   return (
+    
     <SafeAreaView style={styles.container}>
       {/* 상단 프로필 */}
       <View style={styles.headerContainer}>

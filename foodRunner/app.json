@@ -7,7 +7,8 @@
           "photosPermission": "사진에 접근하려면 권한이 필요합니다.",
           "cameraPermission": "카메라 권한이 필요합니다."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "name": "foodRunner",
     "slug": "foodRunner",
@@ -23,9 +24,9 @@
     },
     "ios": {
       "permissions": [
-      "CAMERA",
-      "MEDIA_LIBRARY"
-    ],
+        "CAMERA",
+        "MEDIA_LIBRARY"
+      ],
       "supportsTablet": true,
       "infoPlist": {
         "NSAppTransportSecurity": {
@@ -47,7 +48,9 @@
       "favicon": "./assets/logo.png",
       "build": {
         "babel": {
-          "include": ["screens"] 
+          "include": [
+            "screens"
+          ]
         }
       }
     }
