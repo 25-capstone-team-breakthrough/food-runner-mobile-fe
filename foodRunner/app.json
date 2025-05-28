@@ -1,6 +1,14 @@
 {
   "expo": {
-    "plugins": [],
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "사진에 접근하려면 권한이 필요합니다.",
+          "cameraPermission": "카메라 권한이 필요합니다."
+        }
+      ]
+    ],
     "name": "foodRunner",
     "slug": "foodRunner",
     "version": "1.0.0",
@@ -14,6 +22,10 @@
       "backgroundColor": "#000000"
     },
     "ios": {
+      "permissions": [
+      "CAMERA",
+      "MEDIA_LIBRARY"
+    ],
       "supportsTablet": true,
       "infoPlist": {
         "NSAppTransportSecurity": {

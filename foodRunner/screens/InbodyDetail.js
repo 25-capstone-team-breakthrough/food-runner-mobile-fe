@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // 상단 
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import InbodyUpload from '../components/InbodyUpload'; // ✅ 업로드 컴포넌트
 
 
 
@@ -31,8 +32,6 @@ const CardChart = ({ title, data = [], unit = 'kg', showXAxis = false }) => {
   const paddingBottom = 24;
   const pointRadius = 4;
   const fontSize = 11;
-
-  
 
   const cleanedData = data
   .map(d => ({
@@ -110,7 +109,8 @@ const CardChart = ({ title, data = [], unit = 'kg', showXAxis = false }) => {
                     x={x}
                     y={chartHeight + 10}
                     fontSize={10}
-                    fill="#aaa"
+                    fill="#fff"
+                    fontWeight={'bold'}
                     textAnchor="middle"
                   >
                     {yyyy}
@@ -119,7 +119,8 @@ const CardChart = ({ title, data = [], unit = 'kg', showXAxis = false }) => {
                     x={x}
                     y={chartHeight + 22}
                     fontSize={10}
-                    fill="#aaa"
+                    fill="#fff"
+                    fontWeight={'bold'}
                     textAnchor="middle"
                   >
                     {`${mm}.${dd}`}
@@ -167,8 +168,39 @@ export default function InbodyDetail() {
   const [photoModalVisible, setPhotoModalVisible] = useState(false);
   const [customSheetVisible, setCustomSheetVisible] = useState(false);
   const [plusButtonLayout, setPlusButtonLayout] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-
+  const openGallery = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.status !== 'granted') {
+      alert("📷 사진 접근 권한이 필요합니다.");
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      quality: 1,
+      // mediaTypes: ImagePicker.MediaTypeOptions.Images, // Deprecated지만 사용 가능
+    });
+  
+    console.log("📦 선택 결과:", result);
+  
+    if (!result.canceled && result.assets?.length > 0) {
+      const uri = result.assets[0].uri;
+      console.log("선택된 이미지 URI:", uri);
+      uploadImage(uri);
+    } else {
+      alert("이미지가 선택되지 않았습니다.");
+    }
+  };
+  
+  // const openGallery = async () => {
+  //   const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, quality: 1 });
+  //   if (!result.canceled && result.assets?.length > 0) {
+  //     const uri = result.assets[0].uri;
+  //     uploadImage(uri); // ✅ 업로드 함수 호출
+  //   }
+  // };
   const navigation = useNavigation();
   const route = useRoute(); // ✅ 여기에 위치
 
@@ -420,7 +452,7 @@ export default function InbodyDetail() {
   })).reverse();
 
   const muscleData = inbodyList.map(item => ({
-    date: formatDate(item.createdAt),
+    date: formatDate(item.createdAt), 
     value: item.skeletalMuscleMass ?? 0
   })).reverse();
   
@@ -455,49 +487,57 @@ export default function InbodyDetail() {
   const BASE_URL = 'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080'; // ✅ 추가
 
   const uploadImage = async (localUri) => {
-    const token = await AsyncStorage.getItem("token");
-    const formData = new FormData();
-    formData.append("file", {
-      uri: localUri,
-      type: "image/jpeg",
-      name: "upload.jpg",
-    });
-  
+    setIsUploading(true); // ✅ 시작 시 true
     try {
+      const token = await AsyncStorage.getItem("token");
+      const formData = new FormData();
+  
+      formData.append("file", {
+        uri: localUri,
+        type: "image/jpeg",
+        name: "upload.jpg",
+      });
+  
       const response = await fetch(`${BASE_URL}/inbody/imageUpload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
   
       if (!response.ok) throw new Error("업로드 실패");
-      alert("✅ 이미지 업로드 완료!");
-      fetchInbodyData();
+  
+      alert("이미지 업로드 완료!");
+      await fetchInbodyData(); // 필요시
+      setCustomSheetVisible(false);
     } catch (err) {
-      console.error("❌ 이미지 업로드 실패:", err);
-      alert("❌ 이미지 업로드 실패");
+      console.error("❌ 업로드 오류", err);
+      alert("업로드 실패");
+    } finally {
+      setIsUploading(false); // ✅ 종료 시 false
     }
   };
-
+  
+  
+  
   const handlePickImage = async () => {
     console.log("🟡 handlePickImage 실행됨");
   
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log("📛 권한 상태:", permissionResult.status);
   
     if (permissionResult.status !== 'granted') {
-      alert("📷 사진 접근 권한이 필요합니다.");
+      alert("사진 접근 권한이 필요합니다.");
       return;
     }
-    console.log(ImagePicker); // 여기서 MediaType이 undefined이면 모듈 문제
-
+  
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
         quality: 1,
-        mediaTypes: [ImagePicker.MediaType.IMAGE]
-        
+        // mediaTypes: ImagePicker.MediaTypeOptions.Images, // 또는 제거 가능
       });
-      
   
       console.log("📦 선택 결과:", result);
   
@@ -508,16 +548,33 @@ export default function InbodyDetail() {
   
       if (result.assets && result.assets.length > 0) {
         const uri = result.assets[0].uri;
-        console.log("✅ 선택된 이미지:", uri);
+        console.log("선택된 이미지 URI:", uri);
         await uploadImage(uri);
       } else {
-        alert("❌ 이미지가 선택되지 않았습니다.");
+        alert("이미지가 선택되지 않았습니다.");
       }
     } catch (err) {
-      console.error("❌ launchImageLibraryAsync 에러:", err);
+      console.error("launchImageLibraryAsync 에러:", err);
       alert("갤러리 실행 중 오류가 발생했습니다.");
     }
   };
+
+  const deleteInbody = async (inbodyId) => {
+    const token = await AsyncStorage.getItem('token');
+    try {
+      await axios.delete(
+        `http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/inbody/inbody-info/${inbodyId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('인바디 정보가 삭제되었습니다.');
+      fetchInbodyData(); // 삭제 후 리스트 갱신
+    } catch (err) {
+      console.error('❌ 인바디 삭제 실패:', err);
+      alert('삭제에 실패했습니다.');
+    }
+  };
+  
+  
   
   
   
@@ -570,42 +627,6 @@ export default function InbodyDetail() {
       </View>
     );
   };
-  
-  
-      
-  
-
-  // const GraphBar = ({ value, min, midStart, midEnd, max }) => {
-  //   const totalRange = max - min;
-  //   const percent = Math.min(Math.max((value - min) / totalRange, 0), 1);
-  
-  //   const barPercent = percent * 100;
-  //   const midStartPercent = ((midStart - min) / totalRange) * 100;
-  //   const midEndPercent = ((midEnd - min) / totalRange) * 100;
-
-  
-  //   return (
-  //     <View style={{ marginBottom: 30 }}>
-  //       <View style={styles.rangeNumberRow}>
-  //         <Text style={styles.rangeNumber}>{min}</Text>
-  //         <Text style={[styles.rangeNumber, { left: `${midStartPercent}%`, position: 'absolute' }]}>{midStart}</Text>
-  //         <Text style={[styles.rangeNumber, { left: `${midEndPercent}%`, position: 'absolute' }]}>{midEnd}</Text>
-  //         <Text style={[styles.rangeNumber, { position: 'absolute', right: 0 }]}>{max} (%)</Text>
-  //       </View>
-  
-  //       {/* 바 영역 */}
-  //       <View style={styles.barBackground}>
-  //         <View style={[styles.barFill, { width: `${barPercent}%` }]}>
-  //           <Text style={styles.barTextInside}>{value}</Text>
-  //         </View>
-  //         {/* 기준선 */}
-  //         <View style={[styles.standardLine, { left: `${midStartPercent}%` }]} />
-  //         <View style={[styles.standardLine, { left: `${midEndPercent}%` }]} />
-  //       </View>
-  //     </View>
-  //   );
-  // };
-
   return (
     <SafeAreaView style={styles.safeArea}> {/* ✅ 상단만 감싸기 */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 20, marginBottom: 10 }}>
@@ -669,13 +690,7 @@ export default function InbodyDetail() {
                     borderBottomWidth: 1,
                     borderColor: '#444',
                   }}
-                  onPress={() => {
-                    console.log("➕ 사진 선택 버튼 클릭됨");
-                    setCustomSheetVisible(false);
-                    setTimeout(() => {
-                      handlePickImage();
-                    }, 500); // 300보다 넉넉하게
-                  }}                  
+                  onPress={openGallery}
                 >
                   <Text style={{ color: '#fff', fontSize: 16 }}>사진 선택</Text>
                   <MaterialIcons name="photo-library" size={22} color="#fff" />
@@ -711,22 +726,39 @@ export default function InbodyDetail() {
               <FlatList
               data={dateOptions}
               keyExtractor={(item, index) => `${item}_${index}`} // ← 고유 key 보장
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => {
-                    setSelectedDate(item);
-                    setModalVisible(false);
-                  }}
-                  style={styles.dateOption}
-                >
-                  <Text style={[
-                    styles.optionText,
-                    item === selectedDate && { color: '#fff', fontWeight: 'bold' }
-                  ]}>
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const target = inbodyList.find(i => formatDate(i.createdAt) === item); // inbodyId 찾기
+                return (
+                  <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingVertical: 12,
+                  }}>
+                    <View style={{ flex: 1, paddingLeft: 57 }}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedDate(item);
+                          setModalVisible(false);
+                        }}
+                      >
+                        <Text style={[
+                          styles.optionText,
+                          item === selectedDate && { color: '#fff', fontWeight: 'bold' }
+                        ]}>
+                          {item}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => deleteInbody(target?.inbodyId)}
+                      style={{ paddingHorizontal: 8 }}
+                    >
+                      <MaterialIcons name="close" size={22} color="#FF4444" />
+                    </TouchableOpacity>
+                  </View>                  
+                );
+              }}              
             />
 
               </View>
@@ -735,13 +767,13 @@ export default function InbodyDetail() {
           <View style={{ alignItems: 'center', marginBottom: 20 }}>
 
       </View>
-
-      
-
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>골격근 지방분석</Text>
-        <Text style={styles.inbodyText}>InBody</Text>
+      <View style={[styles.sectionHeader, { marginTop: -60, marginBottom: 4 }]}>
+        <Text style={[styles.sectionTitle, { marginBottom: -50 }]}>골격근 지방분석</Text>        <Image
+          source={require('../assets/InbodyLogo.png')}
+          style={{ width: 400, height: 150, resizeMode: 'contain', marginLeft: -40, marginBottom: -60 }}
+        />
       </View>
+
       <View style={styles.analysisBox}>
         {[
           { key: 'weight', label: '체중(kg)', value: currentInbody.weight },
@@ -845,9 +877,10 @@ export default function InbodyDetail() {
         <CardChart title="체지방량 (kg)" unit="kg" data={fatData} showXAxis={true} />
         </View>
       </View>
-      <View style={{ height: 200 }} />
+      <View style={{ height: 100 }} />
     </ScrollView>
     </View>
+    {isUploading && <InbodyUpload/>}
     <BottomNavigation/>
     </SafeAreaView>
     
@@ -873,7 +906,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   container: {
-    padding: 20
+    paddingHorizontal: 20, // 좌우 패딩만 유지
   },
   dateRow: {
     alignItems: 'center',
@@ -1086,7 +1119,7 @@ const styles = StyleSheet.create({
   },
   center: {
     top: '45%',
-    left: '61%',
+    left: '50%',
     transform: [{ translateX: -20 }],
   },
   rangeNumberRow: { 

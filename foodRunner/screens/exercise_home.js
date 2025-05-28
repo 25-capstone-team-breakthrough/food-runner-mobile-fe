@@ -257,6 +257,7 @@ export default function ExerciseHome() {
     const fetchCalories = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
+        console.log("🔐 현재 저장된 토큰:", token);
         const res = await axios.get(
           "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/calories",
           {

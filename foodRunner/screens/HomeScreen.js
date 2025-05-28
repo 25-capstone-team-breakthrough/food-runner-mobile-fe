@@ -18,6 +18,9 @@ const HomeScreen = ({ navigation }) => {
   const [inbody, setInbody] = useState(null);
   const [gender, setGender] = useState('');
   const [age, setAge] = useState(0);
+  const [consumedCalories, setConsumedCalories] = useState(0);
+  const [recommendedCalories, setRecommendedCalories] = useState(2000); // 기본값
+
   const BASE_URL = 'http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080';
 
 const uploadImage = async (localUri) => {
@@ -138,12 +141,32 @@ const handlePickImage = async () => {
       if (storedAge) setAge(Number(storedAge));
     };
     
+    
 
     fetchUserName();
     fetchCalories();
     fetchInbody();
     fetchUserProfile();  
   }, []);
+
+  useEffect(() => {
+    const fetchCaloriesFromStorage = async () => {
+      try {
+        const consumed = await AsyncStorage.getItem('todayCalories');
+        const recommended = await AsyncStorage.getItem('todayRecommendedCalories');
+  
+        if (consumed && recommended) {
+          setConsumedCalories(Number(consumed));
+          setRecommendedCalories(Number(recommended));
+        }
+      } catch (err) {
+        console.error("칼로리 가져오기 실패:", err);
+      }
+    };
+  
+    fetchCaloriesFromStorage();
+  }, []);
+  
 
   
   const dateToDisplay = moment().locale('ko').format("MM월 DD일 dddd");
@@ -179,23 +202,23 @@ const handlePickImage = async () => {
         <Icon name="chevron-right" size={26} color="#E1FF01" style={styles.arrowTopRight} />
         <View style={styles.graphRow}>
           <View style={styles.graphWrapper}>
-            <CircularProgress
-              value={1200}
-              radius={60}
-              maxValue={2000}
-              activeStrokeWidth={50}
-              inActiveStrokeWidth={50}
-              progressValueColor={'transparent'}
-              activeStrokeColor={'#E1FF01'}
-              inActiveStrokeColor={'#2a2a2a'}
-              showProgressValue={false}
-            />
+          <CircularProgress
+            value={consumedCalories}
+            radius={60}
+            maxValue={recommendedCalories}
+            activeStrokeWidth={50}
+            inActiveStrokeWidth={50}
+            progressValueColor={'transparent'}
+            activeStrokeColor={'#E1FF01'}
+            inActiveStrokeColor={'#2a2a2a'}
+            showProgressValue={false}
+          />
           </View>
           <View style={styles.textBox}>
             <Text style={styles.label}>섭취한 칼로리</Text>
             <Text style={styles.value}>
-              <Text style={styles.bold}>1,800</Text>
-              <Text style={styles.unit}> / 2,000kcal</Text>
+              <Text style={styles.bold}>{consumedCalories}</Text>
+              <Text style={styles.unit}> / {recommendedCalories}kcal</Text>
             </Text>
           </View>
         </View>
@@ -205,7 +228,7 @@ const handlePickImage = async () => {
         <Icon name="chevron-right" size={26} color="#F91250" style={styles.arrowTopRight} />
         <View style={styles.burnRow}>
           <View style={styles.burnTextBox}>
-            <Text style={styles.burnLabel}>소모한 칼로리</Text>
+            <Text style={styles.burnLabel}>소모한 열량</Text>
             <Text style={styles.burnValue}>{burnedCalories}kcal</Text>
           </View>
           <View style={styles.burnGraphWrapper}>
