@@ -60,8 +60,8 @@ export default function LoginScreen({ navigation }) {
         if (isNewUser === "true") {
           await AsyncStorage.removeItem("isNewUser");
           // 이거 수정하기 
-          navigation.navigate("Home");
-          // navigation.navigate("InputGenderAge");
+          // navigation.navigate("Home");
+          navigation.navigate("InputGenderAge");
         } else {
           navigation.navigate("Home");
         }

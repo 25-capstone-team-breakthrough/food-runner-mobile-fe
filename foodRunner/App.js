@@ -6,6 +6,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCoffee } from '@fortawesome/free-solid-svg-icons';
 import { faCamera, faCapsules, faImage, faMagnifyingGlass } from "@fortawesome/pro-light-svg-icons";
 import { faCircleUser, faDumbbell, faFire, faHeartPulse, faHouse, faUtensils } from "@fortawesome/pro-solid-svg-icons";
+import FontProvider from './components/FontProvider';
 import { ExerciseProvider } from './context/ExerciseContext';
 
 library.add(faHeartPulse, faUtensils, faHouse, faDumbbell, faCircleUser, faCamera, faCapsules, faImage, faMagnifyingGlass, faFire, faCoffee);

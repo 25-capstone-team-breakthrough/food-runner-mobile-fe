@@ -26,6 +26,8 @@ import NutritionCalendarScreen from "./NutritionCalendarScreen";
 
 import { faCamera, faCapsules, faImage, faMagnifyingGlass } from "@fortawesome/pro-light-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 
 const screenWidth = Dimensions.get("window").width;
@@ -92,6 +94,9 @@ const NutritionMainScreen = () => {
     })();
   }, []);
 
+  // 화면 나갓다 들어올때마다 렌더링
+  
+
   const getPlaceholderNutrients = (labels) =>
   labels.map((label) => ({
     name: label,
@@ -113,6 +118,7 @@ const NutritionMainScreen = () => {
     ? smallNutrients
     : getPlaceholderNutrients(["포화지방", "트랜스지방", "콜레스테롤"]);
 
+    // 영양소 칼롤리 띄우기
   const fetchNutritionData = async () => {
     const token = await AsyncStorage.getItem("token");
     const logRes = await fetch(`http://13.209.199.97:8080/diet/nutrition/log/load`, {
@@ -301,6 +307,22 @@ const NutritionMainScreen = () => {
       }
     })();
   }, [selectedItemFromRoute, selectedSupplementFromRoute]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchOnFocus = async () => {
+        try {
+          await fetchNutritionData();
+          await fetchMealLogs();
+          await fetchSupplementLogs();
+        } catch (err) {
+          console.error("❌ 화면 복귀 시 데이터 로딩 실패:", err);
+        }
+      };
+
+      fetchOnFocus();
+    }, [selectedDate])
+  );
 
 
   useEffect(() => {

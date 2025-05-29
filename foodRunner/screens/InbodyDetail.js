@@ -1,18 +1,23 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 상단 import 필요import * as ImagePicker from 'expo-image-picker';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import axios from 'axios';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // ✅ 추가
-import BottomNavigation from "../components/BottomNavigation";
-import { Image } from 'react-native';
-import { Dimensions } from 'react-native';
-import Svg, { Polyline, Circle, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Polyline, Text as SvgText } from 'react-native-svg';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 상단 import 필요import * as ImagePicker from 'expo-image-picker';
-import { useNavigation } from '@react-navigation/native';
-import { useRoute } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
+import BottomNavigation from "../components/BottomNavigation";
 import InbodyUpload from '../components/InbodyUpload'; // ✅ 업로드 컴포넌트
 
 
@@ -868,6 +873,7 @@ export default function InbodyDetail() {
             <Text style={styles.valueText}>
               {currentInbody.minerals} ({muscleFatStandards.minerals?.min.toFixed(1)} ~ {muscleFatStandards.minerals?.max.toFixed(1)})
             </Text>
+
           </View>
         </View>
       </View>

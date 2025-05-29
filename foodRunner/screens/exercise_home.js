@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { BlurView } from "expo-blur";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
   SafeAreaView,
@@ -20,7 +20,6 @@ import Animated, {
   withTiming
 } from "react-native-reanimated";
 import Svg, { Circle, Line, Polyline, Text as SvgText } from "react-native-svg";
-
 // Components
 import BottomNavigation from "../components/BottomNavigation";
 import ExerciseHistory from "../screens/exercise_history";
@@ -254,68 +253,131 @@ export default function ExerciseHome() {
   }, [isBottomSheetVisible]);
 
 
-  useEffect(() => {
-    const fetchCalories = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        console.log("🔐 현재 저장된 토큰:", token);
-        const res = await axios.get(
-          "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/calories",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+  // useEffect(() => {
+  //   const fetchCalories = async () => {
+  //     try {
+  //       const token = await AsyncStorage.getItem("token");
+  //       console.log("🔐 현재 저장된 토큰:", token);
+  //       const res = await axios.get(
+  //         "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/calories",
+  //         {
+  //           headers: { Authorization: `Bearer ${token}` },
+  //         }
+  //       );
   
-        // 📆 선택된 날짜 객체
-        const selected = new Date(selectedDate.replace(/\./g, '-'));
-        const formattedToday = selected.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  //       // 📆 선택된 날짜 객체
+  //       const selected = new Date(selectedDate.replace(/\./g, '-'));
+  //       const formattedToday = selected.toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
-        const allExercisedDates = new Set();
+  //       const allExercisedDates = new Set();
 
-        // ✅ 모든 날짜에서 운동한 날 추출
-        res.data.forEach(log => {
-          const isoDate = log.createdAt.slice(0, 10);
-          if ((log.caloriesBurned || 0) > 0) {
-            allExercisedDates.add(isoDate);
-          }
-        });
+  //       // ✅ 모든 날짜에서 운동한 날 추출
+  //       res.data.forEach(log => {
+  //         const isoDate = log.createdAt.slice(0, 10);
+  //         if ((log.caloriesBurned || 0) > 0) {
+  //           allExercisedDates.add(isoDate);
+  //         }
+  //       });
   
-        // 🗓️ 주간 시작일 (일요일)
-        const startOfWeek = new Date(selected);
-        startOfWeek.setDate(selected.getDate() - selected.getDay());
+  //       // 🗓️ 주간 시작일 (일요일)
+  //       const startOfWeek = new Date(selected);
+  //       startOfWeek.setDate(selected.getDate() - selected.getDay());
   
-        const weekLabels = [];
-        const weekTotals = [];
+  //       const weekLabels = [];
+  //       const weekTotals = [];
         
-        for (let i = 0; i < 7; i++) {
-          const d = new Date(startOfWeek);
-          d.setDate(startOfWeek.getDate() + i);
-          const iso = d.toISOString().slice(0, 10);
-          const label = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-          weekLabels.push(label);
+  //       for (let i = 0; i < 7; i++) {
+  //         const d = new Date(startOfWeek);
+  //         d.setDate(startOfWeek.getDate() + i);
+  //         const iso = d.toISOString().slice(0, 10);
+  //         const label = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  //         weekLabels.push(label);
   
-          const dayLogs = res.data.filter(log => log.createdAt.slice(0, 10) === iso);
-          const total = dayLogs.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
-          weekTotals.push(total);
+  //         const dayLogs = res.data.filter(log => log.createdAt.slice(0, 10) === iso);
+  //         const total = dayLogs.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
+  //         weekTotals.push(total);
   
-          if (iso === formattedToday) {
-            setTotalCalories(total);
-          }
-        }
+  //         if (iso === formattedToday) {
+  //           setTotalCalories(total);
+  //         }
+  //       }
   
-        setWeeklyCalories(weekTotals);
-        setWeekLabels(weekLabels);
-        setExercisedDays(Array.from(allExercisedDates));
+  //       setWeeklyCalories(weekTotals);
+  //       setWeekLabels(weekLabels);
+  //       setExercisedDays(Array.from(allExercisedDates));
 
-      } catch (err) {
-        console.error("❌ 칼로리 조회 실패:", err.response?.data || err.message);
+  //     } catch (err) {
+  //       console.error("❌ 칼로리 조회 실패:", err.response?.data || err.message);
+  //     }
+  //   };
+
+  //   fetchCalories();
+  // }, [selectedDate, refreshKey]);
+
+  // 🔥 useEffect나 useFocusEffect 위쪽에 위치시켜야 함
+const fetchCalories = async () => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+    const res = await axios.get(
+      "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/calories",
+      {
+        headers: { Authorization: `Bearer ${token}` },
       }
-    };
+    );
 
-    fetchCalories();
-  }, [selectedDate, refreshKey]);
-      
-  
+    const selected = new Date(selectedDate.replace(/\./g, '-'));
+    const formattedToday = selected.toISOString().slice(0, 10);
+    const allExercisedDates = new Set();
+
+    const startOfWeek = new Date(selected);
+    startOfWeek.setDate(selected.getDate() - selected.getDay());
+
+    const weekLabels = [];
+    const weekTotals = [];
+    let todayTotal = 0;
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const iso = d.toISOString().slice(0, 10);
+      const label = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+      weekLabels.push(label);
+
+      const dayLogs = res.data.filter(log => log.createdAt.slice(0, 10) === iso);
+      const total = dayLogs.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
+      weekTotals.push(total);
+
+      if (iso === formattedToday) {
+        todayTotal = total;
+      }
+
+      if (dayLogs.some(log => (log.caloriesBurned || 0) > 0)) {
+        allExercisedDates.add(iso);
+      }
+    }
+
+    setTotalCalories(todayTotal);
+    setWeeklyCalories(weekTotals);
+    setWeekLabels(weekLabels);
+    setExercisedDays(Array.from(allExercisedDates));
+
+  } catch (err) {
+    console.error("❌ 칼로리 조회 실패:", err.response?.data || err.message);
+  }
+};
+
+useEffect(() => {
+  fetchCalories();
+}, [selectedDate, refreshKey]);
+
+  // 화면에 들어올 때마다 실행됨
+  useFocusEffect(
+    useCallback(() => {
+      fetchCalories(); 
+    }, [selectedDate])
+  );
+
+
   const onDateSelect = (date) => {
     // 날짜 선택 후 바로 이동하지 않도록 selectedDate 상태만 업데이트
     const formattedDate = date.dateString.split("-").join(".");
