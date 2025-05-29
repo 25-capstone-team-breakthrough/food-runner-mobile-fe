@@ -10,9 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
 import BottomNavigation from "../components/BottomNavigation";
 import RegisterButton from "../components/RegisterButton";
-import SearchBar from "../components/SearchBar";
 
 
 
@@ -156,11 +156,22 @@ const FoodSearchScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.searchBar}>
-        <SearchBar
+        <View style={styles.inputContainer}>
+          <Ionicons name="search" size={20} color="#4E4D4D" style={styles.searchIcon} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="제품명/브랜드명" 
+            placeholderTextColor="#bbb"
+            value={searchText}
+            onChangeText={handleSearch}
+          />
+        </View>
+
+        {/* <SearchBar
           value={searchText}
           onChangeText={handleSearch}
           placeholder="제품명/브랜드명"
-        />
+        /> */}
       </View>
 
       <View style={{ flex: 1 }}>
@@ -275,6 +286,31 @@ const styles = {
   },
   searchBar: {
     alignItems: "center",
+    marginTop: 20,
+  },
+   inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F3F3",
+    width: "90%",
+    borderRadius: 50,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    marginTop: 5,
+    // marginRight: 20,
+    marginBottom: 10,
+    height: 50,
+  },
+  searchIcon: {
+    marginLeft: 10,
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 45,
+    color: "#000",
+    fontSize: 16,
+    paddingHorizontal: 10,
   },
   searchMountText: {
     fontSize: 16,

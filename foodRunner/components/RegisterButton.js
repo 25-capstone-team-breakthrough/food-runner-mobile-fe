@@ -27,9 +27,10 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 25,
+    // fontFamily: 'NotoSansKR_400Regular',
     color: "#000",
     alignSelf: "center",
-    paddingTop: 5,
+    marginTop: -3,
   },
 });
 

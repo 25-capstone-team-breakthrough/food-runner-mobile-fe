@@ -134,6 +134,14 @@ const DietRecommendationScreen = () => {
         showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
           {/* 검색 바 */}
           <TouchableOpacity onPress={() => navigation.navigate("Ingredient")}>
+            {/* <TextInput 
+              value={search}
+              onChangeText={setSearch}
+              placeholder="식재료를 추가해주세요"
+              editable={false} // 눌러도 키보드 안뜨게
+              pointerEvents="none" // 입력 막고 클릭만 허용
+              onPress={() => navigation.navigate("Ingredient")}
+            /> */}
             <SearchBar
               value={search}
               onChangeText={setSearch}
@@ -257,7 +265,7 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     alignItems: "center",
-    paddingBottom: 50,
+    paddingBottom: 100,
   },
   searchBar: {
     flexDirection: "row",
@@ -267,6 +275,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     height: 40,
     marginBottom: 15,
+    marginTop: 40,
   },
   imageSlider: {
     width: "90%",

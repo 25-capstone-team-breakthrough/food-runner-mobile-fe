@@ -1,8 +1,7 @@
-import React from "react";
-import { View, TextInput, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, TextInput, View } from "react-native";
 
-const SearchBar = ({ value, onChangeText, placeholder = "검색어를 입력하세요" }) => {
+const SearchBar = ({ value, onChangeText, placeholder }) => {
   return (
     <View style={styles.searchContainer}>
       <Ionicons name="search" size={20} color="#4E4D4D" style={styles.searchIcon} />
@@ -35,7 +34,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   searchInput: {
-    flex: 1,
+    flex: 99,
     fontSize: 16,
     color: "#000",
   },

@@ -97,6 +97,8 @@ const handlePickImage = async () => {
         const data = await res.json();
         const today = moment().startOf('day');
 
+        console.log("칼로리", data)
+
         const total = data
           .filter(log => moment(log.createdAt).isSame(today, 'day'))
           .reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
@@ -173,19 +175,58 @@ const handlePickImage = async () => {
   
   const dateToDisplay = moment().locale('ko').format("MM월 DD일 dddd");
 
-  const getStatus = (value, type) => {
-    if (!gender || !age) return '';
-    const standards = {
-      weight: gender === 'male' ? [60, 85] : [45, 70],
-      smm: gender === 'male' ? [30, 40] : [20, 30],
-      bfp: gender === 'male' ? [10, 20] : [18, 28]
-    };
+  // const getStatus = (value, type) => {
+  //   console.log("DEBUG | value:", value, "type:", type, "gender:", gender, "age:", age);
+  //   if (!gender || !age) return '';
+  //   const standards = {
+  //     weight: gender === 'male' ? [60, 85] : [45, 70],
+  //     smm: gender === 'male' ? [30, 40] : [20, 30],
+  //     bfp: gender === 'male' ? [10, 20] : [18, 28]
+  //   };
   
-    const [min, max] = standards[type];
+  //   const [min, max] = standards[type];
+  //   if (value < min) return '표준 이하';
+  //   if (value > max) return '표준 이상';
+  //   return '표준';
+  // };
+
+  // const getStatus = (value, type) => {
+  //   console.log("DEBUG | value:", value, "type:", type, "gender:", gender, "age:", age);
+
+  //   if (!gender || age <= 0) return '정보 없음';
+
+  //   const standards = {
+  //     weight: gender === 'male' ? [60, 85] : [45, 70],
+  //     smm: gender === 'male' ? [30, 40] : [20, 30],
+  //     bfp: gender === 'male' ? [10, 20] : [18, 28]
+  //   };
+
+  //   const range = standards[type];
+  //   if (!range) return '기준 없음';
+
+  //   const [min, max] = range;
+  //   if (value < min) return '표준 이하';
+  //   if (value > max) return '표준 이상';
+  //   return '표준';
+  // };
+
+  const getStatus = (value, type) => {
+    // 대략적인 일반 기준값 (비과학적, 참고용)
+    const standards = {
+      weight: [50, 80],         // kg
+      smm: [25, 40],            // 골격근량 (kg)
+      bfp: [15, 25]             // 체지방률 (%)
+    };
+
+    const [min, max] = standards[type] || [0, 0];
+    if (!min && !max) return '기준 없음';
+
     if (value < min) return '표준 이하';
     if (value > max) return '표준 이상';
     return '표준';
   };
+
+
   
 
   return (
@@ -262,7 +303,7 @@ const handlePickImage = async () => {
       <View style={styles.inBodyContainer}>
         {inbody ? (
           [
-            { label: "체중1 (kg)", value: inbody.weight, status: getStatus(inbody.weight, 'weight') },
+            { label: "체중 (kg)", value: inbody.weight, status: getStatus(inbody.weight, 'weight') },
             { label: "골격근량 (kg)", value: inbody.skeletalMuscleMass, status: getStatus(inbody.skeletalMuscleMass, 'smm') },
             { label: "체지방률 (%)", value: inbody.bodyFatPercentage, status: getStatus(inbody.bodyFatPercentage, 'bfp') }
           ].map((item, i) => (
@@ -277,7 +318,8 @@ const handlePickImage = async () => {
                 <Text style={styles.inBodyText}>{item.label}</Text>
                 <Text style={styles.inBodyValue}>{item.value.toFixed(1)}</Text>
                 <View style={styles.inBodyStateContainer}>
-                  <Text style={styles.inBodyState}>{item.status || "표준"}</Text>
+                  {/* <Text style={styles.inBodyState}>{item.status || "표준"}</Text> */}
+                  <Text style={styles.inBodyState}>{item.status}</Text>
                 </View>
               </TouchableOpacity>
             </LinearGradient>
@@ -322,10 +364,11 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     width: '100%',
-    marginBottom: 30,
+    marginBottom: 40,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 30,
   },
   headerText: {
     fontSize: 25,
@@ -341,7 +384,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 30,
     marginRight: 40,
   },
   profile: {
@@ -498,6 +541,8 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     width: '95%',
     height: 180,
+    marginTop: 10,
+    marginBottom: 18,
   },
   burnRow: {
     flexDirection: 'row',

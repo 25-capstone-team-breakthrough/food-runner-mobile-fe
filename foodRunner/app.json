@@ -25,6 +25,8 @@
     "ios": {
       "permissions": [
         "CAMERA",
+        "MEDIA_LIBRARY",
+        "CAMERA",
         "MEDIA_LIBRARY"
       ],
       "supportsTablet": true,
@@ -34,15 +36,18 @@
         },
         "NSPhotoLibraryUsageDescription": "이 앱은 사진을 선택하기 위해 사진 접근 권한이 필요합니다.",
         "NSCameraUsageDescription": "이 앱은 사진을 촬영하기 위해 카메라 권한이 필요합니다."
-      }
+      },
+      "bundleIdentifier": "com.minjuleee.foodRunner"
     },
     "android": {
       "permissions": [
-        "CAMERA",
-        "READ_MEDIA_IMAGES",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ]
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.minjuleee.foodRunner"
     },
     "web": {
       "favicon": "./assets/logo.png",
@@ -52,6 +57,11 @@
             "screens"
           ]
         }
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "301d92bf-72e7-423a-8c2c-f4a7a5c671a9"
       }
     }
   }

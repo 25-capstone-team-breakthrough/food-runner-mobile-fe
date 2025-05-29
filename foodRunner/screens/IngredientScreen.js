@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -6,13 +7,13 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from "react-native";
 import BottomNavigation from "../components/BottomNavigation";
 import RefreshButton from "../components/RefreshButton";
 import RegisterButton from "../components/RegisterButton";
-import SearchBar from "../components/SearchBar";
 
 export default function IngredientScreen({ navigation }) {
   const [search, setSearch] = useState("");
@@ -101,11 +102,38 @@ export default function IngredientScreen({ navigation }) {
       {/* <SearchBar value={search} onChangeText={setSearch} 
         placeholder="식재료를 추가해주세요" 
       /> */}
-      <View style={styles.searchBar}>
-        <SearchBar value={search} onChangeText={setSearch} autoFocus={true} 
+      {/* <View style={styles.searchBar}> */}
+        {/* <TextInput value={search} onChangeText={setSearch} autoFocus={true} 
           placeholder="식재료를 추가해주세요" 
-        />
+          style
+        /> */}
+        {/* <SearchBar value={search} onChangeText={setSearch} autoFocus={true} 
+          placeholder="식재료를 추가해주세요" 
+        /> */}
+      {/* </View> */}
+      <View style={styles.searchBar}> 
+        <View style={styles.inputContainer}>
+          <Ionicons name="search" size={20} color="#4E4D4D" style={styles.searchIcon} />
+          <TextInput 
+            style={styles.input} 
+            placeholder="식재료를 추가해주세요" 
+            placeholderTextColor="#000"
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
       </View>
+
+      {/* <View style={styles.searchContainer}> */}
+        {/* <Ionicons name="search" size={20} color="#4E4D4D" style={styles.searchIcon} /> */}
+        {/* <TextInput
+          style={styles.searchInput}
+          placeholder="식재료를 추가해주세요" 
+          placeholderTextColor="#ccc"
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View> */}
 
       {filteredItems.length > 0 ? (
         <>
@@ -281,6 +309,55 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     alignItems: "center",
+    marginTop: 20,
+  },
+   inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F3F3",
+    width: "90%",
+    borderRadius: 50,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    marginTop: 5,
+    // marginRight: 20,
+    marginBottom: 10,
+    height: 50,
+  },
+  searchIcon: {
+    marginLeft: 10,
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 45,
+    color: "#000",
+    fontSize: 16,
+    paddingHorizontal: 10,
+  },
+  // searchBar: {
+  //   alignItems: "center",
+  // },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F3F3",
+    width: "90%",
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderRadius: 50,
+    marginTop: 5,
+    marginBottom: 10,
+    height: 50,
+  },
+  searchIcon: {
+    marginLeft: 10,
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 99,
+    fontSize: 16,
+    color: "#000",
   },
   searchMountText: {
     fontSize: 16,

@@ -458,14 +458,23 @@ const NutritionMainScreen = () => {
   }, []);
 
 
-  
   const openCamera = async () => {
-    const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 1 });
-    if (!result.canceled && result.assets?.length > 0) {
-      const uri = result.assets[0].uri;
-      uploadAndSaveMealLog(uri); 
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 1,
+      });
+      console.log("카메라 결과:", result);
+
+      if (!result.canceled && result.assets?.length > 0) {
+        const uri = result.assets[0].uri;
+        uploadAndSaveMealLog(uri); 
+      }
+    } catch (err) {
+      console.error("❌ 카메라 실행 오류:", err);
     }
   };
+
 
   const openGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, quality: 1 });
@@ -488,7 +497,7 @@ const NutritionMainScreen = () => {
 
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F3F3", paddingTop: 30 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F3F3", paddingTop: 40 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.dateContainer}>
           {/* 캘린더 */}
@@ -845,7 +854,7 @@ const styles = {
     fontSize: 14,
     fontWeight: "500",
     color: "#363636",
-    marginTop: 5,
+    marginTop: 0,
     marginLeft: 40,
     marginBottom: 5,
   },
@@ -873,7 +882,7 @@ const styles = {
     width: "85%",
     backgroundColor: "#DDDDDD",
     marginVertical: 15,
-    marginTop: 3,
+    marginTop: 0,
     alignSelf: "center",
   },
 };
