@@ -317,13 +317,14 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "white",
         marginBottom: 10,
+        fontFamily: 'NotoSansKR_400Regular'
     },
     question2: {
         fontSize: 30,
         fontWeight: "700",
         color: "white",
         marginLeft: 15,
-        
+        fontFamily: 'NotoSansKR_400Regular'
     },
     example: {
         fontSize: 16,

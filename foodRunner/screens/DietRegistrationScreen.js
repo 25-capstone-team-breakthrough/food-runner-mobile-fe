@@ -270,9 +270,11 @@ const styles = {
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: 20,
   },
   searchBar: {
     alignItems: "center",
+    opacity: 1, 
   },
   searchMountText: {
     fontSize: 16,

@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Linking } from "react-native";
-import * as FileSystem from 'expo-file-system'; //임시
+import { useEffect, useRef, useState } from "react";
+import { FlatList, Image, Linking, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 
 const ITEM_WIDTH = 120; // category button width
@@ -15,46 +13,10 @@ export default function ExerciseRecommendVideo() {
   const route = useRoute();
   const categoryRef = useRef(null);
 
-  const cacheFileUri = FileSystem.documentDirectory + 'videoCache.json'; // 임시 캐시 파일 경로
-  useEffect(() => {
-    fetchVideos();
-  }, [selectedCategory]); //임시
-
-  const saveVideoCache = async (data) => { // 임시 캐시 저장
-    try {
-      await FileSystem.writeAsStringAsync(cacheFileUri, JSON.stringify(data));
-      console.log("✅ 캐시 저장 완료");
-    } catch (e) {
-      console.error("❌ 캐시 저장 실패:", e);
-    }
-  };
-
-  const loadVideoCache = async () => {
-    try {
-      const content = await FileSystem.readAsStringAsync(cacheFileUri);
-      return JSON.parse(content);
-    } catch (e) {
-      console.log("📭 캐시 없음 또는 읽기 실패:", e);
-      return null;
-    }
-  };
-  
-
-
   const categories = ["어깨", "가슴", "팔", "하체", "복근", "등", "둔근", "종아리"];
   const [selectedCategory, setSelectedCategory] = useState("어깨");
   const [videoData, setVideoData] = useState({ recommended: [], searched: {},});
-  const [loading, setLoading] = useState(true);
-  // 이건 유튜브 사용량때문에 만든 코드
-  const loadCachedVideos = async (category) => {
-    const json = await AsyncStorage.getItem(`videos_${category}`);
-    return json ? JSON.parse(json) : null;
-  };
-  
-  const saveVideosToCache = async (category, videos) => {
-    await AsyncStorage.setItem(`videos_${category}`, JSON.stringify(videos));
-  };
-  
+
   const categoryMap = {
     "어깨": "어깨",
     "가슴": "가슴",
@@ -67,35 +29,33 @@ export default function ExerciseRecommendVideo() {
   };
   
   const fetchVideos = async () => {
-    const cachedData = await loadVideoCache();
-    if (cachedData?.searched?.[selectedCategory]) {
-      console.log(`✅ 캐시에서 '${selectedCategory}' 카테고리 영상 불러옴`);
-      setVideoData(cachedData);
-      return;
-    }
-  
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get("http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/videos/exercises", {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
-      const videos = response.data.searched[selectedCategory]?.slice(0, 1) || [];
+      console.log("🔍 전체 응답 데이터:", response.data);
+      const searchedCategory = categoryMap[selectedCategory];
+      const videos = response.data.searched[searchedCategory] || [];
+
       const newData = {
         recommended: response.data.recommended || [],
         searched: {
           ...response.data.searched,
-          [selectedCategory]: videos,
+          [searchedCategory]: videos,
         }
       };
-  
-      console.log(`🌐 서버에서 '${selectedCategory}' 카테고리 영상 새로 불러옴`);
+
       setVideoData(newData);
-      await saveVideoCache(newData);
+      console.log(`🌐 서버에서 '${selectedCategory}' 영상 불러옴`);
     } catch (error) {
       console.error("❌ 영상 불러오기 실패:", error);
     }
-  };  // 임시
+  };
+
+  useEffect(() => {
+    fetchVideos();
+  }, [selectedCategory]);
 
   // useEffect(() => {
   //   const fetchVideos = async () => {
@@ -124,11 +84,7 @@ export default function ExerciseRecommendVideo() {
       const index = categories.findIndex((c) => c === incoming);
       setSelectedCategory(incoming);
       setTimeout(() => {
-        categoryRef.current?.scrollToIndex({
-          index,
-          animated: true,
-          viewPosition: 0.5, // 중앙 정렬
-        });
+        categoryRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
       }, 300);
     }
   }, [route.params]);

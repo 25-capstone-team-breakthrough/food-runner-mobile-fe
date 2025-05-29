@@ -1,4 +1,3 @@
-import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 const RegisterButton = ({ onPress, title="등록하기", style }) => {
@@ -24,6 +23,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.4,
     shadowRadius: 3,
+    elevation: 5,
   },
   registerText: {
     fontSize: 25,

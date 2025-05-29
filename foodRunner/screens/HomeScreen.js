@@ -262,7 +262,7 @@ const handlePickImage = async () => {
       <View style={styles.inBodyContainer}>
         {inbody ? (
           [
-            { label: "체중 (kg)", value: inbody.weight, status: getStatus(inbody.weight, 'weight') },
+            { label: "체중1 (kg)", value: inbody.weight, status: getStatus(inbody.weight, 'weight') },
             { label: "골격근량 (kg)", value: inbody.skeletalMuscleMass, status: getStatus(inbody.skeletalMuscleMass, 'smm') },
             { label: "체지방률 (%)", value: inbody.bodyFatPercentage, status: getStatus(inbody.bodyFatPercentage, 'bfp') }
           ].map((item, i) => (
@@ -277,7 +277,7 @@ const handlePickImage = async () => {
                 <Text style={styles.inBodyText}>{item.label}</Text>
                 <Text style={styles.inBodyValue}>{item.value.toFixed(1)}</Text>
                 <View style={styles.inBodyStateContainer}>
-                  <Text style={styles.inBodyState}>{item.status}</Text>
+                  <Text style={styles.inBodyState}>{item.status || "표준"}</Text>
                 </View>
               </TouchableOpacity>
             </LinearGradient>
@@ -318,6 +318,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
     alignItems: 'center',
+    // marginTop: 20,
   },
   headerContainer: {
     width: '100%',
@@ -411,6 +412,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     marginTop: 5,
+    zIndex: 10,               
+    position: 'relative',  
   },
   inBodyState: {
     color: "#DDFB21",

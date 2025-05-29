@@ -315,60 +315,69 @@ export default function ExerciseHome() {
   // }, [selectedDate, refreshKey]);
 
   // 🔥 useEffect나 useFocusEffect 위쪽에 위치시켜야 함
-const fetchCalories = async () => {
-  try {
-    const token = await AsyncStorage.getItem("token");
-    const res = await axios.get(
-      "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/calories",
-      {
-        headers: { Authorization: `Bearer ${token}` },
+  const fetchCalories = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await axios.get(
+        "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/calories",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      const selected = new Date(selectedDate.replace(/\./g, '-'));
+      const formattedToday = selected.toISOString().slice(0, 10);
+  
+      const allExercisedDates = new Set();
+  
+      // ✅ 모든 운동 기록에서 날짜 추출 (달력 점 찍기용)
+      res.data.forEach(log => {
+        const isoDate = log.createdAt.slice(0, 10);
+        if ((log.caloriesBurned || 0) > 0) {
+          allExercisedDates.add(isoDate);
+        }
+      });
+  
+      // ✅ 주간 정보 계산
+      const startOfWeek = new Date(selected);
+      startOfWeek.setDate(selected.getDate() - selected.getDay());
+  
+      const weekLabels = [];
+      const weekTotals = [];
+      let todayTotal = 0;
+  
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
+        const iso = d.toISOString().slice(0, 10);
+        const label = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+        weekLabels.push(label);
+  
+        const dayLogs = res.data.filter(log => log.createdAt.slice(0, 10) === iso);
+        const total = dayLogs.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
+        weekTotals.push(total);
+  
+        if (iso === formattedToday) {
+          todayTotal = total;
+        }
       }
-    );
-
-    const selected = new Date(selectedDate.replace(/\./g, '-'));
-    const formattedToday = selected.toISOString().slice(0, 10);
-    const allExercisedDates = new Set();
-
-    const startOfWeek = new Date(selected);
-    startOfWeek.setDate(selected.getDate() - selected.getDay());
-
-    const weekLabels = [];
-    const weekTotals = [];
-    let todayTotal = 0;
-
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(startOfWeek);
-      d.setDate(startOfWeek.getDate() + i);
-      const iso = d.toISOString().slice(0, 10);
-      const label = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-      weekLabels.push(label);
-
-      const dayLogs = res.data.filter(log => log.createdAt.slice(0, 10) === iso);
-      const total = dayLogs.reduce((sum, log) => sum + (log.caloriesBurned || 0), 0);
-      weekTotals.push(total);
-
-      if (iso === formattedToday) {
-        todayTotal = total;
-      }
-
-      if (dayLogs.some(log => (log.caloriesBurned || 0) > 0)) {
-        allExercisedDates.add(iso);
-      }
+  
+      setTotalCalories(todayTotal);
+      setWeeklyCalories(weekTotals);
+      setWeekLabels(weekLabels);
+  
+      // 🔥 달 전체 운동 기록 반영
+      setExercisedDays(Array.from(allExercisedDates));
+  
+    } catch (err) {
+      console.error("❌ 칼로리 조회 실패:", err.response?.data || err.message);
     }
-
-    setTotalCalories(todayTotal);
-    setWeeklyCalories(weekTotals);
-    setWeekLabels(weekLabels);
-    setExercisedDays(Array.from(allExercisedDates));
-
-  } catch (err) {
-    console.error("❌ 칼로리 조회 실패:", err.response?.data || err.message);
-  }
-};
-
-useEffect(() => {
-  fetchCalories();
-}, [selectedDate, refreshKey]);
+  };
+  
+  useEffect(() => {
+    fetchCalories();
+  }, [selectedDate, refreshKey]);
+  
 
   // 화면에 들어올 때마다 실행됨
   useFocusEffect(
@@ -694,6 +703,7 @@ useEffect(() => {
         sheetRef={sheetRef}
         onClose={handleCloseBottomSheet}
         setRefreshKey={setRefreshKey} 
+        selectedDate={selectedDate} 
         snapPoints={["80%"]}
         index={-1}
       />

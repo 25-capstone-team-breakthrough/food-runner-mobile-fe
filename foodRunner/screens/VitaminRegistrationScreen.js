@@ -271,6 +271,7 @@ const styles = {
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: 20,
   },
   searchBar: {
     alignItems: "center",

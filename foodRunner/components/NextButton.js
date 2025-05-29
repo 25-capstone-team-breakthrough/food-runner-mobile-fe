@@ -1,5 +1,4 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 // 성별, 나이, 키, 몸무게 회원정보 입력 다음 버튼 컴포넌트
 
@@ -26,6 +25,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
+    elevation: 5, // Android 그림자
+    // backgroundColor: '#fff',
     },
     nextButtonText: {
     fontSize: 18,

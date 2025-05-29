@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
-import { View, StyleSheet, TouchableOpacity, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRef } from "react";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 
 // 재료 추가 새로고침 버튼
 const RefreshButton = ({ onPress }) => {
@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20, // 여백 조정
     width: "100%",
+    elevation: 5,
   },
   circle: {
     width: 38,
@@ -50,6 +51,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },

@@ -28,6 +28,7 @@ import { faCamera, faCapsules, faImage, faMagnifyingGlass } from "@fortawesome/p
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 const screenWidth = Dimensions.get("window").width;
@@ -35,6 +36,7 @@ const viewWidth = screenWidth - 58;
 
 
 const NutritionMainScreen = () => {
+  const insets = useSafeAreaInsets();
   
   const route = useRoute();
   const navigation = useNavigation();
@@ -486,7 +488,7 @@ const NutritionMainScreen = () => {
 
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F3F3" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F3F3F3", paddingTop: 30 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.dateContainer}>
           {/* 캘린더 */}
@@ -836,6 +838,8 @@ const styles = {
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
+    elevation: 5, // Android 그림자
+    backgroundColor: '#fff',
   },
   photoText: {
     fontSize: 14,

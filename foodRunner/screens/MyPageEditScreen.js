@@ -109,7 +109,7 @@ const MyPageEditScreen = ({ navigation }) => {
             <Text style={styles.headerText}>{name}님의 마이페이지</Text>
           </View>
         </View>
-        <Text style={styles.title}>변경된 사항을{"\n"}수정해주세요</Text>
+        <Text style={[styles.title, { fontFamily: 'NotoSansKR_400Regular' }]}>변경된 사항을{"\n"}수정해주세요</Text>
 
         <Text style={styles.label}>성별</Text>
         <View style={styles.genderContainer}>
@@ -187,8 +187,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: "600",
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: 10,
+    marginBottom: 10,
   },
   label: {
     fontSize: 22,

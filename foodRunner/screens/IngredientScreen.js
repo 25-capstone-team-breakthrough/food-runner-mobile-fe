@@ -102,7 +102,7 @@ export default function IngredientScreen({ navigation }) {
         placeholder="식재료를 추가해주세요" 
       /> */}
       <View style={styles.searchBar}>
-        <SearchBar value={search} onChangeText={setSearch} 
+        <SearchBar value={search} onChangeText={setSearch} autoFocus={true} 
           placeholder="식재료를 추가해주세요" 
         />
       </View>
@@ -277,6 +277,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: 30,
   },
   searchBar: {
     alignItems: "center",
@@ -353,6 +354,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
+    elevation: 5, // Android 그림자
+    backgroundColor: '#fff',
   },
   pressedEffect: {
     backgroundColor: "#EEEDED",
