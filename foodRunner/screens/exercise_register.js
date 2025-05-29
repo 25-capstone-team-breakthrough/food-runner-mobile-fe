@@ -19,7 +19,7 @@ import { Alert } from "react-native"; // 상단에 추가
 
 
 
-export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
+export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey, selectedDate }) {
   const [exerciseName, setExerciseName] = useState("");
   const [favorites, setFavorites] = useState({});
   const [exerciseList, setExerciseList] = useState([]);
@@ -106,17 +106,20 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
   
   const handleSave = async () => {
     const token = await AsyncStorage.getItem("token");
-  
+    const createdAt = selectedDate.replace(/\./g, '-') + "T00:00:00";
+
     if (currentExercise.type === "근력") {
       const payload = {
         exerciseId: currentExercise.ExerciseId,
+        createdAt,
         strengthSets: setData.map((set) => ({
           sets: set.set,
           reps: Number(set.reps),
           weight: Number(set.weight),
         })),
       };
-  
+      console.log("📦 전송 payload:", payload);
+
       try {
         const res = await axios.post(
           "http://ec2-13-209-199-97.ap-northeast-2.compute.amazonaws.com:8080/exercise/log",
@@ -146,6 +149,7 @@ export default function ExerciseRegister({ sheetRef, onClose, setRefreshKey }) {
   
       const payload = {
         exerciseId: currentExercise.ExerciseId,
+        createdAt,
         distance,
         time: parseInt(duration),
         pace: cardioData.paceValue,

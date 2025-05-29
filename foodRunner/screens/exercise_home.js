@@ -694,6 +694,7 @@ useEffect(() => {
         sheetRef={sheetRef}
         onClose={handleCloseBottomSheet}
         setRefreshKey={setRefreshKey} 
+        selectedDate={selectedDate} 
         snapPoints={["80%"]}
         index={-1}
       />
