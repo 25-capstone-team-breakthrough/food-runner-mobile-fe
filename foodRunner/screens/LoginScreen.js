@@ -59,7 +59,9 @@ export default function LoginScreen({ navigation }) {
         console.log("로그인 성공:", data);
         if (isNewUser === "true") {
           await AsyncStorage.removeItem("isNewUser");
-          navigation.navigate("InputGenderAge");
+          // 이거 수정하기 
+          navigation.navigate("Home");
+          // navigation.navigate("InputGenderAge");
         } else {
           navigation.navigate("Home");
         }
