@@ -175,6 +175,13 @@ export default function InbodyDetail() {
   const [plusButtonLayout, setPlusButtonLayout] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  const getRecentNItems = (list, n = 7) => {
+    return [...list]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, n)
+      .reverse();
+  };
+  
   const openGallery = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.status !== 'granted') {
@@ -451,35 +458,32 @@ export default function InbodyDetail() {
     fat: item.bodyFatAmount,
   })).reverse();
 
-  const weightData = inbodyList.map(item => ({
-    date: formatDate(item.createdAt),
-    value: item.weight ?? 0
-  })).reverse();
-
-  const muscleData = inbodyList.map(item => ({
-    date: formatDate(item.createdAt), 
-    value: item.skeletalMuscleMass ?? 0
-  })).reverse();
+  // ✅ 최근 7개만 사용
+  const recentItems = useMemo(() => {
+    return getRecentNItems(inbodyList, 7);
+  }, [inbodyList]);
   
-  const fatData = inbodyList.map(item => ({
-    date: formatDate(item.createdAt),
-    value: item.bodyFatAmount ?? 0
-  })).reverse();
+  const weightData = useMemo(() => {
+    return recentItems.map(item => ({
+      date: formatDate(item.createdAt),
+      value: item.weight ?? 0
+    }));
+  }, [recentItems]);
   
-
-  const generateGraphData = (field) => {
-    if (!inbodyList || !Array.isArray(inbodyList) || inbodyList.length === 0) {
-      return [{ x: '데이터없음', y: 0 }];
-    }
+  const muscleData = useMemo(() => {
+    return recentItems.map(item => ({
+      date: formatDate(item.createdAt),
+      value: item.skeletalMuscleMass ?? 0
+    }));
+  }, [recentItems]);
   
-    return inbodyList.map(item => {
-      const date = item.createdAt?.split("T")[0] || "날짜없음";
-      return {
-        x: date.replace(/-/g, "."),
-        y: item[field] || 0,
-      };
-    }).reverse(); // 최신순 정렬
-  };
+  const fatData = useMemo(() => {
+    return recentItems.map(item => ({
+      date: formatDate(item.createdAt),
+      value: item.bodyFatAmount ?? 0
+    }));
+  }, [recentItems]);
+  
   const muscleFatStandards = useMemo(() => {
     const standards = calculateStandards(userInfo);
     return standards;
@@ -511,7 +515,15 @@ export default function InbodyDetail() {
         body: formData,
       });
   
-      if (!response.ok) throw new Error("업로드 실패");
+      if (!response.ok) {
+        const errorText = await response.text(); // 👈 서버 응답 body 확인
+        console.error("❌ 업로드 실패 응답:", {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+        });
+        throw new Error("업로드 실패");
+      }
   
       alert("이미지 업로드 완료!");
       await fetchInbodyData(); // 필요시

@@ -35,6 +35,7 @@ export default function ExerciseRecommendVideo() {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("🔍 전체 응답 데이터:", response.data);
+
       const searchedCategory = categoryMap[selectedCategory];
       const videos = response.data.searched[searchedCategory] || [];
 
@@ -134,7 +135,7 @@ export default function ExerciseRecommendVideo() {
         <View style={styles.exerciseList}>
           <Text style={styles.exerciseListTitle}>AI 추천 영상</Text>
           <FlatList
-            data={videoData.recommended}
+            data={videoData.recommended} // 🔥 전체 추천 영상 다 보여주기
             keyExtractor={(item, index) => `${item.videoId}-${index}`}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -151,38 +152,39 @@ export default function ExerciseRecommendVideo() {
                   <Text style={styles.exerciseText} numberOfLines={1}>{item.title}</Text>
                 </View>
               </TouchableOpacity>
-            )}            
+            )}
           />
         </View>
       )}
       {/* 일반 검색 영상 */}
-      <View style={styles.exerciseList}>
-      <FlatList
-        data={videoData.searched[categoryMap[selectedCategory]] || []}
-        keyExtractor={(item, index) => `${item.videoId}-${index}`}
-        numColumns={2}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        ListHeaderComponent={() => (
-          <Text style={styles.exerciseListTitle}>유튜브 검색 영상</Text>
-        )}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.exerciseItem}
-            onPress={() => Linking.openURL(item.url)}
-          >
-            <View style={styles.exerciseBox}>
-              <Image
-                source={{ uri: `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` }}
-                style={styles.thumbnail}
-              />
-              <Text style={styles.exerciseText} numberOfLines={1}>{item.title}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={styles.searchedList}>
+        <FlatList
+          data={videoData.searched[categoryMap[selectedCategory]] || []}
+          keyExtractor={(item, index) => `${item.videoId}-${index}`}
+          numColumns={2}
+          columnWrapperStyle={{ justifyContent: "space-between" }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          ListHeaderComponent={() => (
+            <Text style={styles.exerciseListTitle}>유튜브 검색 영상</Text>
+          )}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.exerciseItem}
+              onPress={() => Linking.openURL(item.url)}
+            >
+              <View style={styles.exerciseBox}>
+                <Image
+                  source={{ uri: `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg` }}
+                  style={styles.thumbnail}
+                />
+                <Text style={styles.exerciseText} numberOfLines={1}>{item.title}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
       </View>
+
     </SafeAreaView>
   );
 }
@@ -284,4 +286,10 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 100,
   },
+  searchedList: {
+    flex: 1,
+    paddingHorizontal: 20,
+    marginTop: -300, // ✅ 기존보다 줄임 (또는 0으로 완전 붙게)
+  },
+  
 });
