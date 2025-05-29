@@ -715,55 +715,58 @@ export default function InbodyDetail() {
             </TouchableOpacity>
           </Modal>
         )}
-
-
-
-
-        {/* 날짜 모달 */}
+        
         <Modal transparent visible={modalVisible} animationType="fade">
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.modalOverlay}
+            onPressOut={() => setModalVisible(false)} // 👈 바깥 클릭 시 닫기
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.modalContent}
+              onPress={() => {}} // 👈 내부 터치 이벤트 무시 (닫히지 않도록)
+            >
               <FlatList
-              data={dateOptions}
-              keyExtractor={(item, index) => `${item}_${index}`} // ← 고유 key 보장
-              renderItem={({ item }) => {
-                const target = inbodyList.find(i => formatDate(i.createdAt) === item); // inbodyId 찾기
-                return (
-                  <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingVertical: 12,
-                  }}>
-                    <View style={{ flex: 1, paddingLeft: 57 }}>
+                data={dateOptions}
+                keyExtractor={(item, index) => `${item}_${index}`}
+                renderItem={({ item }) => {
+                  const target = inbodyList.find(i => formatDate(i.createdAt) === item);
+                  return (
+                    <View style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingVertical: 12,
+                    }}>
+                      <View style={{ flex: 1, paddingLeft: 57 }}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setSelectedDate(item);
+                            setModalVisible(false);
+                          }}
+                        >
+                          <Text style={[
+                            styles.optionText,
+                            item === selectedDate && { color: '#fff', fontWeight: 'bold' }
+                          ]}>
+                            {item}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                       <TouchableOpacity
-                        onPress={() => {
-                          setSelectedDate(item);
-                          setModalVisible(false);
-                        }}
+                        onPress={() => deleteInbody(target?.inbodyId)}
+                        style={{ paddingHorizontal: 8 }}
                       >
-                        <Text style={[
-                          styles.optionText,
-                          item === selectedDate && { color: '#fff', fontWeight: 'bold' }
-                        ]}>
-                          {item}
-                        </Text>
+                        <MaterialIcons name="close" size={22} color="#FF4444" />
                       </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => deleteInbody(target?.inbodyId)}
-                      style={{ paddingHorizontal: 8 }}
-                    >
-                      <MaterialIcons name="close" size={22} color="#FF4444" />
-                    </TouchableOpacity>
-                  </View>                  
-                );
-              }}              
-            />
-
-              </View>
-            </View>
-          </Modal>
+                  );
+                }}
+              />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
           <View style={{ alignItems: 'center', marginBottom: 20 }}>
 
       </View>

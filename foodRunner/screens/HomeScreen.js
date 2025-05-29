@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     marginTop: -30,
-    marginBottom: -40,
+    marginBottom: -30,
     paddingHorizontal: 20,
   },
   inbodylogo: {
