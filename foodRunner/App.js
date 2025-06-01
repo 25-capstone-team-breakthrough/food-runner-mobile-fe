@@ -12,6 +12,8 @@ import { ExerciseProvider } from './context/ExerciseContext';
 
 
 library.add(faHeartPulse, faUtensils, faHouse, faDumbbell, faCircleUser, faCamera, faCapsules, faImage, faMagnifyingGlass, faFire, faCoffee);
+console.warn = () => {};
+console.error = () => {};
 
 
 export default function App() {

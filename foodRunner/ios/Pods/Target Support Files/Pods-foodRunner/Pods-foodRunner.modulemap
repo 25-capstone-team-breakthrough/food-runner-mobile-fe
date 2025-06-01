@@ -1,0 +1,6 @@
+module Pods_foodRunner {
+  umbrella header "Pods-foodRunner-umbrella.h"
+
+  export *
+  module * { export * }
+}

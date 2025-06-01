@@ -598,18 +598,21 @@ export default function InbodyDetail() {
   
   const handleTakePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
+
     if (!permission.granted) {
       alert("카메라 권한이 필요합니다.");
       return;
     }
   
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 1,
     });
   
+    console.log("📸 카메라 결과:", result);
+  
     if (!result.canceled && result.assets?.length) {
-      await uploadImage(result.assets[0].uri);
+      alert("사진 촬영 성공!");
     }
   };
 
